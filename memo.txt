@@ -1,0 +1,123 @@
+npm run build
+
+
+TODO
+now: とりあえず最初のレンダリングまで持っていく
+  デバッグ
+future:
+  git
+  js->glslのシリアライズ/デシリアライズ
+  photon-mapping
+soooooon:
+  glslify-loader
+  template-literals-loader
+
+
+Vec2Dの導入
+camera
+  resolution
+  glsl側のコンストラクタを整理(ts側で初期化周りを処理しているので)
+  構造体やコンストラクタ無しにcamera_FUNCだけでいいか
+
+getGlDeclarations
+getGlImplementations
+
+
+パストレーシング、計算誤差の影響が結構大きい(ray.directionの精度?)
+
+
+rgb<->hsv
+
+右手系の座標を扱う: cross(x,y) = z
+
+環境光(ambient)
+  色も強度も一定
+拡散反射(diffuse, ランバート反射)
+  photon入射ベクトルと面の法線で決まる
+  視線は関係なし
+鏡面反射(specular, 鏡面ハイライト-ガウス分布)
+  視線と入射ベクトルと面の法線で決まる
+  強度変化のみ、色の変化なし
+
+入射光エネルギー = drain + (1-drain)( metalness + (1-metalness)( (1-transparency) + transparency ) )
+  drain: 吸収
+  metalness: 鏡面反射
+  transparency: 屈折透過
+refraction: 屈折率
+  metalnessは媒質の屈折率から求められるが、入射前/入射後両方の値が必要になる
+  屈折率を必ず持つか、持たないなら0と仮定するなどが必要になってくる
+
+
+球面ガウス関数による近似?
+
+
+ray-marching
+  反射/屈折後に2*EPSだけ進める?
+  いずれphoton-mappingを導入したい
+    ComputeShaderでフォトンを設置後、vs/fsで利用?
+    Diffuseのみを扱う
+    屈折光のray-marchingどうする?
+      距離関数が負のとき
+        陰面消去の判定を反転
+        距離の符号を反転
+      反射するか屈折するかを乱数で
+  fogとかsubsurfaceとか
+    pathFilter(distance, in Photon, out Photon)
+  カメラ側からの探索では鏡面反射と透過光を両方出す?(計算量*2^depth)
+
+
+photonの立方体範囲探索
+  直交座標ごとの探索
+    x座標ソート、y座標ソート、z座標ソートを用意しておく
+    各座標ソートに対し二分探索で最近傍を取得
+    最近傍から上下に線形探索して範囲内集合を取得
+    各座標範囲内集合をidソート
+    論理積集合を得る
+  量子化ボクセルでの探索
+    Hash<(x,y,z), Vector<T>> table
+  kd木による探索
+
+photon総数=Nのとき、photonを単一バッファ上の仮想Vectorに分割格納するには
+  Photon buffer[N]
+  struct Vector {offset, size}
+
+photonはDrawableの表面にのみ生成される
+  drawable_idから探索可能か
+  drawable_idは媒質の情報を得るのにも使えそう
+
+
+
+モデル形状はOpenSCADで確認しながら作るほうが楽かも
+
+npm init
+npm install webpack webpack-cli -D
+npm install typescript ts-loader -D
+npm install raw-loader -D
+/*
+npm install glslify glslify-import -D
+npm install glslify-loader glslify-import-loader -D
+npm install template-literals-loader -D
+*/
+
+
+GLSL
+ポインタが無い(in/out修飾子を使う)
+関数ポインタも無い
+  idで地道に分岐(あるいは*0)する
+オーバーロードは可
+typedefが無い
+  ただしstructはいちいち付けなくていい
+mat系の添え字は[列][行]の順なので注意
+円周率定義なし。PI = radians(180)
+キャスト演算子なし。float(num)のように書く
+
+
+GLSLのテンプレートを別ファイルで保持、TypeScriptにテンプレートリテラルとしてimport
+  template-literals-loader
+  raw-loaderでtextとして読んでtemplate-literalとして評価
+GLSLのプリプロセッサも利用できる
+  #define FUNC_id(func, id, args) (func_##id args)
+
+GLSLを複数のファイルに分割する
+  glslify, glslify-import, glslify-loader
+  use[template-literals-loader, glslify-loader] でいけるか?

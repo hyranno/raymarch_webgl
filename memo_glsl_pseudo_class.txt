@@ -1,0 +1,34 @@
+
+FUNC_id方式よりコンパイル量も計算量も減るか
+再帰が使えないので入れ子がつらい
+
+this.FUNC (...)
+  STRUCT STRUCT_deserialize_ID () {}
+  TYPE STRUCT_FUNC (inout this, ...)
+
+struct InstanceBufferAlignment {
+  uint offset; //optional
+  uint size;
+}
+uniform InstanceBufferAlignment instances[];
+uniform float serialized_instances[];
+STRUCT STRUCT_deserialize (id) {
+  InstanceBufferAlignment alignment = instances[id];
+  STRUCT res;
+  res.another_object = STRUCT2_getInstance((uint)serialized_instances[alignment.offset + 0]);
+  res.param0 = serialized_instances[alignment.offset + 1];
+  res.param1 = serialized_instances[alignment.offset + 2];
+  ...
+  return res;
+}
+STRUCT STRUCT_instances[];
+bool STRUCT_instance_ready[];
+STRUCT STRUCT_getInstance(id) {
+  if (STRUCT_instance_ready[id]) {
+    return STRUCT_instances[id];
+  } else {
+    STRUCT res = STRUCT_deserialize(id);
+    STRUCT_instance_ready[id] = true;
+    return STRUCT_instances[id] = res;
+  }
+}
