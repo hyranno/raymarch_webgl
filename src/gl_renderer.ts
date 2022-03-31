@@ -4,12 +4,14 @@ import {Drawable, Light, Camera} from './gl_entity';
 import {fragShaderTemplate} from './gl_source';
 
 export class GlRenderer {
+  cameras: Camera[];
   drawables: Drawable[];
   lights: Light[];
   context: WebGL2RenderingContext;
   program: WebGLProgram;
   glBuffer: WebGLBuffer;
-  constructor(gl: WebGL2RenderingContext, drawables: Drawable[], lights: Light[]) {
+  constructor(gl: WebGL2RenderingContext, cameras: Camera[], drawables: Drawable[], lights: Light[]) {
+    this.cameras = cameras;
     this.drawables = drawables;
     this.lights = lights;
     this.context = gl;
@@ -23,13 +25,14 @@ export class GlRenderer {
       console.log(this.context.getProgramInfoLog(this.program)); //error
     }
   }
-  draw(cam: Camera): void {
+  draw(camIndex: number): void {
     this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT);
 
     this.context.useProgram(this.program);
-    cam.setGlVars(this.context, this.program)
+    this.cameras.forEach((c)=>c.setGlVars(this.context, this.program));
     this.drawables.forEach((d)=>d.setGlVars(this.context, this.program));
     this.lights.forEach((l)=>l.setGlVars(this.context, this.program));
+    this.context.uniform1ui(this.context.getUniformLocation(this.program, `camera_id`), this.cameras[camIndex].id);
 
     var vertexPositions = [[+1.0, +1.0], [+1.0, -1.0], [-1.0, -1.0], [-1.0, +1.0]];
     this.context.bindBuffer(this.context.ARRAY_BUFFER, this.glBuffer);
@@ -53,6 +56,7 @@ export class GlRenderer {
     return asTemplate(fragShaderTemplate, {
       drawables: this.drawables,
       lights: this.lights,
+      cameras: this.cameras,
     });
   }
   private prepareShader(type: number, source: string) {

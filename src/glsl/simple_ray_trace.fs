@@ -1,16 +1,10 @@
 
-uniform vec2 camera_resolution;
-uniform vec3 camera_position;
-uniform vec3 camera_upper_center;
-uniform vec3 camera_center_right;
-uniform float camera_origin_distance;
+uniform uint camera_id;
 
 out vec4 outColor;
 void main() {
-  Camera cam;
-  camera_constructor(cam, camera_position, camera_upper_center, camera_center_right, camera_origin_distance);
   Ray ray;
-  camera_getRay(cam, camera_resolution, ray);
+  getRay(camera_id, ray);
   float obj_distance;
   int obj = rayCast(ray, MAX_DISTANCE, obj_distance);
   vec3 point = ray.start + obj_distance*ray.direction;

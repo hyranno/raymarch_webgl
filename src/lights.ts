@@ -10,7 +10,8 @@ export class PointLight extends Light {
     this.position = position;
     this.color = color;
   }
-  override getGlVars(): string {return `
+  override getGlDeclarations(): string {return `
+    ${super.getGlDeclarations()}
     uniform vec3 position_${this.id};
     uniform vec3 color_${this.id};
   `;}
@@ -22,11 +23,13 @@ export class PointLight extends Light {
       this.color.x, this.color.y, this.color.z
     );
   }
-  GlFunc_getPhotonTo(): string {return `{
-    photon.ray.start = position_${this.id};
-    photon.ray.direction = normalize(point-position_${this.id});
-    photon.color = color_${this.id};
-  }`;}
+  GlFunc_getPhotonTo(): string {
+    return `void light_getPhotonTo_${this.id} (vec3 point, out Photon photon) {
+      photon.ray.start = position_${this.id};
+      photon.ray.direction = normalize(point-position_${this.id});
+      photon.color = color_${this.id};
+    }`;
+  }
 }
 
 export class DirectionalLight extends Light {
@@ -37,7 +40,8 @@ export class DirectionalLight extends Light {
     this.direction = direction;
     this.color = color;
   }
-  override getGlVars(): string {return `
+  override getGlDeclarations(): string {return `
+    ${super.getGlDeclarations()}
     uniform vec3 direction_${this.id};
     uniform vec3 color_${this.id};
   `;}
@@ -49,10 +53,12 @@ export class DirectionalLight extends Light {
       this.color.x, this.color.y, this.color.z
     );
   }
-  GlFunc_getPhotonTo(): string {return `{
-    const float d = MAX_DISTANCE * 0.8;
-    photon.ray.start = point - d * direction_${this.id};
-    photon.ray.direction = direction_${this.id};
-    photon.color = color_${this.id};
-  }`;}
+  GlFunc_getPhotonTo(): string {
+    return `void light_getPhotonTo_${this.id} (vec3 point, out Photon photon){
+      const float d = MAX_DISTANCE * 0.8;
+      photon.ray.start = point - d * direction_${this.id};
+      photon.ray.direction = direction_${this.id};
+      photon.color = color_${this.id};
+    }`;
+  }
 }

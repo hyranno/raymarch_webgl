@@ -1,37 +1,5 @@
 
-${drawables.map((d) => `
-  ${d.getGlVars()}
-  float getDistance_${d.id} (vec3 point) {
-    float obj_distance;
-    ${d.shape.GlFunc_getDistance()}
-    return obj_distance;
-  }
-  vec3 getNormal_${d.id} (vec3 point) {
-    return normalize(vec3(
-      getDistance_${d.id}(point+vec3(+EPS,0,0)) - getDistance_${d.id}(point+vec3(-EPS,0,0)),
-      getDistance_${d.id}(point+vec3(0,+EPS,0)) - getDistance_${d.id}(point+vec3(0,-EPS,0)),
-      getDistance_${d.id}(point+vec3(0,0,+EPS)) - getDistance_${d.id}(point+vec3(0,0,-EPS))
-    ));
-  }
-  vec3 getAmbient_${d.id} (vec3 point, in Ray view) {
-    vec3 color;
-    vec3 normal = getNormal_${d.id}(point);
-    ${d.material.GlFunc_getAmbient()}
-    return color;
-  }
-  vec3 getDiffuse_${d.id} (vec3 point, in Photon photon, in Ray view) {
-    vec3 color;
-    vec3 normal = getNormal_${d.id}(point);
-    ${d.material.GlFunc_getDiffuse()}
-    return color;
-  }
-  vec3 getSpecular_${d.id} (vec3 point, in Photon photon, in Ray view) {
-    vec3 color;
-    vec3 normal = getNormal_${d.id}(point);
-    ${d.material.GlFunc_getSpecular()}
-    return color;
-  }
-`).join("")}
+${drawables.map((d) => d.getGlImplements()).join("")}
 
 
 float getDistance(int id, vec3 point) {

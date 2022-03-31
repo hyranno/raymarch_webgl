@@ -1,5 +1,5 @@
 /* required TypeScript vars, func
-drawables, lights
+cameras, drawables, lights
 */
 
 /*constants*/
@@ -17,12 +17,6 @@ struct Ray {
 struct Photon {
   Ray ray;
   vec3 color;
-};
-struct Camera {
-  vec3 position;
-  vec4 rotation;
-  vec2 screen_size;
-  float origin_distance;
 };
 
 /*util.glsl*/
@@ -43,21 +37,15 @@ vec3 quaternion_rot3(vec4 q, vec3 v);
 mat3 dcm_fromXY(vec3 x, vec3 y);
 
 
-/*lights*/
-${lights.map((l)=>`
-  void light_getPhotonTo_${l.id} (vec3 point, out Photon photon);
-  //void light_getPhoton_${l.id} (out Ray ray); //called by photon mapper, vary with thread_id
-`).join("")}
+/*camera*/
+${cameras.map((c) => c.getGlDeclarations()).join("")}
+void getRay(uint id, out Ray ray);
 
+/*lights*/
+${lights.map((l) => l.getGlDeclarations()).join("")}
 
 /*drawables*/
-${drawables.map((d) => `
-  float getDistance_${d.id} (vec3 point);
-  vec3 getNormal_${d.id} (vec3 point);
-  vec3 getAmbient_${d.id} (vec3 point, in Ray view);
-  vec3 getDiffuse_${d.id} (vec3 point, in Photon photon, in Ray view);
-  vec3 getSpecular_${d.id} (vec3 point, in Photon photon, in Ray view);
-`).join("")}
+${drawables.map((d) => d.getGlDeclarations()).join("")}
 float getDistance(int id, vec3 point);
 vec3 getNormal(int id, vec3 point);
 vec3 getAmbient(int id, vec3 point, in Ray view);
@@ -68,5 +56,3 @@ vec3 getSpecular(int id, vec3 point, in Photon photon, in Ray view);
 /*raymarch*/
 int findNearestDrawable(in Ray ray, out float obj_distance);
 int rayCast(in Ray ray, float max_distance, out float obj_distance);
-void camera_constructor(out Camera res, vec3 position, vec3 upper_center, vec3 center_right, float origin_distance);
-void camera_getRay(in Camera cam, vec2 resolution, out Ray ray);

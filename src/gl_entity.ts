@@ -1,4 +1,4 @@
-import {Vec3D} from './util';
+import {Vec2D, Vec3D, Quaternion} from './util';
 
 
 export abstract class GlEntity {
@@ -7,7 +7,8 @@ export abstract class GlEntity {
   constructor() {
     this.id = GlEntity.nextId++;
   }
-  abstract getGlVars(): string;
+  abstract getGlDeclarations(): string;
+  abstract getGlImplements(): string;
   abstract setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void;
   static setGlUniformFloat(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, ...values: number[]): void {
     var location: WebGLUniformLocation = gl.getUniformLocation(program, name);
@@ -20,16 +21,42 @@ export abstract class Material extends GlEntity {
   constructor() {
     super();
   }
-  abstract GlFunc_getAmbient(): string; //(vec3 point, vec3 normal, vec3 ray, out vec3 color)
-  abstract GlFunc_getDiffuse(): string; //(vec3 point, vec3 normal, Photon photon, vec3 ray, out vec3 color)
-  abstract GlFunc_getSpecular(): string; //(vec3 point, vec3 normal, Photon photon, vec3 ray, out vec3 color)
+  override getGlDeclarations(): string {
+    return `
+      vec3 getAmbient_${this.id} (vec3 point, in Ray view);
+      vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+      vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+    `;
+  }
+  override getGlImplements(): string {
+    return `
+      ${this.GlFunc_getAmbient()}
+      ${this.GlFunc_getDiffuse()}
+      ${this.GlFunc_getSpecular()}
+    `;
+  }
+  abstract GlFunc_getAmbient(): string; //vec3 getAmbient_${this.id} (vec3 point, in Ray view)
+  abstract GlFunc_getDiffuse(): string; //vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+  abstract GlFunc_getSpecular(): string; //vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
 }
 
 export abstract class Shape3D extends GlEntity {
   constructor() {
     super();
   }
-  abstract GlFunc_getDistance(): string; //(vec3 point, out float distance), SignedDistanceFunction
+  override getGlDeclarations(): string {
+    return `
+      float getDistance_${this.id} (vec3 point);
+      vec3 getNormal_${this.id} (vec3 point);
+    `;
+  }
+  override getGlImplements(): string {
+    return `
+      ${this.GlFunc_getDistance()}
+      ${this.GlFunc_getNormal()}
+    `;
+  }
+  abstract GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
   abstract getDistance(point: Vec3D): number;
   getNormal(point: Vec3D): Vec3D {
     const EPS = 0.0001;
@@ -40,7 +67,70 @@ export abstract class Shape3D extends GlEntity {
     );
     return v.normalize();
   }
+  GlFunc_getNormal(): string {
+    return `vec3 getNormal_${this.id} (vec3 point) {
+      return normalize(vec3(
+        getDistance_${this.id}(point+vec3(+EPS,0,0)) - getDistance_${this.id}(point+vec3(-EPS,0,0)),
+        getDistance_${this.id}(point+vec3(0,+EPS,0)) - getDistance_${this.id}(point+vec3(0,-EPS,0)),
+        getDistance_${this.id}(point+vec3(0,0,+EPS)) - getDistance_${this.id}(point+vec3(0,0,-EPS))
+      ));
+    }`;
+  }
 }
+
+
+export abstract class Light extends GlEntity {
+  abstract GlFunc_getPhotonTo(): string; //void light_getPhotonTo_${this.id} (vec3 point, out Photon photon);
+  //abstract GlFunc_getPhoton(): string; //void light_getPhoton_(out Photon photon), random photon
+  override getGlDeclarations(): string {
+    return `
+      void light_getPhotonTo_${this.id} (vec3 point, out Photon photon);
+    `;
+  }
+  override getGlImplements(): string {
+    return this.GlFunc_getPhotonTo();
+  }
+}
+
+export abstract class Camera extends GlEntity {
+  position: Vec3D;
+  rotation: Quaternion;
+  screen_size: Vec2D;
+  resolution: Vec2D;
+  constructor(position: Vec3D, upper_center: Vec3D, center_right: Vec3D, resolution: Vec2D) {
+    super();
+    this.position = position;
+    this.screen_size = new Vec2D(center_right.len(), upper_center.len())
+    this.rotation = Quaternion.fromXY(center_right.normalize(), upper_center.normalize());
+    this.resolution = resolution;
+  }
+  override getGlDeclarations(): string {return `
+    uniform vec3 position_${this.id};
+    uniform vec4 rotation_${this.id};
+    uniform vec2 screen_size_${this.id};
+    uniform vec2 resolution_${this.id};
+    void getRay_${this.id}(out Ray ray);
+  `;}
+  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
+    GlEntity.setGlUniformFloat(gl, program, `position_${this.id}`,
+      this.position.x, this.position.y, this.position.z
+    );
+    GlEntity.setGlUniformFloat(gl, program, `rotation_${this.id}`,
+      this.rotation.xyz.x, this.rotation.xyz.y, this.rotation.xyz.z, this.rotation.w
+    );
+    GlEntity.setGlUniformFloat(gl, program, `screen_size_${this.id}`,
+      this.screen_size.x, this.screen_size.y
+    );
+    GlEntity.setGlUniformFloat(gl, program, `resolution_${this.id}`,
+      this.resolution.x, this.resolution.y
+    );
+  }
+  override getGlImplements(): string {return `
+    ${this.GlFunc_getRay()}
+  `;}
+  abstract GlFunc_getRay(): string;
+}
+
 
 export class Drawable extends GlEntity {
   shape: Shape3D;
@@ -50,56 +140,42 @@ export class Drawable extends GlEntity {
     this.shape = shape;
     this.material = material;
   }
-  override getGlVars(): string {
-    return this.shape.getGlVars() + this.material.getGlVars();
+  override getGlDeclarations(): string {
+    return `
+      ${this.shape.getGlDeclarations()}
+      ${this.material.getGlDeclarations()}
+      float getDistance_${this.id} (vec3 point);
+      vec3 getNormal_${this.id} (vec3 point);
+      vec3 getAmbient_${this.id} (vec3 point, in Ray view);
+      vec3 getDiffuse_${this.id} (vec3 point, in Photon photon, in Ray view);
+      vec3 getSpecular_${this.id} (vec3 point, in Photon photon, in Ray view);
+    `;
+  }
+  override getGlImplements(): string {
+    return `
+      ${this.shape.getGlImplements()}
+      ${this.material.getGlImplements()}
+      float getDistance_${this.id} (vec3 point) {
+        return getDistance_${this.shape.id}(point);
+      }
+      vec3 getNormal_${this.id} (vec3 point) {
+        return getNormal_${this.shape.id}(point);
+      }
+      vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
+        return getAmbient_${this.material.id}(point, view);
+      }
+      vec3 getDiffuse_${this.id} (vec3 point, in Photon photon, in Ray view) {
+        vec3 normal = getNormal_${this.id}(point);
+        return getDiffuse_${this.material.id}(point, normal, photon, view);
+      }
+      vec3 getSpecular_${this.id} (vec3 point, in Photon photon, in Ray view) {
+        vec3 normal = getNormal_${this.id}(point);
+        return getSpecular_${this.material.id}(point, normal, photon, view);
+      }
+    `;
   }
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     this.shape.setGlVars(gl, program);
     this.material.setGlVars(gl, program);
-  }
-}
-
-export abstract class Light extends GlEntity {
-  abstract GlFunc_getPhotonTo(): string; //(vec3 point, out Photon photon)
-  //abstract GlFunc_getPhoton(): string; //(out Photon photon), random photon
-}
-
-export class Camera extends GlEntity {
-  resolution_x: number;
-  resolution_y: number;
-  position: Vec3D;
-  upper_center: Vec3D;
-  center_right: Vec3D;
-  origin_distance: number;
-  constructor(position: Vec3D, upper_center: Vec3D, center_right: Vec3D, origin_distance: number, resolution_x: number, resolution_y: number) {
-    super();
-    this.position = position;
-    this.upper_center = upper_center;
-    this.center_right = center_right;
-    this.origin_distance = origin_distance;
-    this.resolution_x = resolution_x;
-    this.resolution_y = resolution_y;
-  }
-  override getGlVars(): string {return `
-    uniform vec3 camera_position;
-    uniform vec3 camera_upper_center;
-    uniform vec3 camera_center_right;
-    uniform float camera_origin_distance;
-    uniform vec2 camera_resolution;
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    GlEntity.setGlUniformFloat(gl, program, `camera_position`,
-      this.position.x, this.position.y, this.position.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `camera_upper_center`,
-      this.upper_center.x, this.upper_center.y, this.upper_center.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `camera_center_right`,
-      this.center_right.x, this.center_right.y, this.center_right.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `camera_origin_distance`, this.origin_distance);
-    GlEntity.setGlUniformFloat(gl, program, `camera_resolution`,
-      this.resolution_x, this.resolution_y
-    );
   }
 }

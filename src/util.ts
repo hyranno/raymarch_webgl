@@ -1,3 +1,36 @@
+export class Vec2D {
+  x: number;
+  y: number;
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+  clone(): Vec2D {
+    return new Vec2D(this.x, this.y);
+  }
+  add(v: Vec2D): Vec2D {
+    return new Vec2D(this.x + v.x, this.y + v.y);
+  }
+  mul(scale: number): Vec2D {
+    return new Vec2D(this.x*scale, this.y*scale);
+  }
+  negative(): Vec2D {
+    return new Vec2D(-this.x, -this.y);
+  }
+  rotate(rad: number): Vec2D {
+    return new Vec2D(this.x*Math.cos(rad) - this.y*Math.sin(rad), this.x*Math.sin(rad) + this.y*Math.cos(rad));
+  }
+  dot(v: Vec2D): number {
+    return v.x*this.x + v.y*this.y;
+  }
+  len(): number {
+    return Math.sqrt(this.x*this.x + this.y*this.y);
+  }
+  normalize(): Vec2D {
+    return this.mul(1/this.len());
+  }
+}
+
 export class Vec3D {
   x: number;
   y: number;

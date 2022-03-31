@@ -2,25 +2,38 @@ npm run build
 
 
 TODO
-now: とりあえず最初のレンダリングまで持っていく
-  デバッグ
-future:
+now: 軽いリファクタリング(refactoring on TypeScript-GLSL boundary)
   git
-  js->glslのシリアライズ/デシリアライズ
+future:
+  Transform3D(Sphere), Transform3D(Bloated(Box))
+  30fpsで動かす
+  ローカル座標を要求するマテリアル(テクスチャなど)
   photon-mapping
+    depth1
+    reflection
+    refraction
+    medium-path-effect
+  いろいろ動かす
+    Inverse Kinematics
+    波のGPUシミュレーション
 soooooon:
   glslify-loader
   template-literals-loader
+  js->glslのシリアライズ/デシリアライズ
 
 
-Vec2Dの導入
-camera
-  resolution
-  glsl側のコンストラクタを整理(ts側で初期化周りを処理しているので)
-  構造体やコンストラクタ無しにcamera_FUNCだけでいいか
+findNearestDrawable
+rayCastのl + obj_distance < EPS となるものは無視?
 
-getGlDeclarations
-getGlImplementations
+findMedium
+物体から出る(dot(ray.direction,法線)>0)時に使う
+距離が負かつ最も大きいもの(絶対値が小さい)ものを媒質とする
+今まで居た物質は無視
+物体に入る(dot(ray.direction,法線<0))ときは当たった面のものを使えばよい
+
+BoundingShape
+複雑な形状の物(content)を簡単な形状の物(bounding)で覆う
+普段はboundingとの距離を、boundingとの距離がmargin以下ならcontentとの距離を返す
 
 
 パストレーシング、計算誤差の影響が結構大きい(ray.directionの精度?)
