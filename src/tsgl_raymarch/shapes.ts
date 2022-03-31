@@ -20,7 +20,7 @@ export class Transform3D extends Shape3D {
   }
   GlFunc_transform(): string {
     return `vec3 transform_${this.id} (vec3 p) {
-      return quaternion_rot3(p*scale, rotation_${this.id}) + transform_${this.id};
+      return quaternion_rot3(rotation_${this.id}, p*scale_${this.id}) + translate_${this.id};
     }`;
   }
   inverse(p: Vec3D): Vec3D {
@@ -29,7 +29,7 @@ export class Transform3D extends Shape3D {
   }
   GlFunc_inverse(): string {
     return `vec3 inverse_${this.id} (vec3 p) {
-      return quaternion_rot3(p-transform_${this.id}, quaternion_inverse(rotation_${this.id})) / scale_${this.id};
+      return quaternion_rot3(quaternion_inverse(rotation_${this.id}), p-translate_${this.id}) / scale_${this.id};
     }`;
   }
   override getDistance(point: Vec3D): number {
@@ -88,7 +88,7 @@ export class Box extends Shape3D {
       vec3 p_abs = abs(point);
       vec3 diff = p_abs - 0.5*size_${this.id};
       float positive = length(max(diff, 0.0));
-      float negative = min(max(diff.x, diff.y, diff.z), 0.0);
+      float negative = min(max(diff.x, max(diff.y, diff.z)), 0.0);
       return positive + negative;
     }`;
   }

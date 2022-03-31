@@ -113,6 +113,13 @@ export class Quaternion {
     const a = axis.normalize();
     return new Quaternion(a.mul(Math.sin(rad/2)), Math.cos(rad/2));
   }
+  static fromSrcDest(src: Vec3D, dest: Vec3D): Quaternion {
+    const cross = src.cross(dest);
+    const axis = cross.normalize();
+    const sin = cross.len();
+    const cos = src.dot(dest);
+    return Quaternion.fromAngleAxis(Math.atan2(sin, cos), axis);
+  }
   clone(): Quaternion {
     return new Quaternion(this.xyz, this.w);
   }

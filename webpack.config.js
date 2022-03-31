@@ -29,7 +29,8 @@ module.exports = {
       '.ts', '.js',
     ],
     alias: {
-      '@glsl': path.resolve(__dirname, 'src/glsl'),
+      '@tsgl': path.resolve(__dirname, 'src/tsgl_raymarch'),
+      '@glsl': path.resolve(__dirname, 'src/tsgl_raymarch/glsl'),
     },
   },
 };

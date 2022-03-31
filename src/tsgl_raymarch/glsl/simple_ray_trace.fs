@@ -21,7 +21,7 @@ void main() {
     diffuse += getDiffuse(obj, point, photon, ray) * light_isHit;
     specular += getSpecular(obj, point, photon, ray) * light_isHit;
   }`).join("")}
-  vec3 skyColor = vec3(0,0,0.3);
+  vec3 skyColor = vec3(0.2,0,0.1);
   ambient += coef_isLesser(obj, 0) * skyColor;
   outColor = vec4(ambient + diffuse + specular, 1);
   //outColor = vec4(vec3(1,0,0), 1);

@@ -2,11 +2,10 @@ npm run build
 
 
 TODO
-now: 軽いリファクタリング(refactoring on TypeScript-GLSL boundary)
-  git
-future:
-  Transform3D(Sphere), Transform3D(Bloated(Box))
+now: (real-time rendering movie)
   30fpsで動かす
+    EventStreamの導入
+future:
   ローカル座標を要求するマテリアル(テクスチャなど)
   photon-mapping
     depth1
@@ -22,6 +21,7 @@ soooooon:
   js->glslのシリアライズ/デシリアライズ
 
 
+
 findNearestDrawable
 rayCastのl + obj_distance < EPS となるものは無視?
 
@@ -34,6 +34,10 @@ findMedium
 BoundingShape
 複雑な形状の物(content)を簡単な形状の物(bounding)で覆う
 普段はboundingとの距離を、boundingとの距離がmargin以下ならcontentとの距離を返す
+
+Group
+複数のDrawableをまとめる
+距離が最も小さいものの値を返す
 
 
 パストレーシング、計算誤差の影響が結構大きい(ray.directionの精度?)
