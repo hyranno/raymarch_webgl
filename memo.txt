@@ -2,20 +2,23 @@ npm run build
 
 
 TODO
-now: (real-time rendering movie)
-  30fpsで動かす
-    EventStreamの導入
+now: material_w_local_coordinate
 future:
-  ローカル座標を要求するマテリアル(テクスチャなど)
+  フォトンマッピングの効果が分かりやすい部屋
+    Cornell box
   photon-mapping
     depth1
     reflection
     refraction
     medium-path-effect
+  physics based rendering (material)
+  procedural material
+    normal, metalness, specular, diffuse 等パラメータの揺れ
   いろいろ動かす
     Inverse Kinematics
     波のGPUシミュレーション
 soooooon:
+  曲率近似AmbientSelfOcclusion
   glslify-loader
   template-literals-loader
   js->glslのシリアライズ/デシリアライズ
@@ -35,9 +38,6 @@ BoundingShape
 複雑な形状の物(content)を簡単な形状の物(bounding)で覆う
 普段はboundingとの距離を、boundingとの距離がmargin以下ならcontentとの距離を返す
 
-Group
-複数のDrawableをまとめる
-距離が最も小さいものの値を返す
 
 
 パストレーシング、計算誤差の影響が結構大きい(ray.directionの精度?)
@@ -56,8 +56,8 @@ rgb<->hsv
   視線と入射ベクトルと面の法線で決まる
   強度変化のみ、色の変化なし
 
-入射光エネルギー = drain + (1-drain)( metalness + (1-metalness)( (1-transparency) + transparency ) )
-  drain: 吸収
+入射光エネルギー = absorption + (1-drain)( metalness + (1-metalness)( (1-transparency) + transparency ) )
+  absorption(extinction): 吸収
   metalness: 鏡面反射
   transparency: 屈折透過
 refraction: 屈折率
@@ -127,6 +127,8 @@ typedefが無い
 mat系の添え字は[列][行]の順なので注意
 円周率定義なし。PI = radians(180)
 キャスト演算子なし。float(num)のように書く
+構造体にはデフォルトコンストラクタが設定される
+  Type s = {menbers...} スタイルは利用できない
 
 
 GLSLのテンプレートを別ファイルで保持、TypeScriptにテンプレートリテラルとしてimport

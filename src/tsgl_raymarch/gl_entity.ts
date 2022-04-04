@@ -155,27 +155,42 @@ export class Drawable extends GlEntity {
     return `
       ${this.shape.getGlImplements()}
       ${this.material.getGlImplements()}
-      float getDistance_${this.id} (vec3 point) {
-        return getDistance_${this.shape.id}(point);
-      }
-      vec3 getNormal_${this.id} (vec3 point) {
-        return getNormal_${this.shape.id}(point);
-      }
-      vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-        return getAmbient_${this.material.id}(point, view);
-      }
-      vec3 getDiffuse_${this.id} (vec3 point, in Photon photon, in Ray view) {
-        vec3 normal = getNormal_${this.id}(point);
-        return getDiffuse_${this.material.id}(point, normal, photon, view);
-      }
-      vec3 getSpecular_${this.id} (vec3 point, in Photon photon, in Ray view) {
-        vec3 normal = getNormal_${this.id}(point);
-        return getSpecular_${this.material.id}(point, normal, photon, view);
-      }
+      ${this.GlFunc_getDistance()}
+      ${this.GlFunc_getNormal()}
+      ${this.GlFunc_getAmbient()}
+      ${this.GlFunc_getDiffuse()}
+      ${this.GlFunc_getSpecular()}
     `;
   }
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     this.shape.setGlVars(gl, program);
     this.material.setGlVars(gl, program);
+  }
+  GlFunc_getDistance(): string {
+    return `float getDistance_${this.id} (vec3 point) {
+      return getDistance_${this.shape.id}(point);
+    }`;
+  }
+  GlFunc_getNormal(): string {
+    return `vec3 getNormal_${this.id} (vec3 point) {
+      return getNormal_${this.shape.id}(point);
+    }`;
+  }
+  GlFunc_getAmbient(): string {
+    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
+      return getAmbient_${this.material.id}(point, view);
+    }`;
+  }
+  GlFunc_getDiffuse(): string {
+    return `vec3 getDiffuse_${this.id} (vec3 point, in Photon photon, in Ray view) {
+      vec3 normal = getNormal_${this.id}(point);
+      return getDiffuse_${this.material.id}(point, normal, photon, view);
+    }`;
+  }
+  GlFunc_getSpecular(): string {
+    return `vec3 getSpecular_${this.id} (vec3 point, in Photon photon, in Ray view) {
+      vec3 normal = getNormal_${this.id}(point);
+      return getSpecular_${this.material.id}(point, normal, photon, view);
+    }`;
   }
 }

@@ -37,22 +37,17 @@ export class Phong extends Material {
   }
   override GlFunc_getAmbient(): string {
     return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-      return ambient_${this.id};
+      return getAmbient_constant(ambient_${this.id});
     }`;
   }
   override GlFunc_getDiffuse(): string {
     return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      float cos_member = clamp( -dot(photon.ray.direction, normal), 0.0, 1.0 );
-      vec3 f_rd = diffuse_${this.id};
-      return (1.0-metalness_${this.id}) * f_rd * photon.color * cos_member;
+      return getDiffuse_Phong(diffuse_${this.id}, metalness_${this.id}, normal, photon);
     }`;
   }
   override GlFunc_getSpecular(): string {
     return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      float cos_member = clamp( dot(reflect(photon.ray.direction, normal), -view.direction), 0.0, 1.0 );
-      float n = specular_${this.id};
-      float f_rs = (n + 2.0) / radians(360.0) * pow(cos_member, n);
-      return metalness_${this.id} * f_rs * photon.color;
+      return getSpecular_Phong(metalness_${this.id}, specular_${this.id}, normal, photon, view);
     }`;
   }
 }

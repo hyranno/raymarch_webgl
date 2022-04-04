@@ -18,6 +18,11 @@ struct Photon {
   Ray ray;
   vec3 color;
 };
+struct Transform {
+  vec3 translate;
+  vec4 rotation;
+  float scale;
+};
 
 /*util.glsl*/
 float coef_isEqual(float a, float b);
@@ -51,6 +56,15 @@ vec3 getNormal(int id, vec3 point);
 vec3 getAmbient(int id, vec3 point, in Ray view);
 vec3 getDiffuse(int id, vec3 point, in Photon photon, in Ray view);
 vec3 getSpecular(int id, vec3 point, in Photon photon, in Ray view);
+
+vec3 coord_transform(in Transform t, vec3 point);
+vec3 coord_inverse(in Transform t, vec3 point);
+Ray coord_transform(in Transform t, in Ray ray);
+Ray coord_inverse(in Transform t, in Ray ray);
+
+vec3 getAmbient_constant(vec3 color);
+vec3 getDiffuse_Phong(vec3 color, float metalness, vec3 normal, in Photon photon);
+vec3 getSpecular_Phong(float metalness, float specular, vec3 normal, in Photon photon, in Ray view);
 
 
 /*raymarch*/

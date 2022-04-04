@@ -14,13 +14,18 @@ export class Transform3D extends Shape3D {
     this.rotation = rotation;
     this.translate = translate;
   }
+  GlFunc_getTransform(): string {
+    return `Transform getTransform_${this.id} () {
+      return Transform(translate_${this.id}, rotation_${this.id}, scale_${this.id});
+    }`;
+  }
   transform(p: Vec3D): Vec3D {
     var res: Vec3D = p.clone();
     return res.mul(this.scale).rotate(this.rotation).add(this.translate);
   }
   GlFunc_transform(): string {
     return `vec3 transform_${this.id} (vec3 p) {
-      return quaternion_rot3(rotation_${this.id}, p*scale_${this.id}) + translate_${this.id};
+      return coord_transform(getTransform_${this.id}(), p);
     }`;
   }
   inverse(p: Vec3D): Vec3D {
@@ -29,7 +34,7 @@ export class Transform3D extends Shape3D {
   }
   GlFunc_inverse(): string {
     return `vec3 inverse_${this.id} (vec3 p) {
-      return quaternion_rot3(quaternion_inverse(rotation_${this.id}), p-translate_${this.id}) / scale_${this.id};
+      return coord_inverse(getTransform_${this.id}(), p);
     }`;
   }
   override getDistance(point: Vec3D): number {
@@ -49,12 +54,14 @@ export class Transform3D extends Shape3D {
     uniform float scale_${this.id};
     uniform vec4 rotation_${this.id};
     uniform vec3 translate_${this.id};
+    Transform getTransform_${this.id} ();
     vec3 transform_${this.id} (vec3 p);
     vec3 inverse_${this.id} (vec3 p);
   `;}
   override getGlImplements(): string { return `
     ${this.original.getGlImplements()}
     ${super.getGlImplements()}
+    ${this.GlFunc_getTransform()}
     ${this.GlFunc_transform()}
     ${this.GlFunc_inverse()}
   `;}
@@ -78,7 +85,7 @@ export class Box extends Shape3D {
   }
   override getDistance(point: Vec3D): number {
     var p_abs = new Vec3D(Math.abs(point.x), Math.abs(point.y), Math.abs(point.z));
-    var diff = p_abs.add(this.size.mul(1/2).negative());
+    var diff = p_abs.add(this.size.negative());
     var positive = (new Vec3D(Math.max(diff.x, 0), Math.max(diff.y, 0), Math.max(diff.z, 0))).len();
     var negative = Math.min(0, Math.max(diff.x, diff.y, diff.z));
     return positive + negative;
@@ -86,7 +93,7 @@ export class Box extends Shape3D {
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
       vec3 p_abs = abs(point);
-      vec3 diff = p_abs - 0.5*size_${this.id};
+      vec3 diff = p_abs - size_${this.id};
       float positive = length(max(diff, 0.0));
       float negative = min(max(diff.x, max(diff.y, diff.z)), 0.0);
       return positive + negative;
