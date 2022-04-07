@@ -2,15 +2,20 @@ npm run build
 
 
 TODO
-now: material_w_local_coordinate
+now: Cornell box
 future:
-  フォトンマッピングの効果が分かりやすい部屋
-    Cornell box
   photon-mapping
     depth1
+      ComputeShaderによるPhoton設置
+      kd木の構築
+      kd木の探索
+        近傍N個拾って距離減衰をかける
     reflection
+      カメラ側レイトレースのモンテカルロ
     refraction
+      屈折率の導入
     medium-path-effect
+  Shape同士の論理演算
   physics based rendering (material)
   procedural material
     normal, metalness, specular, diffuse 等パラメータの揺れ
@@ -18,10 +23,12 @@ future:
     Inverse Kinematics
     波のGPUシミュレーション
 soooooon:
+  面光源
+    photon.ray.start が random_uniform に従う?
   曲率近似AmbientSelfOcclusion
   glslify-loader
   template-literals-loader
-  js->glslのシリアライズ/デシリアライズ
+  (webasm + spir-v) へのコンパイル
 
 
 
@@ -38,6 +45,9 @@ BoundingShape
 複雑な形状の物(content)を簡単な形状の物(bounding)で覆う
 普段はboundingとの距離を、boundingとの距離がmargin以下ならcontentとの距離を返す
 
+オブジェクトの重なり
+オブジェクトが重なる位置において、どのオブジェクトの情報を返すか
+優先度を設定し、自動的にDefferenceを行う?
 
 
 パストレーシング、計算誤差の影響が結構大きい(ray.directionの精度?)
@@ -80,7 +90,6 @@ ray-marching
       反射するか屈折するかを乱数で
   fogとかsubsurfaceとか
     pathFilter(distance, in Photon, out Photon)
-  カメラ側からの探索では鏡面反射と透過光を両方出す?(計算量*2^depth)
 
 
 photonの立方体範囲探索

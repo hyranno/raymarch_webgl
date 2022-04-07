@@ -1,9 +1,9 @@
 import {Vec3D, Quaternion} from './util';
-import {GlEntity, Shape3D} from './gl_entity';
+import {GlEntity, HasShape, Shape3D} from './gl_entity';
 
 
 export class Transform3D extends Shape3D {
-  original: Shape3D;
+  original: GlEntity & HasShape;
   scale: number;
   rotation: Quaternion;
   translate: Vec3D;

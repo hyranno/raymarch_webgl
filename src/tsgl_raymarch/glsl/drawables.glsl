@@ -27,14 +27,14 @@ vec3 getAmbient(int id, vec3 point, in Ray view) {
 vec3 getDiffuse(int id, vec3 point, in Photon photon, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    res += getDiffuse_${d.id}(point, photon, view) * coef_isEqual(${d.id}, id);
+    res += getDiffuse_${d.id}(point, vec3(0), photon, view) * coef_isEqual(${d.id}, id);
   `).join("")}
   return res;
 }
 vec3 getSpecular(int id, vec3 point, in Photon photon, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    res += getSpecular_${d.id}(point, photon, view) * coef_isEqual(${d.id}, id);
+    res += getSpecular_${d.id}(point, vec3(0), photon, view) * coef_isEqual(${d.id}, id);
   `).join("")}
   return res;
 }

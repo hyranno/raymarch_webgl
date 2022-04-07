@@ -1,9 +1,8 @@
-import {Drawable} from '@tsgl/gl_entity';
 import {Vec3D, Quaternion} from '@tsgl/util';
 import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as drawables from '@tsgl/drawables';
-import {TimeTicks} from './event_stream'
+import {TimeTicks} from './event_stream';
 
 
 export class TestMaterial extends materials.Phong {
@@ -21,7 +20,50 @@ export class TestMaterial extends materials.Phong {
   }
 }
 
-export class OrbitingSphere extends Drawable {
+export class CornellBox extends drawables.Group {
+  constructor() {
+    var walls = [
+      new drawables.Transform(
+        new drawables.MaterializedShape(
+          new shapes.Box(new Vec3D(1,1,1)),
+          new materials.Phong((new Vec3D(1,1,1)).mul(0.1), new Vec3D(1,1,1), 0.5, 5)
+        ),
+        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0,2,0)
+      ),
+      new drawables.Transform(
+        new drawables.MaterializedShape(
+          new shapes.Box(new Vec3D(1,1,1)),
+          new materials.Phong((new Vec3D(1,1,1)).mul(0.1), new Vec3D(1,1,1), 0.5, 5)
+        ),
+        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0,-2,0)
+      ),
+      new drawables.Transform(
+        new drawables.MaterializedShape(
+          new shapes.Box(new Vec3D(1,1,1)),
+          new materials.Phong((new Vec3D(1,1,1)).mul(0.1), new Vec3D(1,1,1), 0.5, 5)
+        ),
+        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0,0,-2)
+      ),
+      new drawables.Transform(
+        new drawables.MaterializedShape(
+          new shapes.Box(new Vec3D(1,1,1)),
+          new materials.Phong((new Vec3D(0,1,0)).mul(0.1), new Vec3D(0,1,0), 0.5, 5)
+        ),
+        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(2,0,0)
+      ),
+      new drawables.Transform(
+        new drawables.MaterializedShape(
+          new shapes.Box(new Vec3D(1,1,1)),
+          new materials.Phong((new Vec3D(1,0,0)).mul(0.1), new Vec3D(1,0,0), 0.5, 5)
+        ),
+        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(-2,0,0)
+      ),
+    ];
+    super(walls);
+  }
+}
+
+export class OrbitingSphere extends drawables.MaterializedShape {
   constructor(t: TimeTicks) {
     var transform = new shapes.Transform3D(new shapes.Sphere(), 1, new Quaternion(new Vec3D(1,0,0), 0), new Vec3D(3,0,0));
     super(
@@ -35,7 +77,7 @@ export class OrbitingSphere extends Drawable {
 }
 export class RotatingRoundedCube extends drawables.Transform {
   constructor(t: TimeTicks) {
-    var org = new Drawable(
+    var org = new drawables.MaterializedShape(
       new shapes.Bloated( new shapes.Box(new Vec3D(0.4,0.4,0.4)), 0.3 ),
       new TestMaterial(new Vec3D(0.1, 0.2, 0.1), new Vec3D(0,1,0), 0.2, 20)
     );

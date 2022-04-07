@@ -17,7 +17,12 @@ export abstract class GlEntity {
   }
 }
 
-export abstract class Material extends GlEntity {
+export interface HasMaterial {
+  GlFunc_getAmbient(): string; //vec3 getAmbient_${this.id} (vec3 point, in Ray view)
+  GlFunc_getDiffuse(): string; //vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+  GlFunc_getSpecular(): string; //vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+}
+export abstract class Material extends GlEntity implements HasMaterial {
   constructor() {
     super();
   }
@@ -35,12 +40,18 @@ export abstract class Material extends GlEntity {
       ${this.GlFunc_getSpecular()}
     `;
   }
-  abstract GlFunc_getAmbient(): string; //vec3 getAmbient_${this.id} (vec3 point, in Ray view)
-  abstract GlFunc_getDiffuse(): string; //vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
-  abstract GlFunc_getSpecular(): string; //vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+  abstract GlFunc_getAmbient(): string;
+  abstract GlFunc_getDiffuse(): string;
+  abstract GlFunc_getSpecular(): string;
 }
 
-export abstract class Shape3D extends GlEntity {
+export interface HasShape {
+  getDistance(point: Vec3D): number;
+  GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
+  getNormal(point: Vec3D): Vec3D;
+  GlFunc_getNormal(): string;
+}
+export abstract class Shape3D extends GlEntity implements HasShape {
   constructor() {
     super();
   }
@@ -56,8 +67,8 @@ export abstract class Shape3D extends GlEntity {
       ${this.GlFunc_getNormal()}
     `;
   }
-  abstract GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
   abstract getDistance(point: Vec3D): number;
+  abstract GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
   getNormal(point: Vec3D): Vec3D {
     const EPS = 0.0001;
     var v: Vec3D = new Vec3D(
@@ -131,19 +142,16 @@ export abstract class Camera extends GlEntity {
   abstract GlFunc_getRay(): string;
 }
 
-
-export class Drawable extends GlEntity {
-  shape: Shape3D;
-  material: Material;
-  constructor(shape: Shape3D, material: Material) {
-    super();
-    this.shape = shape;
-    this.material = material;
-  }
+export abstract class Drawable extends GlEntity implements HasShape, HasMaterial {
+  abstract GlFunc_getAmbient(): string;
+  abstract GlFunc_getDiffuse(): string;
+  abstract GlFunc_getSpecular(): string;
+  abstract getDistance(point: Vec3D): number;
+  abstract GlFunc_getDistance(): string;
+  abstract getNormal(point: Vec3D): Vec3D;
+  abstract GlFunc_getNormal(): string;
   override getGlDeclarations(): string {
     return `
-      ${this.shape.getGlDeclarations()}
-      ${this.material.getGlDeclarations()}
       float getDistance_${this.id} (vec3 point);
       vec3 getNormal_${this.id} (vec3 point);
       vec3 getAmbient_${this.id} (vec3 point, in Ray view);
@@ -153,44 +161,11 @@ export class Drawable extends GlEntity {
   }
   override getGlImplements(): string {
     return `
-      ${this.shape.getGlImplements()}
-      ${this.material.getGlImplements()}
       ${this.GlFunc_getDistance()}
       ${this.GlFunc_getNormal()}
       ${this.GlFunc_getAmbient()}
       ${this.GlFunc_getDiffuse()}
       ${this.GlFunc_getSpecular()}
     `;
-  }
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.shape.setGlVars(gl, program);
-    this.material.setGlVars(gl, program);
-  }
-  GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return getDistance_${this.shape.id}(point);
-    }`;
-  }
-  GlFunc_getNormal(): string {
-    return `vec3 getNormal_${this.id} (vec3 point) {
-      return getNormal_${this.shape.id}(point);
-    }`;
-  }
-  GlFunc_getAmbient(): string {
-    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-      return getAmbient_${this.material.id}(point, view);
-    }`;
-  }
-  GlFunc_getDiffuse(): string {
-    return `vec3 getDiffuse_${this.id} (vec3 point, in Photon photon, in Ray view) {
-      vec3 normal = getNormal_${this.id}(point);
-      return getDiffuse_${this.material.id}(point, normal, photon, view);
-    }`;
-  }
-  GlFunc_getSpecular(): string {
-    return `vec3 getSpecular_${this.id} (vec3 point, in Photon photon, in Ray view) {
-      vec3 normal = getNormal_${this.id}(point);
-      return getSpecular_${this.material.id}(point, normal, photon, view);
-    }`;
   }
 }
