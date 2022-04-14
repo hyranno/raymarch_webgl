@@ -1,0 +1,61 @@
+Chrome Canary でないと ComputeShader が使えない
+  WebGL, WebGPU は Chrome Canary でフラグを有効にする必要がある
+  Chrome Canary は Portable でない
+
+depth1
+  ComputeShader
+    Photon設置
+      ray-marching
+    kd木の構築
+      saw-sort
+  FragmentShader
+    kd木の探索
+      近傍N個拾って距離減衰をかける
+    描画
+reflection
+  カメラ側レイトレースのモンテカルロ
+refraction
+  屈折率の導入
+medium-path-effect
+
+
+kd木の構築
+  メモリの移動は重いので、PhotonそのものではなくPhotonBuffer上のIndexで木を構築する
+  次元ごとに鋸ソートして中央値を得る
+    中央値が分かればよいので、kd木バッファ上でソートする必要はない
+      鋸ソート用のパディングが必要な場合に関わってくる
+  ノードのkd木バッファ上のindexを固定する
+    ノードを得るのにリンクをたどる必要がない
+    近似ではなく正確なバランス木を作る必要がある
+
+鋸ソート
+itemsを参照しつつindexesをソート
+  saw_sort (in items[], inout indexes[], int len)
+テスト
+  saw_merge(items, len, 2);
+  saw_merge(items, len, 4);
+  saw_merge(items, len, 8);
+  saw_sort(items, len);
+  saw_sort(items, indexes, len);
+
+Photonのx座標でのソート
+  itemsにphoton.xを代入
+
+
+photonの立方体範囲探索
+  kd木による探索
+  各直交座標ごとに探索して論理積
+    最近傍(二分探索)から範囲内(線形探索)を取得
+    各座標範囲内集合をidソートして論理積集合を得る
+  量子化ボクセルでの探索
+    Hash<(x,y,z), Vector<T>> table
+    ヒープやポインタ等が使えないので実装が難しい
+
+
+photonはDrawableの表面にのみ生成される
+  drawable_idから探索可能か
+  drawable_idは媒質の情報を得るのにも使えそう
+
+photon総数=Nのとき、photonを単一バッファ上の仮想Vectorに分割格納するには
+  Photon buffer[N]
+  struct Vector {offset, size}

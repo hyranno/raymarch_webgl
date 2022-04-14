@@ -2,19 +2,13 @@ npm run build
 
 
 TODO
-now: Cornell box
+now:
 future:
-  photon-mapping
-    depth1
-      ComputeShaderによるPhoton設置
-      kd木の構築
-      kd木の探索
-        近傍N個拾って距離減衰をかける
-    reflection
-      カメラ側レイトレースのモンテカルロ
-    refraction
-      屈折率の導入
-    medium-path-effect
+  reflection
+    カメラ側レイトレースのモンテカルロ
+  refraction
+    屈折率の導入
+  medium-path-effect
   Shape同士の論理演算
   physics based rendering (material)
   procedural material
@@ -23,13 +17,21 @@ future:
     Inverse Kinematics
     波のGPUシミュレーション
 soooooon:
+  Photon-mapping
   面光源
     photon.ray.start が random_uniform に従う?
   曲率近似AmbientSelfOcclusion
   glslify-loader
   template-literals-loader
   (webasm + spir-v) へのコンパイル
+    LLVM-SPIRV-BackendがKhronosから出てる
+    Rust-gpuでやりたいな
 
+
+
+リファクタリング
+  mix(float, float, float) -> mix(float, float, bool)
+  GlEntytyからのuniformをstructにする(Transformのみ?)
 
 
 findNearestDrawable
@@ -48,6 +50,16 @@ BoundingShape
 オブジェクトの重なり
 オブジェクトが重なる位置において、どのオブジェクトの情報を返すか
 優先度を設定し、自動的にDefferenceを行う?
+
+ray-marching
+  反射/屈折後に2*EPSだけ進める?
+
+屈折光のray-marchingどうする?
+  距離関数が負のとき
+    陰面消去の判定を反転
+    距離の符号を反転
+  反射するか屈折するかを乱数で
+
 
 
 パストレーシング、計算誤差の影響が結構大きい(ray.directionの精度?)
@@ -78,40 +90,6 @@ refraction: 屈折率
 球面ガウス関数による近似?
 
 
-ray-marching
-  反射/屈折後に2*EPSだけ進める?
-  いずれphoton-mappingを導入したい
-    ComputeShaderでフォトンを設置後、vs/fsで利用?
-    Diffuseのみを扱う
-    屈折光のray-marchingどうする?
-      距離関数が負のとき
-        陰面消去の判定を反転
-        距離の符号を反転
-      反射するか屈折するかを乱数で
-  fogとかsubsurfaceとか
-    pathFilter(distance, in Photon, out Photon)
-
-
-photonの立方体範囲探索
-  直交座標ごとの探索
-    x座標ソート、y座標ソート、z座標ソートを用意しておく
-    各座標ソートに対し二分探索で最近傍を取得
-    最近傍から上下に線形探索して範囲内集合を取得
-    各座標範囲内集合をidソート
-    論理積集合を得る
-  量子化ボクセルでの探索
-    Hash<(x,y,z), Vector<T>> table
-  kd木による探索
-
-photon総数=Nのとき、photonを単一バッファ上の仮想Vectorに分割格納するには
-  Photon buffer[N]
-  struct Vector {offset, size}
-
-photonはDrawableの表面にのみ生成される
-  drawable_idから探索可能か
-  drawable_idは媒質の情報を得るのにも使えそう
-
-
 
 モデル形状はOpenSCADで確認しながら作るほうが楽かも
 
@@ -124,6 +102,11 @@ npm install glslify glslify-import -D
 npm install glslify-loader glslify-import-loader -D
 npm install template-literals-loader -D
 */
+
+
+WebGL系は諸々古くて性能が厳しい
+  WebGPUの方がよい(Canary限定)
+  Vulkanなどもあり
 
 
 GLSL
