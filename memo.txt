@@ -1,26 +1,30 @@
 npm run build
 
 
+何をメインに据えるか
+  要素のProceduralな生成
+    shape
+    material
+    movement
+  レンダリング
+    ComputeShaderが使えないので無理そう
+
 TODO
 now:
 future:
-  reflection
-    カメラ側レイトレースのモンテカルロ
-  refraction
-    屈折率の導入
-  medium-path-effect
+  カメラ側レイトレースのモンテカルロ
   Shape同士の論理演算
-  physics based rendering (material)
   procedural material
     normal, metalness, specular, diffuse 等パラメータの揺れ
   いろいろ動かす
     Inverse Kinematics
-    波のGPUシミュレーション
 soooooon:
+  曲率近似AmbientSelfOcclusion
   Photon-mapping
+  physics based rendering (material)
+  波のGPUシミュレーション
   面光源
     photon.ray.start が random_uniform に従う?
-  曲率近似AmbientSelfOcclusion
   glslify-loader
   template-literals-loader
   (webasm + spir-v) へのコンパイル
@@ -37,12 +41,6 @@ soooooon:
 findNearestDrawable
 rayCastのl + obj_distance < EPS となるものは無視?
 
-findMedium
-物体から出る(dot(ray.direction,法線)>0)時に使う
-距離が負かつ最も大きいもの(絶対値が小さい)ものを媒質とする
-今まで居た物質は無視
-物体に入る(dot(ray.direction,法線<0))ときは当たった面のものを使えばよい
-
 BoundingShape
 複雑な形状の物(content)を簡単な形状の物(bounding)で覆う
 普段はboundingとの距離を、boundingとの距離がmargin以下ならcontentとの距離を返す
@@ -50,6 +48,12 @@ BoundingShape
 オブジェクトの重なり
 オブジェクトが重なる位置において、どのオブジェクトの情報を返すか
 優先度を設定し、自動的にDefferenceを行う?
+
+findMedium
+物体から出る(dot(ray.direction,法線)>0)時に使う
+距離が負かつ最も大きいもの(絶対値が小さい)ものを媒質とする
+今まで居た物質は無視
+物体に入る(dot(ray.direction,法線<0))ときは当たった面のものを使えばよい
 
 ray-marching
   反射/屈折後に2*EPSだけ進める?
