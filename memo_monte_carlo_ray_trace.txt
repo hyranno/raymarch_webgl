@@ -1,0 +1,31 @@
+カメラ側レイトレースのモンテカルロ
+  monte_carlo_ray_trace
+    複数のcamera_rayトレース結果の平均
+    並列に処理してから平均したい
+      ComputeShader案件では?
+  camera
+    入射方向の決定
+  material
+    diffuse
+      randomな反射方向を得る
+    specular
+      randomな反射方向を得る(parameter依存)
+    getPhoton
+
+モンテカルロ・レイトレース手順
+  カメラ
+    複数rayの平均を取る
+      入射方向の決定
+      ray-marching
+      当たった物体に対してgetPhoton
+  getPhoton
+    DiffuseとSpecularのどちらを返すか決める
+    直接光を得る(光源の探索)
+    間接光を得る
+      入射方向の決定
+      ray-marching
+      当たった物体に対してgetPhoton
+    Diffuse/Specularの総和を得る
+    Ambient+Diffuse/Specular を返す
+
+再帰を含まないループに展開する必要がある

@@ -12,15 +12,21 @@ npm run build
 TODO
 now:
 future:
-  カメラ側レイトレースのモンテカルロ
-  Shape同士の論理演算
+  random
+    PCG (Permuted congruential generator)
+  hash
+  procedural shape
+    Shape同士の論理演算
   procedural material
     normal, metalness, specular, diffuse 等パラメータの揺れ
   いろいろ動かす
     Inverse Kinematics
 soooooon:
+  ComputeShader
+    Monte-carlo ray-trace
+    Photon-mapping
+    Screen-space effects
   曲率近似AmbientSelfOcclusion
-  Photon-mapping
   physics based rendering (material)
   波のGPUシミュレーション
   面光源
