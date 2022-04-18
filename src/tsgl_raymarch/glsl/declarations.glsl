@@ -41,6 +41,14 @@ vec4 quaternion_mul(vec4 q0, vec4 q1);
 vec3 quaternion_rot3(vec4 q, vec3 v);
 mat3 dcm_fromXY(vec3 x, vec3 y);
 
+uint rotr16(uint x, uint shift);
+void PCG16_init(uint seed, out uint state);
+uint PCG16_rand(inout uint state);
+uint hash32(uint data, uint seed);
+${(new Array(5)).map((_, dataLen) => `
+  uint hash32(uint data[${dataLen$}]);
+`).join("")}
+
 
 /*camera*/
 ${cameras.map((c) => c.getGlDeclarations()).join("")}

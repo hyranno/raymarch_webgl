@@ -12,16 +12,16 @@ npm run build
 TODO
 now:
 future:
-  random
-    PCG (Permuted congruential generator)
-  hash
   procedural shape
     Shape同士の論理演算
   procedural material
     normal, metalness, specular, diffuse 等パラメータの揺れ
   いろいろ動かす
+    時間依存shape, material
+      time をuniformとして渡す
     Inverse Kinematics
 soooooon:
+  jest-webgl-canvas-mock
   ComputeShader
     Monte-carlo ray-trace
     Photon-mapping
@@ -131,6 +131,7 @@ mat系の添え字は[列][行]の順なので注意
 キャスト演算子なし。float(num)のように書く
 構造体にはデフォルトコンストラクタが設定される
   Type s = {menbers...} スタイルは利用できない
+整数は32bitまで
 
 
 GLSLのテンプレートを別ファイルで保持、TypeScriptにテンプレートリテラルとしてimport

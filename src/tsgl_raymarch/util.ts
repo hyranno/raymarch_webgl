@@ -140,3 +140,60 @@ export function asTemplate(str: string, params: Object) {
   const vals = Object.values(params);
   return new Function(...keys, `return \`${str}\`;`)(...vals);
 }
+
+
+export function rotr32(x: number, shift: number): number{
+  return x >> shift | (x & (1<<shift)-1) << (32-shift);
+}
+export class PCG32 { //PCG-XSH-RR
+  static mult: bigint = 6364136223846793005n;
+  static incr: bigint = 1442695040888963407n;
+  state: bigint;
+  constructor(seed: bigint) {
+    this.state = seed + PCG32.incr;
+    this.rand();
+  }
+  rand(): number {
+    var bits_in = 64;
+    var bits_out = bits_in/2;
+    var m = Math.log2(bits_in) - 1;
+    var x = this.state;
+    var count = Number(x >> BigInt(bits_in-m));
+    this.state = (x * PCG32.mult + PCG32.incr) & (0xffff_ffff_ffff_ffffn);
+    x ^= x >> BigInt((bits_in-(bits_out-m))/2);
+    return rotr32(Number(x >> BigInt(bits_out-m)), count);
+  }
+}
+
+export function rotr16(x: number, shift: number): number{
+  return x >> shift | (x & (1<<shift)-1) << (16-shift);
+}
+export class PCG16 { //PCG-XSH-RR
+  static mult: number = 0xf156da97;
+  static incr: number = 0x7f94a2d3;
+  state: number;
+  constructor(seed: number) {
+    this.state = seed + PCG16.incr;
+    this.rand();
+  }
+  rand(): number {
+    var bits_in = 32;
+    var bits_out = bits_in/2;
+    var m = Math.log2(bits_in) - 1;
+    var x = this.state;
+    var count = x >> (bits_in-m);
+    this.state = (x * PCG16.mult + PCG16.incr) & 0xffff_ffff;
+    x ^= x >> (bits_in-(bits_out-m))/2;
+    return rotr16(x >> bits_out-m, count);
+  }
+}
+
+export function hash32(data: number[]): number {
+  var seed = 0x655e774f;
+  var mul = 0x8f5e;
+  for (var i=0; i<data.length; i++) {
+    var r = new PCG16(seed + data[i]);
+    seed = r.rand() * mul;
+  }
+  return seed;
+}
