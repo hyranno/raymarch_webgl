@@ -197,3 +197,21 @@ export function hash32(data: number[]): number {
   }
   return seed;
 }
+
+
+export function clamp(v:number, bottom: number, top: number): number {
+  return Math.max(Math.min(v, top), bottom);
+}
+export function mix(v1:number, v2: number, t: number): number {
+  return (t-1)*v1 + t*v2;
+}
+export function smoothmin(v1: number, v2: number, smoothness: number): number {
+  var h = 0.5 + 0.5*clamp((v2-v1)/smoothness, -1.0, 1.0);
+  var d = smoothness*h*(1.0-h); // > mix(v2,v1,h)-min(v2,v1)
+  return mix(v2,v1,h) - d;
+}
+export function smoothmax(v1: number, v2: number, smoothness: number): number {
+  var h = 0.5 - 0.5*clamp((v2-v1)/smoothness, -1.0, 1.0);
+  var d = smoothness*h*(1.0-h); // > mix(v2,v1,h)-min(v2,v1)
+  return mix(v2,v1,h) + d;
+}

@@ -49,6 +49,9 @@ ${(new Array(5)).map((_, dataLen) => `
   uint hash32(uint data[${dataLen$}]);
 `).join("")}
 
+float smoothmin(float v1, float v2, float smoothness);
+float smoothmax(float v1, float v2, float smoothness);
+
 
 /*camera*/
 ${cameras.map((c) => c.getGlDeclarations()).join("")}

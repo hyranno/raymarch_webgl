@@ -78,7 +78,20 @@ export class OrbitingSphere extends drawables.MaterializedShape {
 export class RotatingRoundedCube extends drawables.Transform {
   constructor(t: TimeTicks) {
     var org = new drawables.MaterializedShape(
-      new shapes.Bloated( new shapes.Box(new Vec3D(0.4,0.4,0.4)), 0.3 ),
+      new shapes.SmoothUnion(
+        new shapes.SmoothSubtraction(
+          new shapes.Bloated( new shapes.Box(new Vec3D(0.4,0.4,0.4)), 0.3 ),
+          new shapes.Repetition(
+            new shapes.Hollowed(new shapes.Box(new Vec3D(0.06,0.06,2)), 0.01),
+            new Vec3D(0.3,0.3,1), new Vec3D(1,1,0)
+          ),
+          0.1
+        ),
+        new shapes.Transform3D(
+          new shapes.Box(new Vec3D(1,1,1)), 0.2, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0.4,0.7,0.3)
+        ),
+        0.1
+      ),
       new TestMaterial(new Vec3D(0.1, 0.2, 0.1), new Vec3D(0,1,0), 0.2, 20)
     );
     super(

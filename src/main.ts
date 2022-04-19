@@ -23,6 +23,7 @@ function main(): void {
   ];
   var lights_: Light[] = [
     new lights.PointLight(new Vec3D(0,3,1), new Vec3D(1,1,1)),
+    //new lights.PointLight(new Vec3D(0,-3,0), (new Vec3D(1,1,1)).mul(0.05)),
   ];
 
   var canvas = document.getElementById("demoscene") as HTMLCanvasElement;

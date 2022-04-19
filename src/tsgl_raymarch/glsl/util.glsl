@@ -77,3 +77,15 @@ ${(new Array(5)).map((_, dataLen) => `
     return seed;
   }
 `).join("")}
+
+
+float smoothmin(float v1, float v2, float smoothness) {
+  float h = 0.5 + 0.5*clamp((v2-v1)/smoothness, -1.0, 1.0);
+  float d = smoothness*h*(1.0-h); // > mix(v2,v1,h)-min(v2,v1)
+  return mix(v2,v1,h) - d;
+}
+float smoothmax(float v1, float v2, float smoothness) {
+  float h = 0.5 - 0.5*clamp((v2-v1)/smoothness, -1.0, 1.0);
+  float d = smoothness*h*(1.0-h); // > mix(v2,v1,h)-min(v2,v1)
+  return mix(v2,v1,h) + d;
+}
