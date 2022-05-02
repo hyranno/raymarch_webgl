@@ -18,7 +18,7 @@ export class Phong extends Material {
     this.metalness = metalness;
     this.specular = specular;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform vec3 ambient_${this.id};
     uniform vec3 diffuse_${this.id};
@@ -26,6 +26,7 @@ export class Phong extends Material {
     uniform float specular_${this.id};
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
+    super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `ambient_${this.id}`,
       this.ambient.x, this.ambient.y, this.ambient.z
     );

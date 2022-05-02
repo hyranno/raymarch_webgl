@@ -7,7 +7,7 @@ export class Perspective extends Camera {
     super(position, upper_center, center_right, resolution);
     this.origin_distance = origin_distance;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform float origin_distance_${this.id};
   `;}

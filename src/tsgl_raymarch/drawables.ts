@@ -9,30 +9,13 @@ export class MaterializedShape extends glEntities.Drawable {
     super();
     this.shape = shape;
     this.material = material;
+    this.dependentGlEntities.push(shape, material);
   }
   getDistance(point: Vec3D): number {
     return this.shape.getDistance(point);
   }
   getNormal(point: Vec3D): Vec3D {
     return this.shape.getNormal(point);
-  }
-  override getGlDeclarations(): string {
-    return `
-      ${this.shape.getGlDeclarations()}
-      ${this.material.getGlDeclarations()}
-      ${super.getGlDeclarations()}
-    `;
-  }
-  override getGlImplements(): string {
-    return `
-      ${this.shape.getGlImplements()}
-      ${this.material.getGlImplements()}
-      ${super.getGlImplements()}
-    `;
-  }
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.shape.setGlVars(gl, program);
-    this.material.setGlVars(gl, program);
   }
   GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
@@ -70,21 +53,7 @@ export class Transform extends glEntities.Drawable {
     super();
     this.original = original;
     this.transform_shape = new shapes.Transform3D(original, scale, rotation, translate);
-  }
-  override getGlDeclarations(): string {
-    return `
-      ${this.transform_shape.getGlDeclarations()}
-      ${super.getGlDeclarations()}
-    `;
-  }
-  override getGlImplements(): string {
-    return `
-      ${this.transform_shape.getGlImplements()}
-      ${super.getGlImplements()}
-    `;
-  }
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.transform_shape.setGlVars(gl, program);
+    this.dependentGlEntities.push(this.transform_shape);
   }
   getDistance(point: Vec3D): number {
     return this.transform_shape.getDistance(point);
@@ -134,30 +103,21 @@ export class Transform extends glEntities.Drawable {
   }
 }
 
-export class Group extends glEntities.Drawable { //TODO: implement
-  //return values of which has the least distance
+export class Group extends glEntities.Drawable {
   contents: glEntities.Drawable[];
   constructor(contents: glEntities.Drawable[]) {
     super();
     this.contents = contents;
+    contents.forEach((d) => this.dependentGlEntities.push(d));
   }
-  override getGlDeclarations(): string {
-    return `
-      ${this.contents.map((d) => d.getGlDeclarations()).join("")}
-      ${super.getGlDeclarations()}
-      int findNearest_${this.id} (vec3 point, out float obj_distance);
-    `;
-  }
-  override getGlImplements(): string {
-    return `
-      ${this.contents.map((d) => d.getGlImplements()).join("")}
-      ${super.getGlImplements()}
-      ${this.GlFunc_findNearest()}
-    `;
-  }
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.contents.forEach((d)=>d.setGlVars(gl, program));
-  }
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    int findNearest_${this.id} (vec3 point, out float obj_distance);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_findNearest()}
+  `;}
   findNearest(point: Vec3D): glEntities.Drawable {
     return this.contents.reduce((prev, current) =>
       (prev.getDistance(point) < current.getDistance(point)) ? prev : current

@@ -41,17 +41,35 @@ vec4 quaternion_mul(vec4 q0, vec4 q1);
 vec3 quaternion_rot3(vec4 q, vec3 v);
 mat3 dcm_fromXY(vec3 x, vec3 y);
 
+float blend(float v1, float v2, bool isMin, float smoothness, float weight);
+float smoothmin(float v1, float v2, float smoothness);
+float smoothmax(float v1, float v2, float smoothness);
+float smoothclamp(float v, float bottom, float top, float smoothness);
+
+/*random*/
 uint rotr16(uint x, uint shift);
 void PCG16_init(uint seed, out uint state);
 uint PCG16_rand(inout uint state);
 uint hash32(uint data, uint seed);
-${(new Array(5)).map((_, dataLen) => `
-  uint hash32(uint data[${dataLen$}]);
+${(new Array(5).fill(0)).map((_, maxIndex) => `
+  uint hash32(uint data[${maxIndex+1}]);
 `).join("")}
 
-float smoothmin(float v1, float v2, float smoothness);
-float smoothmax(float v1, float v2, float smoothness);
-
+/*coord*/
+const mat3 TetrahedronBasis = mat3(
+  cos(radians(180.0)/6.0), sin(radians(180.0)/6.0), 0,
+  cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0,
+  sqrt(1.0/3.0), 0, sqrt(2.0/3.0)
+);
+const mat3 InvTetrahedronBasis = mat3(
+  sqrt(1.0/3.0), sqrt(1.0/3.0), 0,
+  1, -1, 0,
+  -sqrt(1.0/6.0), -sqrt(1.0/6.0), sqrt(3.0/2.0)
+);
+const vec3 TetrahedronCenter = (TetrahedronBasis[0]+TetrahedronBasis[1]+TetrahedronBasis[2])/4.0;
+vec3 coord_OrthogonalToTetrahedron(vec3 p);
+vec3 coord_TetrahedronToOrthogonal(vec3 p);
+vec3[8] coord_rounds(vec3 point);
 
 /*camera*/
 ${cameras.map((c) => c.getGlDeclarations()).join("")}

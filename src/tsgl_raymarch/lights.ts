@@ -10,12 +10,13 @@ export class PointLight extends Light {
     this.position = position;
     this.color = color;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform vec3 position_${this.id};
     uniform vec3 color_${this.id};
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
+    super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `position_${this.id}`,
       this.position.x, this.position.y, this.position.z
     );
@@ -40,12 +41,13 @@ export class DirectionalLight extends Light {
     this.direction = direction;
     this.color = color;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform vec3 direction_${this.id};
     uniform vec3 color_${this.id};
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
+    super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `direction_${this.id}`,
       this.direction.x, this.direction.y, this.direction.z
     );

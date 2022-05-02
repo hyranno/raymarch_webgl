@@ -13,6 +13,7 @@ export class Transform3D extends Shape3D {
     this.scale = scale;
     this.rotation = rotation;
     this.translate = translate;
+    this.dependentGlEntities.push(original);
   }
   GlFunc_getTransform(): string {
     return `Transform getTransform_${this.id} () {
@@ -48,8 +49,7 @@ export class Transform3D extends Shape3D {
       return d * scale_${this.id};
     }`;
   }
-  override getGlDeclarations(): string { return `
-    ${this.original.getGlDeclarations()}
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform float scale_${this.id};
     uniform vec4 rotation_${this.id};
@@ -58,15 +58,14 @@ export class Transform3D extends Shape3D {
     vec3 transform_${this.id} (vec3 p);
     vec3 inverse_${this.id} (vec3 p);
   `;}
-  override getGlImplements(): string { return `
-    ${this.original.getGlImplements()}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
     ${super.getGlImplements()}
     ${this.GlFunc_getTransform()}
     ${this.GlFunc_transform()}
     ${this.GlFunc_inverse()}
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void{
-    this.original.setGlVars(gl, program);
+    super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `scale_${this.id}`, this.scale);
     GlEntity.setGlUniformFloat(gl, program, `rotation_${this.id}`,
       this.rotation.xyz.x, this.rotation.xyz.y, this.rotation.xyz.z, this.rotation.w
@@ -99,11 +98,12 @@ export class Box extends Shape3D {
       return positive + negative;
     }`;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform vec3 size_${this.id};
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
+    super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `size_${this.id}`,
       this.size.x, this.size.y, this.size.z
     );
@@ -119,10 +119,6 @@ export class Sphere extends Shape3D {
       return length(point) - 1.0;
     }`;
   }
-  override getGlDeclarations(): string {return `
-    ${super.getGlDeclarations()}
-  `;}
-  override setGlVars(): void {}
 }
 
 export class Bloated extends Shape3D {
@@ -132,6 +128,7 @@ export class Bloated extends Shape3D {
     super();
     this.original = original;
     this.radius = radius;
+    this.dependentGlEntities.push(original);
   }
   override getDistance(point: Vec3D): number {
     return this.original.getDistance(point) - this.radius;
@@ -141,19 +138,12 @@ export class Bloated extends Shape3D {
       return getDistance_${this.original.id}(point) - radius_${this.id};
     }`;
   }
-  override getGlDeclarations(): string {return `
-    ${this.original.getGlDeclarations()}
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform float radius_${this.id};
-    float getDistance_${this.id} (vec3 point);
-    vec3 getNormal_${this.id} (vec3 point);
-  `;}
-  override getGlImplements(): string { return `
-    ${this.original.getGlImplements()}
-    ${super.getGlImplements()}
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.original.setGlVars(gl, program);
+    super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `radius_${this.id}`, this.radius);
   }
 }
@@ -165,6 +155,7 @@ export class Hollowed extends Shape3D {
     super();
     this.original = original;
     this.thickness = thickness;
+    this.dependentGlEntities.push(original);
   }
   override getDistance(point: Vec3D): number {
     return Math.abs(this.original.getDistance(point)) - this.thickness;
@@ -174,17 +165,12 @@ export class Hollowed extends Shape3D {
       return abs(getDistance_${this.original.id}(point)) - thickness_${this.id};
     }`;
   }
-  override getGlDeclarations(): string {return `
-    ${this.original.getGlDeclarations()}
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform float thickness_${this.id};
   `;}
-  override getGlImplements(): string { return `
-    ${this.original.getGlImplements()}
-    ${super.getGlImplements()}
-  `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.original.setGlVars(gl, program);
+    super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `thickness_${this.id}`, this.thickness);
   }
 }
@@ -196,20 +182,7 @@ export abstract class BooleanOp extends Shape3D {
     super();
     this.shape1 = shape1;
     this.shape2 = shape2;
-  }
-  override getGlDeclarations(): string {return `
-    ${this.shape1.getGlDeclarations()}
-    ${this.shape2.getGlDeclarations()}
-    ${super.getGlDeclarations()}
-  `;}
-  override getGlImplements(): string { return `
-    ${this.shape1.getGlImplements()}
-    ${this.shape2.getGlImplements()}
-    ${super.getGlImplements()}
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.shape1.setGlVars(gl, program);
-    this.shape2.setGlVars(gl, program);
+    this.dependentGlEntities.push(shape1, shape2);
   }
 }
 export class Union extends BooleanOp {
@@ -249,7 +222,7 @@ export abstract class SmoothBooleanOp extends BooleanOp {
     super(shape1, shape2);
     this.smoothness = smoothness;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform float smoothness_${this.id};
   `;}
@@ -295,6 +268,7 @@ export abstract class Displacement extends Shape3D {
   constructor(original: Shape3D) {
     super();
     this.original = original;
+    this.dependentGlEntities.push(original);
   }
   abstract displace(point: Vec3D) : Vec3D;
   abstract GLFunc_displace() : string;
@@ -306,19 +280,14 @@ export abstract class Displacement extends Shape3D {
       return getDistance_${this.original.id}( displace_${this.id}(point) );
     }`;
   }
-  override getGlDeclarations(): string {return `
-    ${this.original.getGlDeclarations()}
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     vec3 displace_${this.id}(vec3 point);
   `;}
-  override getGlImplements(): string { return `
-    ${this.original.getGlImplements()}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
     ${super.getGlImplements()}
     ${this.GLFunc_displace()}
   `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    this.original.setGlVars(gl, program);
-  }
 }
 
 export class RepetitionInf extends Displacement {
@@ -341,7 +310,7 @@ export class RepetitionInf extends Displacement {
       return point - origin;
     }`;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform vec3 interval_${this.id};
   `;}
@@ -375,7 +344,7 @@ export class Repetition extends Displacement {
       return point - origin;
     }`;
   }
-  override getGlDeclarations(): string {return `
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     uniform vec3 interval_${this.id};
     uniform vec3 max_indices_${this.id};
@@ -388,5 +357,43 @@ export class Repetition extends Displacement {
     GlEntity.setGlUniformFloat(gl, program, `max_indices_${this.id}`,
       this.max_indices.x, this.max_indices.y, this.max_indices.z
     );
+  }
+}
+
+
+export class BoundingShape extends Shape3D {
+  original: GlEntity & HasShape;
+  bounding: GlEntity & HasShape;
+  margin: number;
+  constructor(original: GlEntity & HasShape, bounding: GlEntity & HasShape, margin: number) {
+    super();
+    this.margin = margin;
+    this.original = original;
+    this.bounding = bounding;
+    this.dependentGlEntities.push(original, bounding);
+  }
+  override getDistance(point: Vec3D): number {
+    var res = this.bounding.getDistance(point);
+    if (res < this.margin) {
+      res = this.original.getDistance(point);
+    }
+    return res;
+  }
+  override GlFunc_getDistance(): string {
+    return `float getDistance_${this.id} (vec3 point) {
+      float res = getDistance_${this.bounding.id}(point);
+      if (res < margin_${this.id}) {
+        res = getDistance_${this.original.id}(point);
+      }
+      return res;
+    }`;
+  }
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    uniform float margin_${this.id};
+  `;}
+  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
+    super.setGlVars(gl, program);
+    GlEntity.setGlUniformFloat(gl, program, `margin_${this.id}`, this.margin);
   }
 }

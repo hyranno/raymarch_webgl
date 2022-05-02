@@ -9,7 +9,9 @@ import {TimeTicks} from './event_stream'
 import * as objs from './drawable_objects';
 
 function main(): void {
-  var timetick = new TimeTicks(1000 * 1/30);
+  console.log("initializing script");
+
+  var timetick = new TimeTicks(1000 * 1/20);
   var cameras_: Camera[] = [
     new cameras.Perspective(new Vec3D(0,0,14), new Vec3D(0,0.6,0), new Vec3D(0.8,0,0), 1, new Vec2D(800, 600)),
   ];
@@ -35,6 +37,12 @@ function main(): void {
     renderer.draw(0);
   });
 
-  timetick.start();
+  console.log("script ready");
+  window.setTimeout(
+    ()=>timetick.start(),
+    3000
+  );
 }
-document.body.onload = main;
+
+console.log("script loaded");
+document.body.onload = () => window.setTimeout(main, 3000);

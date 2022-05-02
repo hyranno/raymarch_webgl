@@ -53,6 +53,9 @@ export class GlRenderer {
     }
   `;}
   getFragmentShaderSource(): string {
+    this.drawables.forEach((entity) => entity.clearGlSourceStates());
+    this.lights.forEach((entity) => entity.clearGlSourceStates());
+    this.cameras.forEach((entity) => entity.clearGlSourceStates());
     return asTemplate(fragShaderTemplate, {
       drawables: this.drawables,
       lights: this.lights,

@@ -1,5 +1,7 @@
 import {Vec3D, Quaternion} from '@tsgl/util';
+import * as rand from '@tsgl/random';
 import * as shapes from '@tsgl/shapes';
+import * as shapeFBM from '@tsgl/shapeFBM'
 import * as materials from '@tsgl/materials';
 import * as drawables from '@tsgl/drawables';
 import {TimeTicks} from './event_stream';
@@ -65,7 +67,17 @@ export class CornellBox extends drawables.Group {
 
 export class OrbitingSphere extends drawables.MaterializedShape {
   constructor(t: TimeTicks) {
-    var transform = new shapes.Transform3D(new shapes.Sphere(), 1, new Quaternion(new Vec3D(1,0,0), 0), new Vec3D(3,0,0));
+    var sphere = new shapes.Sphere();
+    var transform = new shapes.Transform3D(
+      new shapes.BoundingShape(
+        new shapeFBM.SubtractBrownianMotion(
+          sphere, new rand.Constant(0.5), 0.3, 0.8, 0.5
+        ),
+        sphere,
+        0.1
+      ),
+      1, Quaternion.identity(), new Vec3D(3,0,0)
+    );
     super(
       transform,
       new materials.Phong(new Vec3D(0.1, 0.1, 0.2), new Vec3D(0,0,1), 0.5, 10)

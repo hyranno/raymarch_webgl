@@ -8,29 +8,35 @@ npm run build
     movement
   レンダリング
     ComputeShaderが使えないので無理そう
+最終的に何を出力するか
+  Proceduralな生成の強みは
+
 
 TODO
 now: procedural shape
   BoundingShape
     複雑な形状の物(content)を簡単な形状の物(bounding)で覆う
     普段はboundingとの距離を、boundingとの距離がmargin以下ならcontentとの距離を返す
-  乱数を含む形状
-    uint16ToFloat01
-  Drawable同士のUnion,SmoothUnion
-  L-System?
 future:
+  ユニットテスト
+    Vec, Mat
   procedural material
+    hyranno@ShaderToy から引っ張ってくる
     normal, metalness, specular, diffuse 等パラメータの揺れ
+      normalの揺れはマイクロファセットの分布関数で既にある程度考慮されている
+    Fractional Brownian Motion
+  Drawable同士のUnion,SmoothUnion
   いろいろ動かす
     時間依存shape, material
-      time をuniformとして渡す
+      時間依存のパラメータを計算後にuniformとして渡す方がいいか
     Inverse Kinematics
 soooooon:
   jest-webgl-canvas-mock
   曲率近似AmbientSelfOcclusion
   曲率依存の汚れマテリアル
   physics based rendering (material)
-  波のGPUシミュレーション
+  L-System?
+    TypeScript側で再帰し、GLSL側には単にUnionなどとして渡す?
   面光源
     photon.ray.start が random_uniform に従う?
   glslify-loader
@@ -42,13 +48,55 @@ soooooon:
     Monte-carlo ray-trace
     Photon-mapping
     Screen-space effects
+    波のGPUシミュレーション
 
+
+GPUの性能が厳しい
+  Intel UHD Graphics 620
+  CPU内蔵のグラフィック機能でレイマーチングを回すのがそもそも厳しいか
+
+
+InigoQuilez: FBM detail in SDFs
+  ランダムなサイズのsphere?を各座標に生成
+    Sphereの原点はround(直交座標)でない方がよいか(正四面体の座標系など)
+    Sphereの半径が従う確率分布?
+      指数分布
+        Unionのみ/Subtractionのみの場合に有効そう
+      正規分布
+        平均0の正規分布にしてUnionとSubtractionに分けられないか?
+        UniSphere...ru=max(r,0), SubSphere...rs=(max(-r,0))
+  SmoothIntersection(Hollowed(original), spheres) で球の取り出し
+    SmoothBooleanOp そのままではなく手を加えてもよい
+    変位の大きい部分の形状を調整
+  SmoothUnion / SmoothSubtraction で対象と結合
+    変位の小さい部分の形状を調整
+  新たな対象としてループ
+周期的に表面から離れた場所に球が生える
+Subtractionの方はBoundingShapeを付けられる
+
+
+
+球状のウェーブレット(のようなもの)
+  3次関数v(r)を使って、v(step(r))
+  v(0) = 1, dv_dr(0) = 0
+  v(1) = 0, dv_dr(1) = 0
+  球積分(v(r), 0<=r<=1) = 0
+    円積分の方がいい?
 
 
 リファクタリング
-  mix(float, float, float) -> mix(float, float, bool)
-  GlEntytyからのuniformをstructにする(Transformのみ?)
+  mix(float, float, coef_is) -> mix(float, float, bool)
+  GlEntytyからのuniformをstructにする
+    Transformのみ?
   Shape3D -> GlEntity & HasShape
+  setGlUniformFloat, setGlUniformVec3, setGlUniformMat3
+  Quaternion.identity(), Vec3D.zero(), Vec2D.zero()
+  Vec3D -> Vec3
+    .xじゃなくて[0]の方が楽そう
+
+glslポリモーフィズム
+  GlEntityでやる
+  glslにラッパー関数を持たずにマクロで実関数に書き換えるほうが速いか？
 
 
 findNearestDrawable
