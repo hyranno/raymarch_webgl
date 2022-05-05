@@ -1,13 +1,4 @@
 
-float coef_isEqual(float a, float b){ return 1.0 - abs(sign(a-b)); }
-float coef_isEqual(int a, int b){ return coef_isEqual(float(a), float(b)); }
-float coef_notEqual(float a, float b){ return abs(sign(a-b)); }
-float coef_notEqual(int a, int b){ return coef_notEqual(float(a), float(b)); }
-float coef_isGreater(float a, float b){ return max(sign(a-b), 0.0); }
-float coef_isGreater(int a, int b){ return coef_isGreater(float(a), float(b)); }
-float coef_isLesser(float a, float b){ return max(sign(b-a), 0.0); }
-float coef_isLesser(int a, int b){ return coef_isLesser(float(a), float(b)); }
-
 vec4 quaternion_fromDCM(mat3 dcm) {
   float w  = sqrt((+dcm[0][0] +dcm[1][1] +dcm[2][2] + 1.0)/4.0);
   float tx = sqrt((+dcm[0][0] -dcm[1][1] -dcm[2][2] + 1.0)/4.0);

@@ -25,15 +25,6 @@ struct Transform {
 };
 
 /*util.glsl*/
-float coef_isEqual(float a, float b);
-float coef_isEqual(int a, int b);
-float coef_notEqual(float a, float b);
-float coef_notEqual(int a, int b);
-float coef_isGreater(float a, float b);
-float coef_isGreater(int a, int b);
-float coef_isLesser(float a, float b);
-float coef_isLesser(int a, int b);
-
 vec4 quaternion_fromDCM(mat3 dcm);
 vec4 quaternion_fromAngleAxis(float angle, vec3 axis);
 vec4 quaternion_inverse(vec4 q);
