@@ -125,16 +125,16 @@ export class Group extends glEntities.Drawable {
   }
   GlFunc_findNearest(): string {
     return `int findNearest_${this.id}(vec3 point, out float obj_distance) {
-      float prev_id = -1.0;
+      int prev_id = -1;
       float prev_distance = MAX_DISTANCE;
       ${this.contents.map((d)=>`{
         float current_distance = getDistance_${d.id}(point);
-        float cond = coef_isLesser(abs(current_distance), abs(prev_distance));
-        prev_id = mix(float(prev_id), float(${d.id}), cond);
+        bool cond = abs(current_distance) < abs(prev_distance);
+        prev_id = mix(prev_id, ${d.id}, cond);
         prev_distance = mix(prev_distance, current_distance, cond);
       }`).join("")}
       obj_distance = prev_distance;
-      return int(prev_id);
+      return prev_id;
     }`;
   }
   getDistance(point: Vec3D): number {
@@ -156,7 +156,9 @@ export class Group extends glEntities.Drawable {
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
-        res += getNormal_${d.id}(point) * coef_isEqual(nearest, ${d.id});
+        if (nearest==${d.id}) {
+          res = getNormal_${d.id}(point);
+        }
       `).join("")}
       return res;
     }`;
@@ -167,7 +169,9 @@ export class Group extends glEntities.Drawable {
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
-        res += getAmbient_${d.id}(point, view) * coef_isEqual(nearest, ${d.id});
+        if (nearest==${d.id}) {
+          res = getAmbient_${d.id}(point, view);
+        }
       `).join("")}
       return res;
     }`;
@@ -179,10 +183,14 @@ export class Group extends glEntities.Drawable {
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
-        normal += getNormal_${d.id}(point) * coef_isEqual(nearest, ${d.id});
+        if (nearest==${d.id}) {
+          normal = getNormal_${d.id}(point);
+        }
       `).join("")}
       ${this.contents.map((d) => `
-        res += getDiffuse_${d.id}(point, normal, photon, view) * coef_isEqual(nearest, ${d.id});
+        if (nearest==${d.id}) {
+          res = getDiffuse_${d.id}(point, normal, photon, view);
+        }
       `).join("")}
       return res;
     }`;
@@ -194,10 +202,10 @@ export class Group extends glEntities.Drawable {
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
-        normal += getNormal_${d.id}(point) * coef_isEqual(nearest, ${d.id});
+        normal += getNormal_${d.id}(point) * mix(0.0,1.0, nearest==${d.id});
       `).join("")}
       ${this.contents.map((d) => `
-        res += getSpecular_${d.id}(point, normal, photon, view) * coef_isEqual(nearest, ${d.id});
+        res += getSpecular_${d.id}(point, normal, photon, view) * mix(0.0,1.0, nearest==${d.id});
       `).join("")}
       return res;
     }`;

@@ -42,6 +42,11 @@ mat3 dcm_fromXY(vec3 x, vec3 y) {
 }
 
 
+int mix(int a, int b, bool cond) {
+  return int(mix(float(a), float(b), cond));
+}
+
+
 float blend(float v1, float v2, bool isMin, float smoothness, float weight) {
   float s = mix(1.0, -1.0, isMin);
   float h = 0.5 - s*0.5*clamp((v2-v1) / smoothness, -1.0, 1.0);

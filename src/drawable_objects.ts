@@ -10,13 +10,13 @@ import {TimeTicks} from './event_stream';
 export class TestMaterial extends materials.Phong {
   override GlFunc_getAmbient(): string {
     return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-      vec3 color = ambient_${this.id} + coef_isGreater(point.x, 0.5) * vec3(0.1, 0, 0);
+      vec3 color = ambient_${this.id} + mix(0.0,1.0, 0.5<point.x) * vec3(0.1, 0, 0);
       return getAmbient_constant(color);
     }`;
   }
   override GlFunc_getDiffuse(): string {
     return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      vec3 color = diffuse_${this.id} + coef_isGreater(point.x, 0.5) * vec3(1.0, 0, 0);
+      vec3 color = diffuse_${this.id} + mix(0.0,1.0, 0.5<point.x) * vec3(1.0, 0, 0);
       return getDiffuse_Phong(color, metalness_${this.id}, normal, photon);
     }`;
   }

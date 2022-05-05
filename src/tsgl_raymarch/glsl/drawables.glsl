@@ -5,7 +5,7 @@ ${drawables.map((d) => d.getGlImplements()).join("")}
 float getDistance(int id, vec3 point) {
   float res = MAX_DISTANCE;
   ${drawables.map((d)=>`
-    // res += getDistance_${d.id}(point) * coef_isEqual(${d.id}, id);
+    // res += getDistance_${d.id}(point) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
       res = getDistance_${d.id}(point);
     }
@@ -23,7 +23,7 @@ vec3 getNormal(int id, vec3 point) {
 vec3 getAmbient(int id, vec3 point, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    // res += getAmbient_${d.id}(point, view) * coef_isEqual(${d.id}, id);
+    // res += getAmbient_${d.id}(point, view) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
       res = getAmbient_${d.id}(point, view);
     }
@@ -33,7 +33,7 @@ vec3 getAmbient(int id, vec3 point, in Ray view) {
 vec3 getDiffuse(int id, vec3 point, in Photon photon, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    // res += getDiffuse_${d.id}(point, vec3(0), photon, view) * coef_isEqual(${d.id}, id);
+    // res += getDiffuse_${d.id}(point, vec3(0), photon, view) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
       res = getDiffuse_${d.id}(point, vec3(0), photon, view);
     }
@@ -43,7 +43,7 @@ vec3 getDiffuse(int id, vec3 point, in Photon photon, in Ray view) {
 vec3 getSpecular(int id, vec3 point, in Photon photon, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    // res += getSpecular_${d.id}(point, vec3(0), photon, view) * coef_isEqual(${d.id}, id);
+    // res += getSpecular_${d.id}(point, vec3(0), photon, view) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
       res = getSpecular_${d.id}(point, vec3(0), photon, view);
     }

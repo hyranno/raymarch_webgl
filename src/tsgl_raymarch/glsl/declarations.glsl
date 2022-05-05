@@ -41,6 +41,8 @@ vec4 quaternion_mul(vec4 q0, vec4 q1);
 vec3 quaternion_rot3(vec4 q, vec3 v);
 mat3 dcm_fromXY(vec3 x, vec3 y);
 
+int mix(int a, int b, bool cond);
+
 float blend(float v1, float v2, bool isMin, float smoothness, float weight);
 float smoothmin(float v1, float v2, float smoothness);
 float smoothmax(float v1, float v2, float smoothness);
