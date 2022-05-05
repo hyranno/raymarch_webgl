@@ -84,12 +84,10 @@ Subtractionの方はBoundingShapeを付けられる
 
 
 リファクタリング
-  mix(float, float, coef_is) -> mix(float, float, bool)
-  use Quaternion.identity(), Vec3D.zero(), Vec2D.zero()
   setGlUniformFloat, setGlUniformVec3, setGlUniformMat3
-  var -> let
   Vec3D -> Vec3
     .xじゃなくて[0]の方が楽そう
+  var -> let
   Transform
     Transform extends GlEntity
     shape.Transformed, drawables.Transformed
@@ -99,6 +97,8 @@ Subtractionの方はBoundingShapeを付けられる
   Tetrahedron -> Simplex3
 
 
+shapeFBMのShapesRand
+simplexCoordのroundsだと距離関数がおかしくなってそう(無限ループバグの元)
 
 findNearestDrawable
 rayCastのl + obj_distance < EPS となるものは無視?

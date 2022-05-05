@@ -67,12 +67,8 @@ export class Transform3D extends Shape3D {
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void{
     super.setGlVars(gl, program);
     GlEntity.setGlUniformFloat(gl, program, `scale_${this.id}`, this.scale);
-    GlEntity.setGlUniformFloat(gl, program, `rotation_${this.id}`,
-      this.rotation.xyz.x, this.rotation.xyz.y, this.rotation.xyz.z, this.rotation.w
-    );
-    GlEntity.setGlUniformFloat(gl, program, `translate_${this.id}`,
-      this.translate.x, this.translate.y, this.translate.z
-    );
+    GlEntity.setGlUniformQuaternion(gl, program, `rotation_${this.id}`, this.rotation);
+    GlEntity.setGlUniformVec3(gl, program, `translate_${this.id}`, this.translate);
   }
 }
 
@@ -104,9 +100,7 @@ export class Box extends Shape3D {
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `size_${this.id}`,
-      this.size.x, this.size.y, this.size.z
-    );
+    GlEntity.setGlUniformVec3(gl, program, `size_${this.id}`, this.size);
   }
 }
 
@@ -316,9 +310,7 @@ export class RepetitionInf extends Displacement {
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `interval_${this.id}`,
-      this.interval.x, this.interval.y, this.interval.z
-    );
+    GlEntity.setGlUniformVec3(gl, program, `interval_${this.id}`, this.interval);
   }
 }
 
@@ -351,12 +343,8 @@ export class Repetition extends Displacement {
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `interval_${this.id}`,
-      this.interval.x, this.interval.y, this.interval.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `max_indices_${this.id}`,
-      this.max_indices.x, this.max_indices.y, this.max_indices.z
-    );
+    GlEntity.setGlUniformVec3(gl, program, `interval_${this.id}`, this.interval);
+    GlEntity.setGlUniformVec3(gl, program, `max_indices_${this.id}`, this.max_indices);
   }
 }
 

@@ -17,12 +17,8 @@ export class PointLight extends Light {
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `position_${this.id}`,
-      this.position.x, this.position.y, this.position.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `color_${this.id}`,
-      this.color.x, this.color.y, this.color.z
-    );
+    GlEntity.setGlUniformVec3(gl, program, `position_${this.id}`, this.position);
+    GlEntity.setGlUniformVec3(gl, program, `color_${this.id}`, this.color);
   }
   GlFunc_getPhotonTo(): string {
     return `void light_getPhotonTo_${this.id} (vec3 point, out Photon photon) {
@@ -48,12 +44,8 @@ export class DirectionalLight extends Light {
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `direction_${this.id}`,
-      this.direction.x, this.direction.y, this.direction.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `color_${this.id}`,
-      this.color.x, this.color.y, this.color.z
-    );
+    GlEntity.setGlUniformVec3(gl, program, `direction_${this.id}`, this.direction);
+    GlEntity.setGlUniformVec3(gl, program, `color_${this.id}`, this.color);
   }
   GlFunc_getPhotonTo(): string {
     return `void light_getPhotonTo_${this.id} (vec3 point, out Photon photon){

@@ -27,12 +27,8 @@ export class Phong extends Material {
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `ambient_${this.id}`,
-      this.ambient.x, this.ambient.y, this.ambient.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `diffuse_${this.id}`,
-      this.diffuse.x, this.diffuse.y, this.diffuse.z
-    );
+    GlEntity.setGlUniformVec3(gl, program, `ambient_${this.id}`, this.ambient);
+    GlEntity.setGlUniformVec3(gl, program, `diffuse_${this.id}`, this.diffuse);
     GlEntity.setGlUniformFloat(gl, program, `metalness_${this.id}`, this.metalness);
     GlEntity.setGlUniformFloat(gl, program, `specular_${this.id}`, this.specular);
   }

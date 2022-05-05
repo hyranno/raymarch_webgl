@@ -42,6 +42,12 @@ export abstract class GlEntity {
     var f = [gl.uniform1fv, gl.uniform2fv, gl.uniform3fv, gl.uniform4fv, ];
     f[values.length-1].call(gl, location, values);
   }
+  static setGlUniformVec3(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, v: Vec3D): void {
+    this.setGlUniformFloat(gl, program, name, v.x, v.y, v.z);
+  }
+  static setGlUniformQuaternion(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, q: Quaternion): void {
+    this.setGlUniformFloat(gl, program, name, q.xyz.x, q.xyz.y, q.xyz.z, q.w);
+  }
 }
 
 export interface HasMaterial {
