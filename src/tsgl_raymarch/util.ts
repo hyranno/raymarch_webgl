@@ -170,27 +170,27 @@ export class Quaternion {
 
 // type Mat2Index = 0 | 1 ;
 export class Mat2 {
-  constructor(rows: [[number, number], [number, number]]) {
-    this[0] = rows[0];
-    this[1] = rows[1];
+  static fromNumbers(rows: [[number, number], [number, number]]): Mat2 {
+    return Mat2.fromClosure((i,j) => rows[i][j]);
   }
   static zero(): Mat2 {
-    return new Mat2([[0,0],[0,0]]);
+    return Mat2.fromNumbers([[0,0],[0,0]]);
   }
   static identity(): Mat2 {
-    return new Mat2([[1,0],[0,1]]);
+    return Mat2.fromNumbers([[1,0],[0,1]]);
   }
   static fromClosure(f :(i:number, j:number)=>number): Mat2 {
-    var res = Mat2.zero();
-    for (var i=0; i<3; i++) {
-      for (var j=0; j<3; j++) {
+    var res = new Mat2();
+    for (var i=0; i<2; i++) {
+      res[i] = [];
+      for (var j=0; j<2; j++) {
         res[i][j] = f(i,j);
       }
     }
     return res;
   }
   clone(): Mat2 {
-    return new Mat2([this[0],this[1]]);
+    return Mat2.fromNumbers([this[0],this[1]]);
   }
   determinant(): number {
     return (
@@ -199,7 +199,7 @@ export class Mat2 {
     );
   }
   cofactor(): Mat2 {
-    return new Mat2([[this[1][1],-this[0][1]], [-this[1][0],this[0][0]]]);
+    return Mat2.fromNumbers([[this[1][1],-this[0][1]], [-this[1][0],this[0][0]]]);
   }
   inverse(): Mat2 {
     return this.cofactor().mulScalar(1/this.determinant());
@@ -208,7 +208,7 @@ export class Mat2 {
     return Mat2.fromClosure((i,j) => this[j][i]);
   }
   map(f :(v:number)=>number): Mat2 {
-    return new Mat2([this[0].map(f), this[1].map(f)]);
+    return Mat2.fromNumbers([this[0].map(f), this[1].map(f)]);
   }
   getRow(i: number): Vec2D{
     return new Vec2D(this[i][0], this[i][1]);
@@ -228,14 +228,6 @@ export class Mat2 {
   mul(m: Mat2): Mat2 {
     return Mat2.fromClosure((i,j) => this.getRow(i).dot(m.getCol(j)));
   }
-  mul1x2(v: Vec2D): Mat2 {
-    var r0 = this[0][0]+this[0][1];
-    var r1 = this[1][0]+this[1][1];
-    return new Mat2([
-      [r0*v.x, r1*v.y],
-      [r1*v.x, r1*v.y],
-    ]);
-  }
   mul2x1(v: Vec2D): Vec2D {
     return new Vec2D(this.getRow(0).dot(v), this.getRow(1).dot(v));
   }
@@ -243,20 +235,19 @@ export class Mat2 {
 
 // type Mat3Index = 0 | 1 | 2 ;
 export class Mat3 {
-  constructor(rows: [[number, number, number], [number, number, number], [number, number, number]]) {
-    this[0] = rows[0];
-    this[1] = rows[1];
-    this[2] = rows[2];
+  static fromNumbers(rows: [[number, number, number], [number, number, number], [number, number, number]]): Mat3 {
+    return Mat3.fromClosure((i,j) => rows[i][j]);
   }
   static zero(): Mat3 {
-    return new Mat3([[0,0,0],[0,0,0],[0,0,0]]);
+    return Mat3.fromNumbers([[0,0,0],[0,0,0],[0,0,0]]);
   }
   static identity(): Mat3 {
-    return new Mat3([[1,0,0],[0,1,0],[0,0,1]]);
+    return Mat3.fromNumbers([[1,0,0],[0,1,0],[0,0,1]]);
   }
   static fromClosure(f :(i:number, j:number)=>number): Mat3 {
-    var res = Mat3.zero();
+    var res = new Mat3();
     for (var i=0; i<3; i++) {
+      res[i] = [];
       for (var j=0; j<3; j++) {
         res[i][j] = f(i,j);
       }
@@ -264,7 +255,7 @@ export class Mat3 {
     return res;
   }
   clone(): Mat3 {
-    return new Mat3([this[0],this[1],this[3]]);
+    return Mat3.fromNumbers([this[0],this[1],this[3]]);
   }
   determinant(): number {
     return (
@@ -289,7 +280,7 @@ export class Mat3 {
     return Mat3.fromClosure((i,j) => this[j][i]);
   }
   map(f :(v:number)=>number): Mat3 {
-    return new Mat3([this[0].map(f), this[1].map(f), this[2].map(f)]);
+    return Mat3.fromNumbers([this[0].map(f), this[1].map(f), this[2].map(f)]);
   }
   getRow(i: number): Vec3D{
     return new Vec3D(this[i][0], this[i][1], this[i][2]);
@@ -309,13 +300,6 @@ export class Mat3 {
   mul(m: Mat3): Mat3 {
     return Mat3.fromClosure((i,j) => this.getRow(i).dot(m.getCol(j)));
   }
-  mul1x3(v: Vec3D): Mat3 {
-    return new Mat3([
-      [this[0][0]*v.x, this[0][1]*v.y, this[0][2]*v.z],
-      [this[1][0]*v.x, this[1][1]*v.y, this[1][2]*v.z],
-      [this[2][0]*v.x, this[2][1]*v.y, this[2][2]*v.z],
-    ]);
-  }
   mul3x1(v: Vec3D): Vec3D {
     return new Vec3D( this.getRow(0).dot(v), this.getRow(1).dot(v), this.getRow(2).dot(v) );
   }
@@ -323,21 +307,17 @@ export class Mat3 {
 
 
 export class TetrahedronCoord extends Vec3D {
-  static basis = new Mat3([
-    [+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0],
+  static basis = Mat3.fromNumbers([
+    [+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0],
     [+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0],
     [Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)]
-  ]);
-  static invBasis = new Mat3([
-    [Math.sqrt(1.0/3.0), Math.sqrt(1.0/3.0), 0],
-    [1, -1, 0],
-    [-Math.sqrt(1.0/6.0), -Math.sqrt(1.0/6.0), Math.sqrt(3.0/2.0)]
-  ]);
+  ]).transpose();
+  static invBasis = TetrahedronCoord.basis.inverse();
   static TetrahedronCenter = (
-    TetrahedronCoord.basis.getRow(0)
-    .add(TetrahedronCoord.basis.getRow(1))
-    .add(TetrahedronCoord.basis.getRow(2))
-  ).mul(4.0);
+    TetrahedronCoord.basis.getCol(0)
+    .add(TetrahedronCoord.basis.getCol(1))
+    .add(TetrahedronCoord.basis.getCol(2))
+  ).mul(1/4);
   static asTetrahedronCoord(v: Vec3D): TetrahedronCoord {
     return new TetrahedronCoord(v.x, v.y, v.z);
   }
@@ -350,6 +330,20 @@ export class TetrahedronCoord extends Vec3D {
 }
 
 
+
+export class Range implements IterableIterator<number> {
+  private count = 0;
+  constructor(public min: number, public max: number) {}
+  next(): IteratorResult<number> {
+    return {
+      done: this.count >= this.max,
+      value: this.count++
+    };
+  }
+  [Symbol.iterator](): IterableIterator<number> {
+    return this;
+  }
+}
 
 
 export function asTemplate(str: string, params: Object) {

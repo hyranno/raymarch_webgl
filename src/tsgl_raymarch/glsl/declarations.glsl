@@ -56,17 +56,17 @@ ${(new Array(5).fill(0)).map((_, maxIndex) => `
 `).join("")}
 
 /*coord*/
-const mat3 TetrahedronBasis = mat3(
-  cos(radians(180.0)/6.0), sin(radians(180.0)/6.0), 0,
+const mat3 TetrahedronBasis = transpose(mat3(
+  cos(radians(180.0)/6.0), +sin(radians(180.0)/6.0), 0,
   cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0,
   sqrt(1.0/3.0), 0, sqrt(2.0/3.0)
-);
-const mat3 InvTetrahedronBasis = mat3(
-  sqrt(1.0/3.0), sqrt(1.0/3.0), 0,
-  1, -1, 0,
-  -sqrt(1.0/6.0), -sqrt(1.0/6.0), sqrt(3.0/2.0)
-);
-const vec3 TetrahedronCenter = (TetrahedronBasis[0]+TetrahedronBasis[1]+TetrahedronBasis[2])/4.0;
+));
+const mat3 InvTetrahedronBasis = inverse(TetrahedronBasis);
+const vec3 TetrahedronCenter = (
+  +vec3(cos(radians(180.0)/6.0), +sin(radians(180.0)/6.0), 0)
+  +vec3(cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0)
+  +vec3(sqrt(1.0/3.0), 0, sqrt(2.0/3.0))
+) / 4.0;
 vec3 coord_OrthogonalToTetrahedron(vec3 p);
 vec3 coord_TetrahedronToOrthogonal(vec3 p);
 vec3[8] coord_rounds(vec3 point);
