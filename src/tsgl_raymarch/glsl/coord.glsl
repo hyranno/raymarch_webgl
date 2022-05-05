@@ -4,7 +4,8 @@ vec3 coord_TetrahedronToOrthogonal(vec3 p){ return TetrahedronBasis*p; }
 
 
 vec3[8] coord_rounds(vec3 point){
-  vec3 ptf = floor(point), ptc = floor(point + vec3(1.0));
+  vec3 ptf = floor(point);
+  vec3 ptc = ptf + 1.0;
   return vec3[](
     ptf,
     vec3(ptf.x, ptf.y, ptc.z),

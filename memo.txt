@@ -97,14 +97,7 @@ Subtractionの方はBoundingShapeを付けられる
   Tetrahedron -> Simplex3
   Vec3D -> Vec3
     .xじゃなくて[0]の方が楽そう
-  TypeScriptのコンストラクタ
-    コンストラクタ引数にアクセス修飾子を付けると
-      this.foo = foo を書かなくていい
-      メンバ宣言も省略できる
 
-glslポリモーフィズム
-  GlEntityでやる
-  glslにラッパー関数を持たずにマクロで実関数に書き換えるほうが速いか？
 
 
 findNearestDrawable
@@ -177,6 +170,17 @@ WebGL系は諸々古くて性能が厳しい
   WebGPUの方がよい(Canary限定)
   Vulkanなどもあり
 
+
+TypeScriptのコンストラクタ
+  コンストラクタ引数にアクセス修飾子を付けると
+    this.foo = foo を書かなくていい
+    メンバ宣言も省略できる
+  メンバ宣言省略はメンバ確認に難が出るのでしない方がよいのでは
+
+Glslポリモーフィズム
+  GlEntityでやる
+  glslにラッパー関数を持たずにマクロで実関数に書き換えるほうが速いか？
+    インライン展開してくれるならこの配慮は不要だが
 
 GLSL
 ポインタが無い(in/out修飾子を使う)

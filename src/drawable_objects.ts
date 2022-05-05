@@ -71,7 +71,7 @@ export class OrbitingSphere extends drawables.MaterializedShape {
     var transform = new shapes.Transform3D(
       new shapes.BoundingShape(
         new shapeFBM.SubtractBrownianMotion(
-          sphere, new rand.Constant(0.1), 0.3, 0.8, 1/8
+          sphere, new rand.Constant(0.5), 0.3, 0.1, 0.5
         ),
         sphere,
         0.1
