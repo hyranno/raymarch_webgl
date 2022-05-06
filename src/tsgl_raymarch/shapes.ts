@@ -1,4 +1,4 @@
-import {Vec3D, Quaternion, smoothmax, smoothmin, clamp} from './util';
+import {Vec3, Quaternion, smoothmax, smoothmin, clamp} from './util';
 import {GlEntity, HasShape, Shape3D} from './gl_entity';
 
 
@@ -6,8 +6,8 @@ export class Transform3D extends Shape3D {
   original: GlEntity & HasShape;
   scale: number;
   rotation: Quaternion;
-  translate: Vec3D;
-  constructor(original: Shape3D, scale: number, rotation: Quaternion, translate: Vec3D) {
+  translate: Vec3;
+  constructor(original: Shape3D, scale: number, rotation: Quaternion, translate: Vec3) {
     super();
     this.original = original;
     this.scale = scale;
@@ -20,8 +20,8 @@ export class Transform3D extends Shape3D {
       return Transform(translate_${this.id}, rotation_${this.id}, scale_${this.id});
     }`;
   }
-  transform(p: Vec3D): Vec3D {
-    var res: Vec3D = p.clone();
+  transform(p: Vec3): Vec3 {
+    var res: Vec3 = p.clone();
     return res.mul(this.scale).rotate(this.rotation).add(this.translate);
   }
   GlFunc_transform(): string {
@@ -29,8 +29,8 @@ export class Transform3D extends Shape3D {
       return coord_transform(getTransform_${this.id}(), p);
     }`;
   }
-  inverse(p: Vec3D): Vec3D {
-    var res: Vec3D = p.add(this.translate.negative()).rotate(this.rotation.inverse()).mul(1/this.scale);
+  inverse(p: Vec3): Vec3 {
+    var res: Vec3 = p.add(this.translate.negative()).rotate(this.rotation.inverse()).mul(1/this.scale);
     return res;
   }
   GlFunc_inverse(): string {
@@ -38,7 +38,7 @@ export class Transform3D extends Shape3D {
       return coord_inverse(getTransform_${this.id}(), p);
     }`;
   }
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     var p = this.inverse(point);
     var d = this.original.getDistance(p);
     return d * this.scale;
@@ -73,16 +73,16 @@ export class Transform3D extends Shape3D {
 }
 
 export class Box extends Shape3D {
-  size: Vec3D;
-  constructor(size: Vec3D) {
+  size: Vec3;
+  constructor(size: Vec3) {
     super();
     this.size = size;
   }
-  override getDistance(point: Vec3D): number {
-    var p_abs = new Vec3D(Math.abs(point.x), Math.abs(point.y), Math.abs(point.z));
+  override getDistance(point: Vec3): number {
+    var p_abs = point.map((v)=>Math.abs(v));
     var diff = p_abs.add(this.size.negative());
-    var positive = (new Vec3D(Math.max(diff.x, 0), Math.max(diff.y, 0), Math.max(diff.z, 0))).len();
-    var negative = Math.min(0, Math.max(diff.x, diff.y, diff.z));
+    var positive = diff.map((v)=>Math.max(v,0)).len();
+    var negative = Math.min(0, Math.max(diff[0], diff[1], diff[2]));
     return positive + negative;
   }
   override GlFunc_getDistance(): string {
@@ -105,7 +105,7 @@ export class Box extends Shape3D {
 }
 
 export class Sphere extends Shape3D {
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return point.len()-1;
   }
   override GlFunc_getDistance(): string {
@@ -124,7 +124,7 @@ export class Bloated extends Shape3D {
     this.radius = radius;
     this.dependentGlEntities.push(original);
   }
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return this.original.getDistance(point) - this.radius;
   }
   override GlFunc_getDistance(): string {
@@ -151,7 +151,7 @@ export class Hollowed extends Shape3D {
     this.thickness = thickness;
     this.dependentGlEntities.push(original);
   }
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return Math.abs(this.original.getDistance(point)) - this.thickness;
   }
   override GlFunc_getDistance(): string {
@@ -180,7 +180,7 @@ export abstract class BooleanOp extends Shape3D {
   }
 }
 export class Union extends BooleanOp {
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return Math.min( this.shape1.getDistance(point), this.shape2.getDistance(point) );
   }
   override GlFunc_getDistance(): string {
@@ -190,7 +190,7 @@ export class Union extends BooleanOp {
   }
 }
 export class Subtraction extends BooleanOp {
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return Math.max( this.shape1.getDistance(point), -this.shape2.getDistance(point) );
   }
   override GlFunc_getDistance(): string {
@@ -200,7 +200,7 @@ export class Subtraction extends BooleanOp {
   }
 }
 export class Intersection extends BooleanOp {
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return Math.max( this.shape1.getDistance(point), this.shape2.getDistance(point) );
   }
   override GlFunc_getDistance(): string {
@@ -226,7 +226,7 @@ export abstract class SmoothBooleanOp extends BooleanOp {
   }
 }
 export class SmoothUnion extends SmoothBooleanOp {
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return smoothmin( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness );
   }
   override GlFunc_getDistance(): string {
@@ -236,7 +236,7 @@ export class SmoothUnion extends SmoothBooleanOp {
   }
 }
 export class SmoothSubtraction extends SmoothBooleanOp {
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return smoothmax( this.shape1.getDistance(point), -this.shape2.getDistance(point), this.smoothness );
   }
   override GlFunc_getDistance(): string {
@@ -246,7 +246,7 @@ export class SmoothSubtraction extends SmoothBooleanOp {
   }
 }
 export class SmoothIntersection extends SmoothBooleanOp {
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return smoothmax( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness );
   }
   override GlFunc_getDistance(): string {
@@ -264,9 +264,9 @@ export abstract class Displacement extends Shape3D {
     this.original = original;
     this.dependentGlEntities.push(original);
   }
-  abstract displace(point: Vec3D) : Vec3D;
+  abstract displace(point: Vec3) : Vec3;
   abstract GLFunc_displace() : string;
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     return this.original.getDistance( this.displace(point) );
   }
   override GlFunc_getDistance(): string {
@@ -285,17 +285,13 @@ export abstract class Displacement extends Shape3D {
 }
 
 export class RepetitionInf extends Displacement {
-  interval: Vec3D;
-  constructor(original: Shape3D, interval: Vec3D) {
+  interval: Vec3;
+  constructor(original: Shape3D, interval: Vec3) {
     super(original);
     this.interval = interval;
   }
-  override displace(point: Vec3D): Vec3D {
-    var origin = new Vec3D(
-      this.interval.x * Math.round(point.x/this.interval.x),
-      this.interval.y * Math.round(point.y/this.interval.y),
-      this.interval.z * Math.round(point.z/this.interval.z),
-    );
+  override displace(point: Vec3): Vec3 {
+    var origin = Vec3.fromClosure((i) => this.interval[i] * Math.round(point[i]/this.interval[i]));
     return point.add(origin.negative());
   }
   override GLFunc_displace() : string {
@@ -315,18 +311,16 @@ export class RepetitionInf extends Displacement {
 }
 
 export class Repetition extends Displacement {
-  interval: Vec3D;
-  max_indices: Vec3D;
-  constructor(original: Shape3D, interval: Vec3D, max_indices: Vec3D) {
+  interval: Vec3;
+  max_indices: Vec3;
+  constructor(original: Shape3D, interval: Vec3, max_indices: Vec3) {
     super(original);
     this.interval = interval;
     this.max_indices = max_indices;
   }
-  override displace(point: Vec3D): Vec3D {
-    var origin = new Vec3D(
-      this.interval.x * clamp(Math.round(point.x/this.interval.x), -this.max_indices.x, this.max_indices.x),
-      this.interval.y * clamp(Math.round(point.y/this.interval.y), -this.max_indices.y, this.max_indices.y),
-      this.interval.z * clamp(Math.round(point.z/this.interval.z), -this.max_indices.z, this.max_indices.z),
+  override displace(point: Vec3): Vec3 {
+    var origin = Vec3.fromClosure((i) =>
+      this.interval[i] * clamp(Math.round(point[i]/this.interval[i]), -this.max_indices[i], this.max_indices[i])
     );
     return point.add(origin.negative());
   }
@@ -360,7 +354,7 @@ export class BoundingShape extends Shape3D {
     this.bounding = bounding;
     this.dependentGlEntities.push(original, bounding);
   }
-  override getDistance(point: Vec3D): number {
+  override getDistance(point: Vec3): number {
     var res = this.bounding.getDistance(point);
     if (res < this.margin) {
       res = this.original.getDistance(point);

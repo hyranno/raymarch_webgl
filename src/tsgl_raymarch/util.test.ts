@@ -2,12 +2,12 @@ import * as util from '@tsgl/util';
 
 test('', () => {});
 
-describe('Vec2D', () => {
-  let v1 = new util.Vec2D(1,2);
-  let v2 = new util.Vec2D(3,4);
+describe('Vec2', () => {
+  let v1 = new util.Vec2(1,2);
+  let v2 = new util.Vec2(3,4);
   test('add', () => {
     let v = v1.add(v2);
-    expect(v).toEqual(new util.Vec2D(4,6));
+    expect(v).toEqual(new util.Vec2(4,6));
   });
   test('dot', () => {
     let v = v1.dot(v2);
@@ -19,21 +19,21 @@ describe('Vec2D', () => {
   });
 });
 
-describe('Vec3D', () => {
-  let v1 = new util.Vec3D(1,2,3);
-  let v2 = new util.Vec3D(3,4,5);
+describe('Vec3', () => {
+  let v1 = new util.Vec3(1,2,3);
+  let v2 = new util.Vec3(3,4,5);
   test('add', () => {
     let v = v1.add(v2);
-    expect(v).toEqual(new util.Vec3D(4,6,8));
+    expect(v).toEqual(new util.Vec3(4,6,8));
   });
   test('dot', () => {
     let v = v1.dot(v2);
     expect(v).toEqual(26);
   });
   test('cross', () => {
-    let v1 = new util.Vec3D(1,0,0);
-    let v2 = new util.Vec3D(0,2,0);
-    expect(v1.cross(v2)).toEqual(new util.Vec3D(0,0,2));
+    let v1 = new util.Vec3(1,0,0);
+    let v2 = new util.Vec3(0,2,0);
+    expect(v1.cross(v2)).toEqual(new util.Vec3(0,0,2));
   });
   test('normalize', () => {
     let v = v1.normalize().len();
@@ -43,21 +43,21 @@ describe('Vec3D', () => {
 
 describe('Quaternion', () => {
   test('from angle and axis', () => {
-    let v = new util.Vec3D(3,0,0);
-    let q = util.Quaternion.fromAngleAxis(Math.PI/2, new util.Vec3D(0,0,1));
+    let v = new util.Vec3(3,0,0);
+    let q = util.Quaternion.fromAngleAxis(Math.PI/2, new util.Vec3(0,0,1));
     let vr = v.rotate(q);
-    expect(vr.x).toBeCloseTo(0);
-    expect(vr.y).toBeCloseTo(3);
-    expect(vr.z).toBeCloseTo(0);
+    expect(vr[0]).toBeCloseTo(0);
+    expect(vr[1]).toBeCloseTo(3);
+    expect(vr[2]).toBeCloseTo(0);
   });
   test('from src and dest', () => {
-    let v1 = new util.Vec3D(2,0,0);
-    let v2 = new util.Vec3D(0,2,0);
+    let v1 = new util.Vec3(2,0,0);
+    let v2 = new util.Vec3(0,2,0);
     let q = util.Quaternion.fromSrcDest(v1,v2);
     let vr = v1.rotate(q);
-    expect(vr.x).toBeCloseTo(v2.x);
-    expect(vr.y).toBeCloseTo(v2.y);
-    expect(vr.z).toBeCloseTo(v2.z);
+    expect(vr[0]).toBeCloseTo(v2[0]);
+    expect(vr[1]).toBeCloseTo(v2[1]);
+    expect(vr[2]).toBeCloseTo(v2[2]);
   });
 });
 
@@ -96,9 +96,9 @@ describe('Mat2', () => {
   });
   test('mul2x1', () => {
     let v = m1.mul2x1(m2.getCol(0));
-    let ans = new util.Vec2D(10,22);
-    expect(v.x).toBeCloseTo(ans.x);
-    expect(v.y).toBeCloseTo(ans.y);
+    let ans = new util.Vec2(10,22);
+    expect(v[0]).toBeCloseTo(ans[0]);
+    expect(v[1]).toBeCloseTo(ans[1]);
   });
   test('mulScalar', () => {
     let m = m1.mulScalar(3);
@@ -137,35 +137,35 @@ describe('Mat3', () => {
   });
   test('mul3x1', () => {
     let v = m1.mul3x1(m2.getCol(0));
-    let ans = new util.Vec3D(31,61,29);
-    expect(v.x).toBeCloseTo(ans.x);
-    expect(v.y).toBeCloseTo(ans.y);
-    expect(v.z).toBeCloseTo(ans.z);
+    let ans = new util.Vec3(31,61,29);
+    expect(v[0]).toBeCloseTo(ans[0]);
+    expect(v[1]).toBeCloseTo(ans[1]);
+    expect(v[2]).toBeCloseTo(ans[2]);
   });
 });
 
 
 describe('TetrahedronCoord', () => {
   test('fromOrthogonal', () => {
-    let vx = util.TetrahedronCoord.fromOrthogonal(new util.Vec3D(+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0));
-    let vy = util.TetrahedronCoord.fromOrthogonal(new util.Vec3D(+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0));
-    let vz = util.TetrahedronCoord.fromOrthogonal(new util.Vec3D(Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)));
-    expect(vx.x).toBeCloseTo(1);
-    expect(vx.y).toBeCloseTo(0);
-    expect(vx.z).toBeCloseTo(0);
-    expect(vy.x).toBeCloseTo(0);
-    expect(vy.y).toBeCloseTo(1);
-    expect(vy.z).toBeCloseTo(0);
-    expect(vz.x).toBeCloseTo(0);
-    expect(vz.y).toBeCloseTo(0);
-    expect(vz.z).toBeCloseTo(1);
+    let vx = util.TetrahedronCoord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0));
+    let vy = util.TetrahedronCoord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0));
+    let vz = util.TetrahedronCoord.fromOrthogonal(new util.Vec3(Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)));
+    expect(vx[0]).toBeCloseTo(1);
+    expect(vx[1]).toBeCloseTo(0);
+    expect(vx[2]).toBeCloseTo(0);
+    expect(vy[0]).toBeCloseTo(0);
+    expect(vy[1]).toBeCloseTo(1);
+    expect(vy[2]).toBeCloseTo(0);
+    expect(vz[0]).toBeCloseTo(0);
+    expect(vz[1]).toBeCloseTo(0);
+    expect(vz[2]).toBeCloseTo(1);
   });
   test('toOrthogonal', () => {
-    let v = new util.Vec3D(1,2,3);
+    let v = new util.Vec3(1,2,3);
     let v_ = util.TetrahedronCoord.fromOrthogonal(v).toOrthogonal();
-    expect(v_.x).toBeCloseTo(v.x);
-    expect(v_.y).toBeCloseTo(v.y);
-    expect(v_.z).toBeCloseTo(v.z);
+    expect(v_[0]).toBeCloseTo(v[0]);
+    expect(v_[1]).toBeCloseTo(v[1]);
+    expect(v_[2]).toBeCloseTo(v[2]);
   });
   test('center', () => {
     let tx = (new util.TetrahedronCoord(1,0,0)).toOrthogonal();

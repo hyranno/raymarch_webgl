@@ -1,4 +1,4 @@
-import {Vec3D, Quaternion} from './util';
+import {Vec3, Quaternion} from './util';
 import * as shapes from '@tsgl/shapes';
 import * as glEntities from '@tsgl/gl_entity';
 
@@ -11,10 +11,10 @@ export class MaterializedShape extends glEntities.Drawable {
     this.material = material;
     this.dependentGlEntities.push(shape, material);
   }
-  getDistance(point: Vec3D): number {
+  getDistance(point: Vec3): number {
     return this.shape.getDistance(point);
   }
-  getNormal(point: Vec3D): Vec3D {
+  getNormal(point: Vec3): Vec3 {
     return this.shape.getNormal(point);
   }
   GlFunc_getDistance(): string {
@@ -49,13 +49,13 @@ export class MaterializedShape extends glEntities.Drawable {
 export class Transform extends glEntities.Drawable {
   transform_shape: shapes.Transform3D;
   original: glEntities.Drawable;
-  constructor(original: glEntities.Drawable, scale: number, rotation: Quaternion, translate: Vec3D){
+  constructor(original: glEntities.Drawable, scale: number, rotation: Quaternion, translate: Vec3){
     super();
     this.original = original;
     this.transform_shape = new shapes.Transform3D(original, scale, rotation, translate);
     this.dependentGlEntities.push(this.transform_shape);
   }
-  getDistance(point: Vec3D): number {
+  getDistance(point: Vec3): number {
     return this.transform_shape.getDistance(point);
   }
   GlFunc_getDistance(): string {
@@ -63,7 +63,7 @@ export class Transform extends glEntities.Drawable {
       return getDistance_${this.transform_shape.id}(point);
     }`;
   }
-  getNormal(point: Vec3D): Vec3D {
+  getNormal(point: Vec3): Vec3 {
     return this.transform_shape.getNormal(point);
   }
   GlFunc_getNormal(): string {
@@ -118,7 +118,7 @@ export class Group extends glEntities.Drawable {
     ${super.getGlImplements()}
     ${this.GlFunc_findNearest()}
   `;}
-  findNearest(point: Vec3D): glEntities.Drawable {
+  findNearest(point: Vec3): glEntities.Drawable {
     return this.contents.reduce((prev, current) =>
       (prev.getDistance(point) < current.getDistance(point)) ? prev : current
     );
@@ -137,7 +137,7 @@ export class Group extends glEntities.Drawable {
       return prev_id;
     }`;
   }
-  getDistance(point: Vec3D): number {
+  getDistance(point: Vec3): number {
     return this.findNearest(point).getDistance(point);
   }
   override GlFunc_getDistance(): string {
@@ -147,7 +147,7 @@ export class Group extends glEntities.Drawable {
       return res;
     }`;
   }
-  getNormal(point: Vec3D): Vec3D {
+  getNormal(point: Vec3): Vec3 {
     return this.findNearest(point).getNormal(point);
   }
   override GlFunc_getNormal(): string {

@@ -84,7 +84,6 @@ Subtractionの方はBoundingShapeを付けられる
 
 
 リファクタリング
-  setGlUniformFloat, setGlUniformVec3, setGlUniformMat3
   Vec3D -> Vec3
     .xじゃなくて[0]の方が楽そう
   var -> let
@@ -95,6 +94,10 @@ Subtractionの方はBoundingShapeを付けられる
       Transformのみ?
   Shape3D -> GlEntity & HasShape
   Tetrahedron -> Simplex3
+    getNeighbors
+      (0,0,0),
+      (1,0,0),(0,1,0),(-1,0,0),(0,-1,0),(1,-1,0),(-1,1,0),
+      (0,0,1),(-1,0,1),(0,-1,1),(0,0,-1),(1,0,-1),(0,1,-1),
 
 
 shapeFBMのShapesRand

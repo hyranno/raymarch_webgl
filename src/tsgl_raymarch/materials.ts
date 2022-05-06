@@ -1,4 +1,4 @@
-import {Vec3D} from './util';
+import {Vec3} from './util';
 import {GlEntity, Material} from './gl_entity';
 
 /*
@@ -7,11 +7,11 @@ Diffuse: Lambert
 Specular: normalized Phong
 */
 export class Phong extends Material {
-  ambient: Vec3D;
-  diffuse: Vec3D;
+  ambient: Vec3;
+  diffuse: Vec3;
   metalness: number;
   specular: number;
-  constructor(ambient: Vec3D, diffuse: Vec3D, metalness: number, specular: number) {
+  constructor(ambient: Vec3, diffuse: Vec3, metalness: number, specular: number) {
     super();
     this.ambient = ambient;
     this.diffuse = diffuse;

@@ -1,117 +1,127 @@
-export class Vec2D {
-  x: number;
-  y: number;
+export class Vec2 {
   constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
+    this[0] = x;
+    this[1] = y;
   }
-  static zero(): Vec2D {
-    return new Vec2D(0,0);
+  static zero(): Vec2 {
+    return new Vec2(0,0);
   }
-  clone(): Vec2D {
-    return new Vec2D(this.x, this.y);
+  static fromClosure(f :(i:number)=>number): Vec2 {
+    var res = Vec2.zero();
+    for (var i=0; i<2; i++) {
+      res[i] = f(i);
+    }
+    return res;
   }
-  add(v: Vec2D): Vec2D {
-    return new Vec2D(this.x + v.x, this.y + v.y);
+  clone(): Vec2 {
+    return Vec2.fromClosure((i)=>this[i]);
   }
-  mul(scale: number): Vec2D {
-    return new Vec2D(this.x*scale, this.y*scale);
+  add(v: Vec2): Vec2 {
+    return Vec2.fromClosure((i) => this[i]+v[i]);
   }
-  negative(): Vec2D {
-    return new Vec2D(-this.x, -this.y);
+  mul(scale: number): Vec2 {
+    return this.map((v)=>v*scale);
   }
-  rotate(rad: number): Vec2D {
-    return new Vec2D(this.x*Math.cos(rad) - this.y*Math.sin(rad), this.x*Math.sin(rad) + this.y*Math.cos(rad));
+  negative(): Vec2 {
+    return this.mul(-1);
   }
-  dot(v: Vec2D): number {
-    return v.x*this.x + v.y*this.y;
+  rotate(rad: number): Vec2 {
+    var m = Mat2.fromNumbers([[Math.cos(rad), -Math.sin(rad)], [Math.sin(rad), Math.cos(rad)]]);
+    return m.mul2x1(this);
+  }
+  dot(v: Vec2): number {
+    return v[0]*this[0] + v[1]*this[1];
   }
   len(): number {
-    return Math.sqrt(this.x*this.x + this.y*this.y);
+    return Math.sqrt(this.dot(this));
   }
-  normalize(): Vec2D {
+  normalize(): Vec2 {
     return this.mul(1/this.len());
   }
-  map(f: (v:number)=>number): Vec2D {
-    return new Vec2D(f(this.x), f(this.y));
+  map(f: (v:number)=>number): Vec2 {
+    return Vec2.fromClosure((i)=>f(this[i]));
   }
-  rounds(): Vec2D[] {
-    var res = new Array<Vec2D>(1<<2);
+  rounds(): Vec2[] {
+    var res = new Array<Vec2>(1<<2);
     return res.map((_,i) =>
-      new Vec2D(
-        Math.floor(this.x)+((i>>0)&1),
-        Math.floor(this.y)+((i>>1)&1)
+      new Vec2(
+        Math.floor(this[0])+((i>>0)&1),
+        Math.floor(this[1])+((i>>1)&1)
       )
     );
   }
 }
 
-export class Vec3D {
-  x: number;
-  y: number;
-  z: number;
+export class Vec3 {
   constructor(x: number, y: number, z: number) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
+    this[0] = x;
+    this[1] = y;
+    this[2] = z;
   }
-  static zero(): Vec3D {
-    return new Vec3D(0,0,0);
+  static zero(): Vec3 {
+    return new Vec3(0,0,0);
   }
-  clone(): Vec3D {
+  static fromClosure(f :(i:number)=>number): Vec3 {
+    var res = Vec3.zero();
+    for (var i=0; i<3; i++) {
+      res[i] = f(i);
+    }
+    return res;
+  }
+  clone(): Vec3 {
     return this.map((v) => v);
   }
-  add(v: Vec3D): Vec3D {
-    return new Vec3D(this.x + v.x, this.y + v.y, this.z + v.z);
+  add(v: Vec3): Vec3 {
+    return Vec3.fromClosure((i) => this[i]+v[i]);
   }
-  mul(scale: number): Vec3D {
+  mul(scale: number): Vec3 {
     return this.map((v) => v*scale);
   }
-  negative(): Vec3D {
+  negative(): Vec3 {
     return this.map((v) => -v);
   }
-  rotate(q: Quaternion): Vec3D {
+  rotate(q: Quaternion): Vec3 {
     return q.mul(new Quaternion(this, 0)).mul(q.inverse()).xyz;
   }
-  dot(v: Vec3D): number {
-    return v.x*this.x + v.y*this.y + v.z*this.z;
+  dot(v: Vec3): number {
+    return v[0]*this[0] + v[1]*this[1] + v[2]*this[2];
   }
-  cross(v: Vec3D) : Vec3D {
-    return new Vec3D(this.y*v.z - this.z*v.y, this.z*v.x - this.x*v.z, this.x*v.y - this.y*v.x);
+  cross(v: Vec3) : Vec3 {
+    return new Vec3(this[1]*v[2] - this[2]*v[1], this[2]*v[0] - this[0]*v[2], this[0]*v[1] - this[1]*v[0]);
   }
   len(): number {
-    return Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
+    return Math.sqrt(this.dot(this));
   }
-  normalize(): Vec3D {
+  normalize(): Vec3 {
     return this.mul(1/this.len());
   }
-  map(f: (v:number)=>number): Vec3D {
-    return new Vec3D(f(this.x), f(this.y), f(this.z));
+  map(f: (v:number)=>number): Vec3 {
+    return new Vec3(f(this[0]), f(this[1]), f(this[2]));
   }
-  rounds(): Vec3D[] {
-    var res = new Array<Vec3D>(1<<3);
+  rounds(): Vec3[] {
+    var res = new Array<Vec3>(1<<3);
     return res.map((_,i) =>
-      new Vec3D(
-        Math.floor(this.x)+((i>>0)&1),
-        Math.floor(this.y)+((i>>1)&1),
-        Math.floor(this.z)+((i>>2)&1)
+      new Vec3(
+        Math.floor(this[0])+((i>>0)&1),
+        Math.floor(this[1])+((i>>1)&1),
+        Math.floor(this[2])+((i>>2)&1)
       )
     );
   }
 }
 
 export class Quaternion {
-  xyz: Vec3D;
+  xyz: Vec3;
   w: number;
-  constructor(xyz: Vec3D, w: number) {
+  constructor(xyz: Vec3, w: number) {
     this.xyz = xyz;
     this.w = w;
   }
   static identity(): Quaternion {
-    return Quaternion.fromAngleAxis(0, new Vec3D(1,0,0));
+    return Quaternion.fromAngleAxis(0, new Vec3(1,0,0));
   }
   static fromNumbers(x: number, y: number, z: number, w: number): Quaternion {
-    return new Quaternion(new Vec3D(x,y,z), w);
+    return new Quaternion(new Vec3(x,y,z), w);
   }
   static fromDCM(dcm: Array<Array<number>>): Quaternion {
     const w  = Math.sqrt((+dcm[0][0] +dcm[1][1] +dcm[2][2] + 1)/4);
@@ -121,17 +131,17 @@ export class Quaternion {
     const x = tx * Math.sign(dcm[1][2] - dcm[2][1]);
     const y = ty * Math.sign(dcm[2][0] - dcm[0][2]);
     const z = tz * Math.sign(dcm[0][1] - dcm[1][0]);
-    return new Quaternion(new Vec3D(x,y,z), w);
+    return new Quaternion(new Vec3(x,y,z), w);
   }
-  static fromXY(x: Vec3D, y: Vec3D): Quaternion {
+  static fromXY(x: Vec3, y: Vec3): Quaternion {
     const z = x.cross(y);
     const x_ = x.normalize();
     const y_ = y.normalize();
     const z_ = z.normalize();
     const m = [
-      [x_.x, y_.x, z_.x],
-      [x_.y, y_.y, z_.y],
-      [x_.z, y_.z, z_.z]
+      [x_[0], y_[0], z_[0]],
+      [x_[1], y_[1], z_[1]],
+      [x_[2], y_[2], z_[2]]
     ];
     const determinant =
       +m[0][0]*m[1][1]*m[2][2]
@@ -143,11 +153,11 @@ export class Quaternion {
     ;
     return Quaternion.fromDCM(m.map((v)=>v.map((e)=>e/determinant)));
   }
-  static fromAngleAxis(rad: number, axis: Vec3D): Quaternion {
+  static fromAngleAxis(rad: number, axis: Vec3): Quaternion {
     const a = axis.normalize();
     return new Quaternion(a.mul(Math.sin(rad/2)), Math.cos(rad/2));
   }
-  static fromSrcDest(src: Vec3D, dest: Vec3D): Quaternion {
+  static fromSrcDest(src: Vec3, dest: Vec3): Quaternion {
     const cross = src.cross(dest);
     const axis = cross.normalize();
     const sin = cross.len();
@@ -210,11 +220,11 @@ export class Mat2 {
   map(f :(v:number)=>number): Mat2 {
     return Mat2.fromNumbers([this[0].map(f), this[1].map(f)]);
   }
-  getRow(i: number): Vec2D{
-    return new Vec2D(this[i][0], this[i][1]);
+  getRow(i: number): Vec2{
+    return new Vec2(this[i][0], this[i][1]);
   }
-  getCol(j: number): Vec2D{
-    return new Vec2D(this[0][j], this[1][j]);
+  getCol(j: number): Vec2{
+    return new Vec2(this[0][j], this[1][j]);
   }
   addScalar(n: number): Mat2 {
     return this.map((v)=>v+n);
@@ -228,8 +238,8 @@ export class Mat2 {
   mul(m: Mat2): Mat2 {
     return Mat2.fromClosure((i,j) => this.getRow(i).dot(m.getCol(j)));
   }
-  mul2x1(v: Vec2D): Vec2D {
-    return new Vec2D(this.getRow(0).dot(v), this.getRow(1).dot(v));
+  mul2x1(v: Vec2): Vec2 {
+    return new Vec2(this.getRow(0).dot(v), this.getRow(1).dot(v));
   }
 }
 
@@ -282,11 +292,11 @@ export class Mat3 {
   map(f :(v:number)=>number): Mat3 {
     return Mat3.fromNumbers([this[0].map(f), this[1].map(f), this[2].map(f)]);
   }
-  getRow(i: number): Vec3D{
-    return new Vec3D(this[i][0], this[i][1], this[i][2]);
+  getRow(i: number): Vec3{
+    return new Vec3(this[i][0], this[i][1], this[i][2]);
   }
-  getCol(j: number): Vec3D{
-    return new Vec3D(this[0][j], this[1][j], this[2][j]);
+  getCol(j: number): Vec3{
+    return new Vec3(this[0][j], this[1][j], this[2][j]);
   }
   addScalar(n: number): Mat3 {
     return this.map((v)=>v+n);
@@ -300,13 +310,13 @@ export class Mat3 {
   mul(m: Mat3): Mat3 {
     return Mat3.fromClosure((i,j) => this.getRow(i).dot(m.getCol(j)));
   }
-  mul3x1(v: Vec3D): Vec3D {
-    return new Vec3D( this.getRow(0).dot(v), this.getRow(1).dot(v), this.getRow(2).dot(v) );
+  mul3x1(v: Vec3): Vec3 {
+    return new Vec3( this.getRow(0).dot(v), this.getRow(1).dot(v), this.getRow(2).dot(v) );
   }
 }
 
 
-export class TetrahedronCoord extends Vec3D {
+export class TetrahedronCoord extends Vec3 {
   static basis = Mat3.fromNumbers([
     [+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0],
     [+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0],
@@ -318,13 +328,13 @@ export class TetrahedronCoord extends Vec3D {
     .add(TetrahedronCoord.basis.getCol(1))
     .add(TetrahedronCoord.basis.getCol(2))
   ).mul(1/4);
-  static asTetrahedronCoord(v: Vec3D): TetrahedronCoord {
-    return new TetrahedronCoord(v.x, v.y, v.z);
+  static asTetrahedronCoord(v: Vec3): TetrahedronCoord {
+    return new TetrahedronCoord(v[0], v[1], v[2]);
   }
-  static fromOrthogonal(v: Vec3D): TetrahedronCoord {
+  static fromOrthogonal(v: Vec3): TetrahedronCoord {
     return TetrahedronCoord.asTetrahedronCoord( TetrahedronCoord.invBasis.mul3x1(v) );
   }
-  toOrthogonal(): Vec3D {
+  toOrthogonal(): Vec3 {
     return TetrahedronCoord.basis.mul3x1(this);
   }
 }

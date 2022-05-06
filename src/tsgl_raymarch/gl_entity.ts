@@ -1,4 +1,4 @@
-import {Vec2D, Vec3D, Quaternion} from './util';
+import {Vec2, Vec3, Quaternion} from './util';
 
 
 export abstract class GlEntity {
@@ -42,11 +42,11 @@ export abstract class GlEntity {
     var f = [gl.uniform1fv, gl.uniform2fv, gl.uniform3fv, gl.uniform4fv, ];
     f[values.length-1].call(gl, location, values);
   }
-  static setGlUniformVec3(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, v: Vec3D): void {
-    this.setGlUniformFloat(gl, program, name, v.x, v.y, v.z);
+  static setGlUniformVec3(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, v: Vec3): void {
+    GlEntity.setGlUniformFloat(gl, program, name, v[0], v[1], v[2]);
   }
   static setGlUniformQuaternion(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, q: Quaternion): void {
-    this.setGlUniformFloat(gl, program, name, q.xyz.x, q.xyz.y, q.xyz.z, q.w);
+    GlEntity.setGlUniformFloat(gl, program, name, q.xyz[0], q.xyz[1], q.xyz[2], q.w);
   }
 }
 
@@ -77,9 +77,9 @@ export abstract class Material extends GlEntity implements HasMaterial {
 }
 
 export interface HasShape {
-  getDistance(point: Vec3D): number;
+  getDistance(point: Vec3): number;
   GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
-  getNormal(point: Vec3D): Vec3D;
+  getNormal(point: Vec3): Vec3;
   GlFunc_getNormal(): string;
 }
 export abstract class Shape3D extends GlEntity implements HasShape {
@@ -96,14 +96,14 @@ export abstract class Shape3D extends GlEntity implements HasShape {
     ${this.GlFunc_getDistance()}
     ${this.GlFunc_getNormal()}
   `;}
-  abstract getDistance(point: Vec3D): number;
+  abstract getDistance(point: Vec3): number;
   abstract GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
-  getNormal(point: Vec3D): Vec3D {
+  getNormal(point: Vec3): Vec3 {
     const EPS = 0.0001;
-    var v: Vec3D = new Vec3D(
-      this.getDistance(point.add(new Vec3D(+EPS,0,0))) - this.getDistance(point.add(new Vec3D(-EPS,0,0))),
-      this.getDistance(point.add(new Vec3D(0,+EPS,0))) - this.getDistance(point.add(new Vec3D(0,-EPS,0))),
-      this.getDistance(point.add(new Vec3D(0,0,+EPS))) - this.getDistance(point.add(new Vec3D(0,0,-EPS))),
+    var v: Vec3 = new Vec3(
+      this.getDistance(point.add(new Vec3(+EPS,0,0))) - this.getDistance(point.add(new Vec3(-EPS,0,0))),
+      this.getDistance(point.add(new Vec3(0,+EPS,0))) - this.getDistance(point.add(new Vec3(0,-EPS,0))),
+      this.getDistance(point.add(new Vec3(0,0,+EPS))) - this.getDistance(point.add(new Vec3(0,0,-EPS))),
     );
     return v.normalize();
   }
@@ -133,14 +133,14 @@ export abstract class Light extends GlEntity {
 }
 
 export abstract class Camera extends GlEntity {
-  position: Vec3D;
+  position: Vec3;
   rotation: Quaternion;
-  screen_size: Vec2D;
-  resolution: Vec2D;
-  constructor(position: Vec3D, upper_center: Vec3D, center_right: Vec3D, resolution: Vec2D) {
+  screen_size: Vec2;
+  resolution: Vec2;
+  constructor(position: Vec3, upper_center: Vec3, center_right: Vec3, resolution: Vec2) {
     super();
     this.position = position;
-    this.screen_size = new Vec2D(center_right.len(), upper_center.len())
+    this.screen_size = new Vec2(center_right.len(), upper_center.len())
     this.rotation = Quaternion.fromXY(center_right.normalize(), upper_center.normalize());
     this.resolution = resolution;
   }
@@ -154,17 +154,13 @@ export abstract class Camera extends GlEntity {
   `;}
   override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `position_${this.id}`,
-      this.position.x, this.position.y, this.position.z
-    );
-    GlEntity.setGlUniformFloat(gl, program, `rotation_${this.id}`,
-      this.rotation.xyz.x, this.rotation.xyz.y, this.rotation.xyz.z, this.rotation.w
-    );
+    GlEntity.setGlUniformVec3(gl, program, `position_${this.id}`, this.position);
+    GlEntity.setGlUniformQuaternion(gl, program, `rotation_${this.id}`, this.rotation);
     GlEntity.setGlUniformFloat(gl, program, `screen_size_${this.id}`,
-      this.screen_size.x, this.screen_size.y
+      this.screen_size[0], this.screen_size[1]
     );
     GlEntity.setGlUniformFloat(gl, program, `resolution_${this.id}`,
-      this.resolution.x, this.resolution.y
+      this.resolution[0], this.resolution[1]
     );
   }
   override getGlImplements(): string { return this.isGlImplemented()? `` : `
@@ -178,9 +174,9 @@ export abstract class Drawable extends GlEntity implements HasShape, HasMaterial
   abstract GlFunc_getAmbient(): string;
   abstract GlFunc_getDiffuse(): string;
   abstract GlFunc_getSpecular(): string;
-  abstract getDistance(point: Vec3D): number;
+  abstract getDistance(point: Vec3): number;
   abstract GlFunc_getDistance(): string;
-  abstract getNormal(point: Vec3D): Vec3D;
+  abstract getNormal(point: Vec3): Vec3;
   abstract GlFunc_getNormal(): string;
   override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}

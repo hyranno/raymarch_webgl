@@ -1,4 +1,4 @@
-import {Vec3D, Quaternion} from '@tsgl/util';
+import {Vec3, Quaternion} from '@tsgl/util';
 import * as rand from '@tsgl/random';
 import * as shapes from '@tsgl/shapes';
 import * as shapeFBM from '@tsgl/shapeFBM'
@@ -27,38 +27,38 @@ export class CornellBox extends drawables.Group {
     var walls = [
       new drawables.Transform(
         new drawables.MaterializedShape(
-          new shapes.Box(new Vec3D(1,1,1)),
-          new materials.Phong((new Vec3D(1,1,1)).mul(0.1), new Vec3D(1,1,1), 0.5, 5)
+          new shapes.Box(new Vec3(1,1,1)),
+          new materials.Phong((new Vec3(1,1,1)).mul(0.1), new Vec3(1,1,1), 0.5, 5)
         ),
-        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0,2,0)
+        1, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,2,0)
       ),
       new drawables.Transform(
         new drawables.MaterializedShape(
-          new shapes.Box(new Vec3D(1,1,1)),
-          new materials.Phong((new Vec3D(1,1,1)).mul(0.1), new Vec3D(1,1,1), 0.5, 5)
+          new shapes.Box(new Vec3(1,1,1)),
+          new materials.Phong((new Vec3(1,1,1)).mul(0.1), new Vec3(1,1,1), 0.5, 5)
         ),
-        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0,-2,0)
+        1, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,-2,0)
       ),
       new drawables.Transform(
         new drawables.MaterializedShape(
-          new shapes.Box(new Vec3D(1,1,1)),
-          new materials.Phong((new Vec3D(1,1,1)).mul(0.1), new Vec3D(1,1,1), 0.5, 5)
+          new shapes.Box(new Vec3(1,1,1)),
+          new materials.Phong((new Vec3(1,1,1)).mul(0.1), new Vec3(1,1,1), 0.5, 5)
         ),
-        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0,0,-2)
+        1, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2)
       ),
       new drawables.Transform(
         new drawables.MaterializedShape(
-          new shapes.Box(new Vec3D(1,1,1)),
-          new materials.Phong((new Vec3D(0,1,0)).mul(0.1), new Vec3D(0,1,0), 0.5, 5)
+          new shapes.Box(new Vec3(1,1,1)),
+          new materials.Phong((new Vec3(0,1,0)).mul(0.1), new Vec3(0,1,0), 0.5, 5)
         ),
-        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(2,0,0)
+        1, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(2,0,0)
       ),
       new drawables.Transform(
         new drawables.MaterializedShape(
-          new shapes.Box(new Vec3D(1,1,1)),
-          new materials.Phong((new Vec3D(1,0,0)).mul(0.1), new Vec3D(1,0,0), 0.5, 5)
+          new shapes.Box(new Vec3(1,1,1)),
+          new materials.Phong((new Vec3(1,0,0)).mul(0.1), new Vec3(1,0,0), 0.5, 5)
         ),
-        1, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(-2,0,0)
+        1, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(-2,0,0)
       ),
     ];
     super(walls);
@@ -76,14 +76,14 @@ export class OrbitingSphere extends drawables.MaterializedShape {
         sphere,
         0.1
       ),
-      1, Quaternion.identity(), new Vec3D(3,0,0)
+      1, Quaternion.identity(), new Vec3(3,0,0)
     );
     super(
       transform,
-      new materials.Phong(new Vec3D(0.1, 0.1, 0.2), new Vec3D(0,0,1), 0.5, 10)
+      new materials.Phong(new Vec3(0.1, 0.1, 0.2), new Vec3(0,0,1), 0.5, 10)
     );
     t.addEventListener(()=>{
-      transform.translate = transform.translate.rotate(Quaternion.fromAngleAxis(Math.PI/30, new Vec3D(0,1,0)));
+      transform.translate = transform.translate.rotate(Quaternion.fromAngleAxis(Math.PI/30, new Vec3(0,1,0)));
     });
   }
 }
@@ -92,24 +92,24 @@ export class RotatingRoundedCube extends drawables.Transform {
     var org = new drawables.MaterializedShape(
       new shapes.SmoothUnion(
         new shapes.SmoothSubtraction(
-          new shapes.Bloated( new shapes.Box(new Vec3D(0.4,0.4,0.4)), 0.3 ),
+          new shapes.Bloated( new shapes.Box(new Vec3(0.4,0.4,0.4)), 0.3 ),
           new shapes.Repetition(
-            new shapes.Hollowed(new shapes.Box(new Vec3D(0.06,0.06,2)), 0.01),
-            new Vec3D(0.3,0.3,1), new Vec3D(1,1,0)
+            new shapes.Hollowed(new shapes.Box(new Vec3(0.06,0.06,2)), 0.01),
+            new Vec3(0.3,0.3,1), new Vec3(1,1,0)
           ),
           0.1
         ),
         new shapes.Transform3D(
-          new shapes.Box(new Vec3D(1,1,1)), 0.2, Quaternion.fromAngleAxis(0, new Vec3D(1,0,0)), new Vec3D(0.4,0.7,0.3)
+          new shapes.Box(new Vec3(1,1,1)), 0.2, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0.4,0.7,0.3)
         ),
         0.1
       ),
-      new TestMaterial(new Vec3D(0.1, 0.2, 0.1), new Vec3D(0,1,0), 0.2, 20)
+      new TestMaterial(new Vec3(0.1, 0.2, 0.1), new Vec3(0,1,0), 0.2, 20)
     );
     super(
-      org, 1, Quaternion.fromSrcDest((new Vec3D(1,1,1)).normalize(), new Vec3D(0,1,0)), new Vec3D(0,0,0)
+      org, 1, Quaternion.fromSrcDest((new Vec3(1,1,1)).normalize(), new Vec3(0,1,0)), new Vec3(0,0,0)
     );
-    var angular_velocity = Quaternion.fromAngleAxis(-Math.PI/20, new Vec3D(0,1,0));
+    var angular_velocity = Quaternion.fromAngleAxis(-Math.PI/20, new Vec3(0,1,0));
     t.addEventListener(()=>{
       this.transform_shape.rotation = angular_velocity.mul(this.transform_shape.rotation);
     });

@@ -11,8 +11,8 @@ export class SpheresRand extends Shape3D {
     this.randGen = randGen;
     this.dependentGlEntities.push(randGen);
   }
-  getSphereDistance(point: util.Vec3D, tetraIndex: util.TetrahedronCoord): number {
-    var seed = rand.hash32([tetraIndex.x, tetraIndex.y, tetraIndex.z]);
+  getSphereDistance(point: util.Vec3, tetraIndex: util.TetrahedronCoord): number {
+    var seed = rand.hash32([tetraIndex[0], tetraIndex[1], tetraIndex[2]]);
     var state = rand.PCG16.init(seed);
     var r = 0.5 * util.smoothclamp(this.randGen.rand(state).value, 0.01, 1, 0.1); // select rand
     var origin = tetraIndex.toOrthogonal();
@@ -28,7 +28,7 @@ export class SpheresRand extends Shape3D {
       return length(point-origin) - r;
     }
   `;}
-  override getDistance(point: util.Vec3D): number {
+  override getDistance(point: util.Vec3): number {
     var tetraCoord = util.TetrahedronCoord.fromOrthogonal(point);
     var tetraIndices = tetraCoord.rounds();
     var distances = tetraIndices.map((i) => this.getSphereDistance(point, util.TetrahedronCoord.asTetrahedronCoord(i)));
@@ -83,7 +83,7 @@ export class HullSpheres extends Shape3D {
     this.hull = new shapes.Hollowed(original, scale);
     this.spheres = new shapes.Transform3D(
       new SpheresRand(randGen),
-      scale, util.Quaternion.identity(), util.Vec3D.zero()
+      scale, util.Quaternion.identity(), util.Vec3.zero()
     );
     this.smoothness = smoothness;
     this.weight = weight;
@@ -99,7 +99,7 @@ export class HullSpheres extends Shape3D {
     GlEntity.setGlUniformFloat(gl, program, `smoothness_${this.id}`, this.smoothness);
     GlEntity.setGlUniformFloat(gl, program, `weight_${this.id}`, this.weight);
   }
-  override getDistance(point: util.Vec3D): number { //blendIntersection
+  override getDistance(point: util.Vec3): number { //blendIntersection
     return util.blend(
       this.hull.getDistance(point), this.spheres.getDistance(point), false, this.smoothness, this.weight
     );
@@ -125,7 +125,7 @@ export class BlendBrownianMotion extends Shape3D {
     this.brownianMotion = new HullSpheres(original, randGen, scale, smoothness, weight);
     this.dependentGlEntities.push(original, this.brownianMotion);
   }
-  override getDistance(point: util.Vec3D): number { //blendUnion
+  override getDistance(point: util.Vec3): number { //blendUnion
     return util.blend(
       this.original.getDistance(point), (this.isUnion?1:-1)*this.brownianMotion.getDistance(point),
       this.isUnion, this.brownianMotion.smoothness, this.brownianMotion.weight

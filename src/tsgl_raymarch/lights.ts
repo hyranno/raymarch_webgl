@@ -1,11 +1,11 @@
-import {Vec3D} from './util';
+import {Vec3} from './util';
 import {GlEntity, Light} from './gl_entity';
 
 
 export class PointLight extends Light {
-  position: Vec3D;
-  color: Vec3D;
-  constructor(position: Vec3D, color: Vec3D) {
+  position: Vec3;
+  color: Vec3;
+  constructor(position: Vec3, color: Vec3) {
     super();
     this.position = position;
     this.color = color;
@@ -30,9 +30,9 @@ export class PointLight extends Light {
 }
 
 export class DirectionalLight extends Light {
-  direction: Vec3D;
-  color: Vec3D;
-  constructor(direction: Vec3D, color: Vec3D) {
+  direction: Vec3;
+  color: Vec3;
+  constructor(direction: Vec3, color: Vec3) {
     super();
     this.direction = direction;
     this.color = color;

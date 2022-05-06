@@ -1,9 +1,9 @@
-import {Vec2D, Vec3D} from './util';
+import {Vec2, Vec3} from './util';
 import {GlEntity, Camera} from './gl_entity';
 
 export class Perspective extends Camera {
   origin_distance: number;
-  constructor(position: Vec3D, upper_center: Vec3D, center_right: Vec3D, origin_distance: number, resolution: Vec2D) {
+  constructor(position: Vec3, upper_center: Vec3, center_right: Vec3, origin_distance: number, resolution: Vec2) {
     super(position, upper_center, center_right, resolution);
     this.origin_distance = origin_distance;
   }
@@ -29,7 +29,7 @@ export class Perspective extends Camera {
 
 export class Orthogonal extends Camera {
   origin_distance: number;
-  constructor(position: Vec3D, upper_center: Vec3D, center_right: Vec3D, resolution: Vec2D) {
+  constructor(position: Vec3, upper_center: Vec3, center_right: Vec3, resolution: Vec2) {
     super(position, upper_center, center_right, resolution);
   }
   override GlFunc_getRay(): string {return `
