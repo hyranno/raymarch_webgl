@@ -1,74 +1,26 @@
-import {Vec3, Quaternion, smoothmax, smoothmin, clamp} from './util';
-import {GlEntity, HasShape, Shape3D} from './gl_entity';
+import {Vec3, smoothmax, smoothmin, clamp} from './util';
+import {GlEntity, HasShape, Shape3D, Transform} from './gl_entity';
 
 
-export class Transform3D extends Shape3D {
+export class Transformed extends Shape3D {
   original: GlEntity & HasShape;
-  scale: number;
-  rotation: Quaternion;
-  translate: Vec3;
-  constructor(original: GlEntity & HasShape, scale: number, rotation: Quaternion, translate: Vec3) {
+  transform: Transform;
+  constructor(original: GlEntity & HasShape, transform: Transform) {
     super();
     this.original = original;
-    this.scale = scale;
-    this.rotation = rotation;
-    this.translate = translate;
-    this.dependentGlEntities.push(original);
-  }
-  GlFunc_getTransform(): string {
-    return `Transform getTransform_${this.id} () {
-      return Transform(translate_${this.id}, rotation_${this.id}, scale_${this.id});
-    }`;
-  }
-  transform(p: Vec3): Vec3 {
-    let res: Vec3 = p.clone();
-    return res.mul(this.scale).rotate(this.rotation).add(this.translate);
-  }
-  GlFunc_transform(): string {
-    return `vec3 transform_${this.id} (vec3 p) {
-      return coord_transform(getTransform_${this.id}(), p);
-    }`;
-  }
-  inverse(p: Vec3): Vec3 {
-    let res: Vec3 = p.add(this.translate.negative()).rotate(this.rotation.inverse()).mul(1/this.scale);
-    return res;
-  }
-  GlFunc_inverse(): string {
-    return `vec3 inverse_${this.id} (vec3 p) {
-      return coord_inverse(getTransform_${this.id}(), p);
-    }`;
+    this.transform = transform;
+    this.dependentGlEntities.push(original, transform);
   }
   override getDistance(point: Vec3): number {
-    let p = this.inverse(point);
+    let p = this.transform.inverse(point);
     let d = this.original.getDistance(p);
-    return d * this.scale;
+    return d * this.transform.scale;
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
-      float d = getDistance_${this.original.id}(inverse_${this.id}(point));
-      return d * scale_${this.id};
+      float d = getDistance_${this.original.id}( inverse_${this.transform.id}(point) );
+      return d * transformParams_${this.transform.id}.scale;
     }`;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float scale_${this.id};
-    uniform vec4 rotation_${this.id};
-    uniform vec3 translate_${this.id};
-    Transform getTransform_${this.id} ();
-    vec3 transform_${this.id} (vec3 p);
-    vec3 inverse_${this.id} (vec3 p);
-  `;}
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
-    ${this.GlFunc_getTransform()}
-    ${this.GlFunc_transform()}
-    ${this.GlFunc_inverse()}
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void{
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `scale_${this.id}`, this.scale);
-    GlEntity.setGlUniformQuaternion(gl, program, `rotation_${this.id}`, this.rotation);
-    GlEntity.setGlUniformVec3(gl, program, `translate_${this.id}`, this.translate);
   }
 }
 

@@ -1,5 +1,5 @@
 import * as util from './util';
-import {GlEntity, HasShape, Shape3D} from './gl_entity';
+import {GlEntity, HasShape, Shape3D, Transform} from './gl_entity';
 import * as shapes from './shapes';
 import * as rand from './random';
 
@@ -75,15 +75,15 @@ export class SpheresRand extends Shape3D {
 
 export class HullSpheres extends Shape3D {
   hull: shapes.Hollowed;
-  spheres: shapes.Transform3D;
+  spheres: shapes.Transformed;
   smoothness: number;
   weight: number;
   constructor(original: GlEntity & HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number){
     super();
     this.hull = new shapes.Hollowed(original, scale);
-    this.spheres = new shapes.Transform3D(
+    this.spheres = new shapes.Transformed(
       new SpheresRand(randGen),
-      scale, util.Quaternion.identity(), util.Vec3.zero()
+      new Transform(scale, util.Quaternion.identity(), util.Vec3.zero())
     );
     this.smoothness = smoothness;
     this.weight = weight;

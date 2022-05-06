@@ -1,5 +1,5 @@
 import {GlRenderer} from '@tsgl/gl_renderer';
-import {Drawable, Light, Camera} from '@tsgl/gl_entity';
+import {Drawable, Light, Camera, Transform} from '@tsgl/gl_entity';
 import {Vec2, Vec3, Quaternion} from '@tsgl/util';
 import * as drawables from '@tsgl/drawables';
 import * as lights from '@tsgl/lights';
@@ -16,9 +16,9 @@ function main(): void {
     new cameras.Perspective(new Vec3(0,0,14), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(800, 600)),
   ];
   let drawables_: Drawable[] = [
-    new drawables.Transform(
+    new drawables.Transformed(
       new objs.CornellBox(),
-      5, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2.5)
+      new Transform( 5, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2.5) )
     ),
     new objs.OrbitingSphere(timetick),
     new objs.RotatingRoundedCube(timetick),

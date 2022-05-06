@@ -1,5 +1,42 @@
 import {Vec3} from './util';
-import {GlEntity, Material} from './gl_entity';
+import {GlEntity, Material, HasMaterial, Transform} from './gl_entity';
+
+
+export class Transformed extends Material {
+  original: GlEntity & HasMaterial;
+  transform: Transform;
+  constructor(original: GlEntity & HasMaterial, transform: Transform) {
+    super();
+    this.original = original;
+    this.transform = transform;
+    this.dependentGlEntities.push(original, transform);
+  }
+  GlFunc_getAmbient(): string {
+    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
+      return getAmbient_${this.original.id}(inverse_${this.transform.id}(point), inverse_${this.transform.id}(view));
+    }`;
+  }
+  GlFunc_getDiffuse(): string {
+    return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+      vec3 t_point = inverse_${this.transform.id}(point);
+      vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
+      Photon t_photon = photon;
+      t_photon.ray = inverse_${this.transform.id}(photon.ray);
+      Ray t_view = inverse_${this.transform.id}(view);
+      return getDiffuse_${this.original.id}(t_point, t_normal, t_photon, t_view);
+    }`;
+  }
+  GlFunc_getSpecular(): string {
+    return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+      vec3 t_point = inverse_${this.transform.id}(point);
+      vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
+      Photon t_photon = photon;
+      t_photon.ray = inverse_${this.transform.id}(photon.ray);
+      Ray t_view = inverse_${this.transform.id}(view);
+      return getSpecular_${this.original.id}(t_point, t_normal, t_photon, t_view);
+    }`;
+  }
+}
 
 /*
 Ambient: constant
@@ -48,8 +85,3 @@ export class Phong extends Material {
     }`;
   }
 }
-
-
-/*
-Diffuse: Oren-Nayar GGX Approximation
-*/

@@ -195,3 +195,61 @@ export abstract class Drawable extends GlEntity implements HasShape, HasMaterial
     ${this.GlFunc_getSpecular()}
   `;}
 }
+
+
+export class Transform extends GlEntity {
+  scale: number;
+  rotation: Quaternion;
+  translate: Vec3;
+  constructor(scale: number, rotation: Quaternion, translate: Vec3) {
+    super();
+    this.scale = scale;
+    this.rotation = rotation;
+    this.translate = translate;
+  }
+  transform(p: Vec3): Vec3 {
+    let res: Vec3 = p.clone();
+    return res.mul(this.scale).rotate(this.rotation).add(this.translate);
+  }
+  GlFunc_transform(): string { return `
+    vec3 transform_${this.id} (vec3 p) {
+      return coord_transform(transformParams_${this.id}, p);
+    }
+    Ray transform_${this.id} (Ray r) {
+      return coord_transform(transformParams_${this.id}, r);
+    }
+    `;
+  }
+  inverse(p: Vec3): Vec3 {
+    let res: Vec3 = p.add(this.translate.negative()).rotate(this.rotation.inverse()).mul(1/this.scale);
+    return res;
+  }
+  GlFunc_inverse(): string { return `
+    vec3 inverse_${this.id} (vec3 p) {
+      return coord_inverse(transformParams_${this.id}, p);
+    }
+    Ray inverse_${this.id} (Ray r) {
+      return coord_inverse(transformParams_${this.id}, r);
+    }
+    `;
+  }
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    uniform Transform transformParams_${this.id};
+    vec3 transform_${this.id} (vec3 p);
+    Ray transform_${this.id} (in Ray r);
+    vec3 inverse_${this.id} (vec3 p);
+    Ray inverse_${this.id} (in Ray r);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_transform()}
+    ${this.GlFunc_inverse()}
+  `;}
+  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void{
+    super.setGlVars(gl, program);
+    GlEntity.setGlUniformFloat(gl, program, `transformParams_${this.id}.scale`, this.scale);
+    GlEntity.setGlUniformQuaternion(gl, program, `transformParams_${this.id}.rotation`, this.rotation);
+    GlEntity.setGlUniformVec3(gl, program, `transformParams_${this.id}.translate`, this.translate);
+  }
+}

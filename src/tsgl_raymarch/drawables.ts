@@ -1,11 +1,12 @@
-import {Vec3, Quaternion} from './util';
+import {Vec3} from './util';
 import * as shapes from '@tsgl/shapes';
+import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
 
 export class MaterializedShape extends glEntities.Drawable {
-  shape: glEntities.Shape3D;
-  material: glEntities.Material;
-  constructor(shape: glEntities.Shape3D, material: glEntities.Material) {
+  shape: glEntities.GlEntity & glEntities.HasShape;
+  material: glEntities.GlEntity & glEntities.HasMaterial;
+  constructor(shape: glEntities.GlEntity & glEntities.HasShape, material: glEntities.GlEntity & glEntities.HasMaterial) {
     super();
     this.shape = shape;
     this.material = material;
@@ -34,72 +35,24 @@ export class MaterializedShape extends glEntities.Drawable {
   }
   GlFunc_getDiffuse(): string {
     return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      normal = getNormal_${this.id}(point);
+      normal = getNormal_${this.shape.id}(point);
       return getDiffuse_${this.material.id}(point, normal, photon, view);
     }`;
   }
   GlFunc_getSpecular(): string {
     return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      normal = getNormal_${this.id}(point);
+      normal = getNormal_${this.shape.id}(point);
       return getSpecular_${this.material.id}(point, normal, photon, view);
     }`;
   }
 }
 
-export class Transform extends glEntities.Drawable {
-  transform_shape: shapes.Transform3D;
-  original: glEntities.Drawable;
-  constructor(original: glEntities.Drawable, scale: number, rotation: Quaternion, translate: Vec3){
-    super();
-    this.original = original;
-    this.transform_shape = new shapes.Transform3D(original, scale, rotation, translate);
-    this.dependentGlEntities.push(this.transform_shape);
-  }
-  getDistance(point: Vec3): number {
-    return this.transform_shape.getDistance(point);
-  }
-  GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return getDistance_${this.transform_shape.id}(point);
-    }`;
-  }
-  getNormal(point: Vec3): Vec3 {
-    return this.transform_shape.getNormal(point);
-  }
-  GlFunc_getNormal(): string {
-    return `vec3 getNormal_${this.id} (vec3 point) {
-      return getNormal_${this.transform_shape.id}(point);
-    }`;
-  }
-  GlFunc_getAmbient(): string {
-    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-      Transform t = getTransform_${this.transform_shape.id}();
-      return getAmbient_${this.original.id}(coord_inverse(t, point), coord_inverse(t, view));
-    }`;
-  }
-  GlFunc_getDiffuse(): string {
-    return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      normal = getNormal_${this.id}(point);
-      Transform t = getTransform_${this.transform_shape.id}();
-      vec3 t_point = coord_inverse(t, point);
-      vec3 t_normal = quaternion_rot3(quaternion_inverse(t.rotation), normal);
-      Photon t_photon = photon;
-      t_photon.ray = coord_inverse(t, photon.ray);
-      Ray t_view = coord_inverse(t, view);
-      return getDiffuse_${this.original.id}(t_point, t_normal, t_photon, t_view);
-    }`;
-  }
-  GlFunc_getSpecular(): string {
-    return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      normal = getNormal_${this.id}(point);
-      Transform t = getTransform_${this.transform_shape.id}();
-      vec3 t_point = coord_inverse(t, point);
-      vec3 t_normal = quaternion_rot3(quaternion_inverse(t.rotation), normal);
-      Photon t_photon = photon;
-      t_photon.ray = coord_inverse(t, photon.ray);
-      Ray t_view = coord_inverse(t, view);
-      return getSpecular_${this.original.id}(t_point, t_normal, t_photon, t_view);
-    }`;
+export class Transformed extends MaterializedShape {
+  constructor(original: glEntities.Drawable, transform: glEntities.Transform){
+    super(
+      new shapes.Transformed(original, transform),
+      new materials.Transformed(original, transform)
+    );
   }
 }
 
