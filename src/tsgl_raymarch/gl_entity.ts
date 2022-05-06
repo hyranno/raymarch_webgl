@@ -25,12 +25,12 @@ export abstract class GlEntity {
     this.dependentGlEntities.forEach((entity) => entity.clearGlSourceStates());
   }
   getGlDeclarations(): string {
-    var res = this.isGlDeclared()? `` : this.dependentGlEntities.map((entity) => entity.getGlDeclarations()).join("");
+    let res = this.isGlDeclared()? `` : this.dependentGlEntities.map((entity) => entity.getGlDeclarations()).join("");
     this.isGlDeclaredState = true;
     return res;
   }
   getGlImplements(): string {
-    var res = this.isGlImplemented()? `` : this.dependentGlEntities.map((entity) => entity.getGlImplements()).join("");
+    let res = this.isGlImplemented()? `` : this.dependentGlEntities.map((entity) => entity.getGlImplements()).join("");
     this.isGlImplementedState = true;
     return res;
   }
@@ -38,8 +38,8 @@ export abstract class GlEntity {
     this.dependentGlEntities.forEach((entity) => entity.setGlVars(gl, program));
   }
   static setGlUniformFloat(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, ...values: number[]): void {
-    var location: WebGLUniformLocation = gl.getUniformLocation(program, name);
-    var f = [gl.uniform1fv, gl.uniform2fv, gl.uniform3fv, gl.uniform4fv, ];
+    let location: WebGLUniformLocation = gl.getUniformLocation(program, name);
+    let f = [gl.uniform1fv, gl.uniform2fv, gl.uniform3fv, gl.uniform4fv, ];
     f[values.length-1].call(gl, location, values);
   }
   static setGlUniformVec3(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, v: Vec3): void {
@@ -100,7 +100,7 @@ export abstract class Shape3D extends GlEntity implements HasShape {
   abstract GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
   getNormal(point: Vec3): Vec3 {
     const EPS = 0.0001;
-    var v: Vec3 = new Vec3(
+    let v: Vec3 = new Vec3(
       this.getDistance(point.add(new Vec3(+EPS,0,0))) - this.getDistance(point.add(new Vec3(-EPS,0,0))),
       this.getDistance(point.add(new Vec3(0,+EPS,0))) - this.getDistance(point.add(new Vec3(0,-EPS,0))),
       this.getDistance(point.add(new Vec3(0,0,+EPS))) - this.getDistance(point.add(new Vec3(0,0,-EPS))),

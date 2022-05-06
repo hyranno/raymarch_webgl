@@ -11,36 +11,36 @@ export class PCG16 { //PCG-XSH-RR
   static incr: number = 0x7f94a2d3;
   state: number;
   static init(seed: number): number {
-    var state = seed + PCG16.incr;
-    var res = PCG16.rand(state);
+    let state = seed + PCG16.incr;
+    let res = PCG16.rand(state);
     return res.state;
   }
   static rand(state: number): {value: number, state: number} {
-    var bits_in = 32;
-    var bits_out = bits_in/2;
-    var m = Math.log2(bits_in) - 1;
-    var x = state;
-    var count = x >> (bits_in-m);
+    let bits_in = 32;
+    let bits_out = bits_in/2;
+    let m = Math.log2(bits_in) - 1;
+    let x = state;
+    let count = x >> (bits_in-m);
     state = (x * PCG16.mult + PCG16.incr) & 0xffff_ffff;
     x ^= x >> (bits_in-(bits_out-m))/2;
-    var value = rotr16(x >> bits_out-m, count);
+    let value = rotr16(x >> bits_out-m, count);
     return {value: value, state: state};
   }
   static rand_uniform(state: number): {value: number, state: number} {
-    var res = PCG16.rand(state);
+    let res = PCG16.rand(state);
     res.value = uint16ToFloat01(res.value);
     return res;
   }
   static rand_normal(state: number): {value: number, state: number} { // Polar's Method
-    var x = PCG16.rand_uniform(state);
-    var y = PCG16.rand_uniform(x.state);
-    var s = (x.value*x.value + y.value*y.value);
-    var r = Math.sqrt(-2*Math.log(s)/s);
+    let x = PCG16.rand_uniform(state);
+    let y = PCG16.rand_uniform(x.state);
+    let s = (x.value*x.value + y.value*y.value);
+    let r = Math.sqrt(-2*Math.log(s)/s);
     return {value: x.value*r, state: y.state}; //and y.value*r
   }
   static rand_exponential(state: number): {value: number, state: number} {
-    var average = 1;
-    var res = PCG16.rand_uniform(state);
+    let average = 1;
+    let res = PCG16.rand_uniform(state);
     return {value: -average*Math.log(1.0-res.value), state: res.state};
   }
   constructor(seed: number) {
@@ -48,32 +48,32 @@ export class PCG16 { //PCG-XSH-RR
     this.rand();
   }
   rand(): number {
-    var res = PCG16.rand(this.state);
+    let res = PCG16.rand(this.state);
     this.state = res.state;
     return res.value;
   }
   rand_uniform(): number {
-    var res = PCG16.rand_uniform(this.state);
+    let res = PCG16.rand_uniform(this.state);
     this.state = res.state;
     return res.value;
   }
   rand_normal(): number {
-    var res = PCG16.rand_normal(this.state);
+    let res = PCG16.rand_normal(this.state);
     this.state = res.state;
     return res.value;
   }
   rand_exponential(): number {
-    var res = PCG16.rand_exponential(this.state);
+    let res = PCG16.rand_exponential(this.state);
     this.state = res.state;
     return res.value;
   }
 }
 
 export function hash32(data: number[]): number {
-  var seed = 0x655e774f;
-  var mul = 0x8f5e;
-  for (var i=0; i<data.length; i++) {
-    var r = new PCG16(seed + data[i]);
+  let seed = 0x655e774f;
+  let mul = 0x8f5e;
+  for (let i=0; i<data.length; i++) {
+    let r = new PCG16(seed + data[i]);
     seed = r.rand() * mul;
   }
   return seed;

@@ -24,7 +24,7 @@ export class TestMaterial extends materials.Phong {
 
 export class CornellBox extends drawables.Group {
   constructor() {
-    var walls = [
+    let walls = [
       new drawables.Transform(
         new drawables.MaterializedShape(
           new shapes.Box(new Vec3(1,1,1)),
@@ -67,8 +67,8 @@ export class CornellBox extends drawables.Group {
 
 export class OrbitingSphere extends drawables.MaterializedShape {
   constructor(t: TimeTicks) {
-    var sphere = new shapes.Sphere();
-    var transform = new shapes.Transform3D(
+    let sphere = new shapes.Sphere();
+    let transform = new shapes.Transform3D(
       new shapes.BoundingShape(
         new shapeFBM.SubtractBrownianMotion(
           sphere, new rand.Constant(0.5), 0.3, 0.1, 0.5
@@ -89,7 +89,7 @@ export class OrbitingSphere extends drawables.MaterializedShape {
 }
 export class RotatingRoundedCube extends drawables.Transform {
   constructor(t: TimeTicks) {
-    var org = new drawables.MaterializedShape(
+    let org = new drawables.MaterializedShape(
       new shapes.SmoothUnion(
         new shapes.SmoothSubtraction(
           new shapes.Bloated( new shapes.Box(new Vec3(0.4,0.4,0.4)), 0.3 ),
@@ -109,7 +109,7 @@ export class RotatingRoundedCube extends drawables.Transform {
     super(
       org, 1, Quaternion.fromSrcDest((new Vec3(1,1,1)).normalize(), new Vec3(0,1,0)), new Vec3(0,0,0)
     );
-    var angular_velocity = Quaternion.fromAngleAxis(-Math.PI/20, new Vec3(0,1,0));
+    let angular_velocity = Quaternion.fromAngleAxis(-Math.PI/20, new Vec3(0,1,0));
     t.addEventListener(()=>{
       this.transform_shape.rotation = angular_velocity.mul(this.transform_shape.rotation);
     });

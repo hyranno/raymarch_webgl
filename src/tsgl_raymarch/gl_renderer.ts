@@ -34,10 +34,10 @@ export class GlRenderer {
     this.lights.forEach((l)=>l.setGlVars(this.context, this.program));
     this.context.uniform1ui(this.context.getUniformLocation(this.program, `camera_id`), this.cameras[camIndex].id);
 
-    var vertexPositions = [[+1.0, +1.0], [+1.0, -1.0], [-1.0, -1.0], [-1.0, +1.0]];
+    let vertexPositions = [[+1.0, +1.0], [+1.0, -1.0], [-1.0, -1.0], [-1.0, +1.0]];
     this.context.bindBuffer(this.context.ARRAY_BUFFER, this.glBuffer);
     this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(vertexPositions.flat()), this.context.STATIC_DRAW);
-    var location = this.context.getAttribLocation(this.program, 'position');
+    let location = this.context.getAttribLocation(this.program, 'position');
     this.context.enableVertexAttribArray(location);
     this.context.vertexAttribPointer(location, vertexPositions[0].length, this.context.FLOAT, false, 0, 0);
 
@@ -63,7 +63,7 @@ export class GlRenderer {
     });
   }
   private prepareShader(type: number, source: string) {
-    var shader = this.context.createShader(type);
+    let shader = this.context.createShader(type);
     this.context.shaderSource(shader, source);
     this.context.compileShader(shader);
     if (!this.context.getShaderParameter(shader, this.context.COMPILE_STATUS)){

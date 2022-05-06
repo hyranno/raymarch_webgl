@@ -21,7 +21,7 @@ export class Transform3D extends Shape3D {
     }`;
   }
   transform(p: Vec3): Vec3 {
-    var res: Vec3 = p.clone();
+    let res: Vec3 = p.clone();
     return res.mul(this.scale).rotate(this.rotation).add(this.translate);
   }
   GlFunc_transform(): string {
@@ -30,7 +30,7 @@ export class Transform3D extends Shape3D {
     }`;
   }
   inverse(p: Vec3): Vec3 {
-    var res: Vec3 = p.add(this.translate.negative()).rotate(this.rotation.inverse()).mul(1/this.scale);
+    let res: Vec3 = p.add(this.translate.negative()).rotate(this.rotation.inverse()).mul(1/this.scale);
     return res;
   }
   GlFunc_inverse(): string {
@@ -39,8 +39,8 @@ export class Transform3D extends Shape3D {
     }`;
   }
   override getDistance(point: Vec3): number {
-    var p = this.inverse(point);
-    var d = this.original.getDistance(p);
+    let p = this.inverse(point);
+    let d = this.original.getDistance(p);
     return d * this.scale;
   }
   override GlFunc_getDistance(): string {
@@ -79,10 +79,10 @@ export class Box extends Shape3D {
     this.size = size;
   }
   override getDistance(point: Vec3): number {
-    var p_abs = point.map((v)=>Math.abs(v));
-    var diff = p_abs.add(this.size.negative());
-    var positive = diff.map((v)=>Math.max(v,0)).len();
-    var negative = Math.min(0, Math.max(diff[0], diff[1], diff[2]));
+    let p_abs = point.map((v)=>Math.abs(v));
+    let diff = p_abs.add(this.size.negative());
+    let positive = diff.map((v)=>Math.max(v,0)).len();
+    let negative = Math.min(0, Math.max(diff[0], diff[1], diff[2]));
     return positive + negative;
   }
   override GlFunc_getDistance(): string {
@@ -291,7 +291,7 @@ export class RepetitionInf extends Displacement {
     this.interval = interval;
   }
   override displace(point: Vec3): Vec3 {
-    var origin = Vec3.fromClosure((i) => this.interval[i] * Math.round(point[i]/this.interval[i]));
+    let origin = Vec3.fromClosure((i) => this.interval[i] * Math.round(point[i]/this.interval[i]));
     return point.add(origin.negative());
   }
   override GLFunc_displace() : string {
@@ -319,7 +319,7 @@ export class Repetition extends Displacement {
     this.max_indices = max_indices;
   }
   override displace(point: Vec3): Vec3 {
-    var origin = Vec3.fromClosure((i) =>
+    let origin = Vec3.fromClosure((i) =>
       this.interval[i] * clamp(Math.round(point[i]/this.interval[i]), -this.max_indices[i], this.max_indices[i])
     );
     return point.add(origin.negative());
@@ -355,7 +355,7 @@ export class BoundingShape extends Shape3D {
     this.dependentGlEntities.push(original, bounding);
   }
   override getDistance(point: Vec3): number {
-    var res = this.bounding.getDistance(point);
+    let res = this.bounding.getDistance(point);
     if (res < this.margin) {
       res = this.original.getDistance(point);
     }

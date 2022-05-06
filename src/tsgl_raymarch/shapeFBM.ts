@@ -12,10 +12,10 @@ export class SpheresRand extends Shape3D {
     this.dependentGlEntities.push(randGen);
   }
   getSphereDistance(point: util.Vec3, tetraIndex: util.TetrahedronCoord): number {
-    var seed = rand.hash32([tetraIndex[0], tetraIndex[1], tetraIndex[2]]);
-    var state = rand.PCG16.init(seed);
-    var r = 0.5 * util.smoothclamp(this.randGen.rand(state).value, 0.01, 1, 0.1); // select rand
-    var origin = tetraIndex.toOrthogonal();
+    let seed = rand.hash32([tetraIndex[0], tetraIndex[1], tetraIndex[2]]);
+    let state = rand.PCG16.init(seed);
+    let r = 0.5 * util.smoothclamp(this.randGen.rand(state).value, 0.01, 1, 0.1); // select rand
+    let origin = tetraIndex.toOrthogonal();
     return point.add(origin.negative()).len() - r;
   }
   GlFunc_getSphereDistance(): string {return `
@@ -29,9 +29,9 @@ export class SpheresRand extends Shape3D {
     }
   `;}
   override getDistance(point: util.Vec3): number {
-    var tetraCoord = util.TetrahedronCoord.fromOrthogonal(point);
-    var tetraIndices = tetraCoord.rounds();
-    var distances = tetraIndices.map((i) => this.getSphereDistance(point, util.TetrahedronCoord.asTetrahedronCoord(i)));
+    let tetraCoord = util.TetrahedronCoord.fromOrthogonal(point);
+    let tetraIndices = tetraCoord.rounds();
+    let distances = tetraIndices.map((i) => this.getSphereDistance(point, util.TetrahedronCoord.asTetrahedronCoord(i)));
     return Math.min(
       distances[0], distances[1], distances[2], distances[3],
       distances[4], distances[5], distances[6], distances[7],

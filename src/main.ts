@@ -11,11 +11,11 @@ import * as objs from './drawable_objects';
 function main(): void {
   console.log("initializing script");
 
-  var timetick = new TimeTicks(1000 * 1/20);
-  var cameras_: Camera[] = [
+  let timetick = new TimeTicks(1000 * 1/20);
+  let cameras_: Camera[] = [
     new cameras.Perspective(new Vec3(0,0,14), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(800, 600)),
   ];
-  var drawables_: Drawable[] = [
+  let drawables_: Drawable[] = [
     new drawables.Transform(
       new objs.CornellBox(),
       5, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2.5)
@@ -23,16 +23,16 @@ function main(): void {
     new objs.OrbitingSphere(timetick),
     new objs.RotatingRoundedCube(timetick),
   ];
-  var lights_: Light[] = [
+  let lights_: Light[] = [
     new lights.PointLight(new Vec3(0,3,1), new Vec3(1,1,1)),
     //new lights.PointLight(new Vec3(0,-3,0), (new Vec3(1,1,1)).mul(0.05)),
   ];
 
-  var canvas = document.getElementById("demoscene") as HTMLCanvasElement;
-  var gl = canvas.getContext("webgl2");
+  let canvas = document.getElementById("demoscene") as HTMLCanvasElement;
+  let gl = canvas.getContext("webgl2");
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
-  var renderer: GlRenderer = new GlRenderer(gl, cameras_, drawables_, lights_);
+  let renderer: GlRenderer = new GlRenderer(gl, cameras_, drawables_, lights_);
   timetick.addEventListener(()=>{
     renderer.draw(0);
   });

@@ -7,8 +7,8 @@ export class Vec2 {
     return new Vec2(0,0);
   }
   static fromClosure(f :(i:number)=>number): Vec2 {
-    var res = Vec2.zero();
-    for (var i=0; i<2; i++) {
+    let res = Vec2.zero();
+    for (let i=0; i<2; i++) {
       res[i] = f(i);
     }
     return res;
@@ -26,7 +26,7 @@ export class Vec2 {
     return this.mul(-1);
   }
   rotate(rad: number): Vec2 {
-    var m = Mat2.fromNumbers([[Math.cos(rad), -Math.sin(rad)], [Math.sin(rad), Math.cos(rad)]]);
+    let m = Mat2.fromNumbers([[Math.cos(rad), -Math.sin(rad)], [Math.sin(rad), Math.cos(rad)]]);
     return m.mul2x1(this);
   }
   dot(v: Vec2): number {
@@ -42,7 +42,7 @@ export class Vec2 {
     return Vec2.fromClosure((i)=>f(this[i]));
   }
   rounds(): Vec2[] {
-    var res = new Array<Vec2>(1<<2);
+    let res = new Array<Vec2>(1<<2);
     return res.map((_,i) =>
       new Vec2(
         Math.floor(this[0])+((i>>0)&1),
@@ -62,8 +62,8 @@ export class Vec3 {
     return new Vec3(0,0,0);
   }
   static fromClosure(f :(i:number)=>number): Vec3 {
-    var res = Vec3.zero();
-    for (var i=0; i<3; i++) {
+    let res = Vec3.zero();
+    for (let i=0; i<3; i++) {
       res[i] = f(i);
     }
     return res;
@@ -99,7 +99,7 @@ export class Vec3 {
     return new Vec3(f(this[0]), f(this[1]), f(this[2]));
   }
   rounds(): Vec3[] {
-    var res = new Array<Vec3>(1<<3);
+    let res = new Array<Vec3>(1<<3);
     return res.map((_,i) =>
       new Vec3(
         Math.floor(this[0])+((i>>0)&1),
@@ -190,10 +190,10 @@ export class Mat2 {
     return Mat2.fromNumbers([[1,0],[0,1]]);
   }
   static fromClosure(f :(i:number, j:number)=>number): Mat2 {
-    var res = new Mat2();
-    for (var i=0; i<2; i++) {
+    let res = new Mat2();
+    for (let i=0; i<2; i++) {
       res[i] = [];
-      for (var j=0; j<2; j++) {
+      for (let j=0; j<2; j++) {
         res[i][j] = f(i,j);
       }
     }
@@ -255,10 +255,10 @@ export class Mat3 {
     return Mat3.fromNumbers([[1,0,0],[0,1,0],[0,0,1]]);
   }
   static fromClosure(f :(i:number, j:number)=>number): Mat3 {
-    var res = new Mat3();
-    for (var i=0; i<3; i++) {
+    let res = new Mat3();
+    for (let i=0; i<3; i++) {
       res[i] = [];
-      for (var j=0; j<3; j++) {
+      for (let j=0; j<3; j++) {
         res[i][j] = f(i,j);
       }
     }
@@ -371,10 +371,10 @@ export function mix(v1:number, v2: number, t: number): number {
 }
 
 export function blend(v1: number, v2: number, isMin: boolean, smoothness: number, weight: number): number {
-  var s = isMin? -1: 1;
-  var h = 0.5 - s*0.5*clamp((v2-v1) / smoothness, -1.0, 1.0);
+  let s = isMin? -1: 1;
+  let h = 0.5 - s*0.5*clamp((v2-v1) / smoothness, -1.0, 1.0);
   h = Math.pow(h, 1/weight);
-  var d = smoothness*h*(1.0-h); // > mix(v2,v1,h)-min(v2,v1)
+  let d = smoothness*h*(1.0-h); // > mix(v2,v1,h)-min(v2,v1)
   return mix(v2,v1,h) + s*d;
 }
 
