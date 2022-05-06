@@ -7,7 +7,7 @@ export class Transform3D extends Shape3D {
   scale: number;
   rotation: Quaternion;
   translate: Vec3;
-  constructor(original: Shape3D, scale: number, rotation: Quaternion, translate: Vec3) {
+  constructor(original: GlEntity & HasShape, scale: number, rotation: Quaternion, translate: Vec3) {
     super();
     this.original = original;
     this.scale = scale;
@@ -116,9 +116,9 @@ export class Sphere extends Shape3D {
 }
 
 export class Bloated extends Shape3D {
-  original: Shape3D;
+  original: GlEntity & HasShape;
   radius: number;
-  constructor(original: Shape3D, radius: number) {
+  constructor(original: GlEntity & HasShape, radius: number) {
     super();
     this.original = original;
     this.radius = radius;
@@ -143,9 +143,9 @@ export class Bloated extends Shape3D {
 }
 
 export class Hollowed extends Shape3D {
-  original: Shape3D;
+  original: GlEntity & HasShape;
   thickness: number;
-  constructor(original: Shape3D, thickness: number) {
+  constructor(original: GlEntity & HasShape, thickness: number) {
     super();
     this.original = original;
     this.thickness = thickness;
@@ -170,9 +170,9 @@ export class Hollowed extends Shape3D {
 }
 
 export abstract class BooleanOp extends Shape3D {
-  shape1: Shape3D;
-  shape2: Shape3D;
-  constructor(shape1: Shape3D, shape2: Shape3D) {
+  shape1: GlEntity & HasShape;
+  shape2: GlEntity & HasShape;
+  constructor(shape1: GlEntity & HasShape, shape2: GlEntity & HasShape) {
     super();
     this.shape1 = shape1;
     this.shape2 = shape2;
@@ -212,7 +212,7 @@ export class Intersection extends BooleanOp {
 
 export abstract class SmoothBooleanOp extends BooleanOp {
   smoothness: number;
-  constructor(shape1: Shape3D, shape2: Shape3D, smoothness: number) {
+  constructor(shape1: GlEntity & HasShape, shape2: GlEntity & HasShape, smoothness: number) {
     super(shape1, shape2);
     this.smoothness = smoothness;
   }
@@ -258,8 +258,8 @@ export class SmoothIntersection extends SmoothBooleanOp {
 
 
 export abstract class Displacement extends Shape3D {
-  original: Shape3D;
-  constructor(original: Shape3D) {
+  original: GlEntity & HasShape;
+  constructor(original: GlEntity & HasShape) {
     super();
     this.original = original;
     this.dependentGlEntities.push(original);
@@ -286,7 +286,7 @@ export abstract class Displacement extends Shape3D {
 
 export class RepetitionInf extends Displacement {
   interval: Vec3;
-  constructor(original: Shape3D, interval: Vec3) {
+  constructor(original: GlEntity & HasShape, interval: Vec3) {
     super(original);
     this.interval = interval;
   }
@@ -313,7 +313,7 @@ export class RepetitionInf extends Displacement {
 export class Repetition extends Displacement {
   interval: Vec3;
   max_indices: Vec3;
-  constructor(original: Shape3D, interval: Vec3, max_indices: Vec3) {
+  constructor(original: GlEntity & HasShape, interval: Vec3, max_indices: Vec3) {
     super(original);
     this.interval = interval;
     this.max_indices = max_indices;

@@ -84,13 +84,12 @@ Subtractionの方はBoundingShapeを付けられる
 
 
 リファクタリング
-  var -> let
+  Shape3D -> GlEntity & HasShape
   Transform
     Transform extends GlEntity
     shape.Transformed, drawables.Transformed
     GlEntytyからのuniformをstructにする
       Transformのみ?
-  Shape3D -> GlEntity & HasShape
   Tetrahedron -> Simplex3
     getNeighbors
       (0,0,0),
