@@ -316,26 +316,44 @@ export class Mat3 {
 }
 
 
-export class TetrahedronCoord extends Vec3 {
+export class Simplex3Coord extends Vec3 {
   static basis = Mat3.fromNumbers([
     [+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0],
     [+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0],
     [Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)]
   ]).transpose();
-  static invBasis = TetrahedronCoord.basis.inverse();
-  static TetrahedronCenter = (
-    TetrahedronCoord.basis.getCol(0)
-    .add(TetrahedronCoord.basis.getCol(1))
-    .add(TetrahedronCoord.basis.getCol(2))
+  static invBasis = Simplex3Coord.basis.inverse();
+  static Simplex3Center = (
+    Simplex3Coord.basis.getCol(0)
+    .add(Simplex3Coord.basis.getCol(1))
+    .add(Simplex3Coord.basis.getCol(2))
   ).mul(1/4);
-  static asTetrahedronCoord(v: Vec3): TetrahedronCoord {
-    return new TetrahedronCoord(v[0], v[1], v[2]);
+  static asSimplex3Coord(v: Vec3): Simplex3Coord {
+    return new Simplex3Coord(v[0], v[1], v[2]);
   }
-  static fromOrthogonal(v: Vec3): TetrahedronCoord {
-    return TetrahedronCoord.asTetrahedronCoord( TetrahedronCoord.invBasis.mul3x1(v) );
+  static fromOrthogonal(v: Vec3): Simplex3Coord {
+    return Simplex3Coord.asSimplex3Coord( Simplex3Coord.invBasis.mul3x1(v) );
   }
   toOrthogonal(): Vec3 {
-    return TetrahedronCoord.basis.mul3x1(this);
+    return Simplex3Coord.basis.mul3x1(this);
+  }
+  neighbors(): Simplex3Coord[] {
+    let center = this.map((v) => Math.round(v));
+    return [
+      center,
+      center.add( new Vec3(+1, 0, 0) ),
+      center.add( new Vec3( 0,+1, 0) ),
+      center.add( new Vec3( 0, 0,+1) ),
+      center.add( new Vec3(-1, 0, 0) ),
+      center.add( new Vec3( 0,-1, 0) ),
+      center.add( new Vec3( 0, 0,-1) ),
+      center.add( new Vec3(+1,-1, 0) ),
+      center.add( new Vec3(+1, 0,-1) ),
+      center.add( new Vec3(-1,+1, 0) ),
+      center.add( new Vec3( 0,+1,-1) ),
+      center.add( new Vec3(-1, 0,+1) ),
+      center.add( new Vec3( 0,-1,+1) )
+    ].map((v)=>Simplex3Coord.asSimplex3Coord(v));
   }
 }
 

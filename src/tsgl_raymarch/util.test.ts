@@ -145,11 +145,11 @@ describe('Mat3', () => {
 });
 
 
-describe('TetrahedronCoord', () => {
+describe('Simplex3Coord', () => {
   test('fromOrthogonal', () => {
-    let vx = util.TetrahedronCoord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0));
-    let vy = util.TetrahedronCoord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0));
-    let vz = util.TetrahedronCoord.fromOrthogonal(new util.Vec3(Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)));
+    let vx = util.Simplex3Coord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0));
+    let vy = util.Simplex3Coord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0));
+    let vz = util.Simplex3Coord.fromOrthogonal(new util.Vec3(Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)));
     expect(vx[0]).toBeCloseTo(1);
     expect(vx[1]).toBeCloseTo(0);
     expect(vx[2]).toBeCloseTo(0);
@@ -162,18 +162,27 @@ describe('TetrahedronCoord', () => {
   });
   test('toOrthogonal', () => {
     let v = new util.Vec3(1,2,3);
-    let v_ = util.TetrahedronCoord.fromOrthogonal(v).toOrthogonal();
+    let v_ = util.Simplex3Coord.fromOrthogonal(v).toOrthogonal();
     expect(v_[0]).toBeCloseTo(v[0]);
     expect(v_[1]).toBeCloseTo(v[1]);
     expect(v_[2]).toBeCloseTo(v[2]);
   });
   test('center', () => {
-    let tx = (new util.TetrahedronCoord(1,0,0)).toOrthogonal();
-    let ty = (new util.TetrahedronCoord(0,1,0)).toOrthogonal();
-    let tz = (new util.TetrahedronCoord(0,0,1)).toOrthogonal();
-    let c = util.TetrahedronCoord.TetrahedronCenter;
+    let tx = (new util.Simplex3Coord(1,0,0)).toOrthogonal();
+    let ty = (new util.Simplex3Coord(0,1,0)).toOrthogonal();
+    let tz = (new util.Simplex3Coord(0,0,1)).toOrthogonal();
+    let c = util.Simplex3Coord.Simplex3Center;
     expect(tx.add(c.negative()).len()).toBeCloseTo(c.len());
     expect(ty.add(c.negative()).len()).toBeCloseTo(c.len());
     expect(tz.add(c.negative()).len()).toBeCloseTo(c.len());
+  });
+  test('neighbors', () => {
+    let v = util.Simplex3Coord.asSimplex3Coord( new util.Vec3(1,2,3) );
+    let origin = v.toOrthogonal();
+    let neighbors = v.neighbors();
+    expect(neighbors.shift().toOrthogonal().add(origin.negative()).len()).toBeCloseTo(0);
+    neighbors.forEach((v) => {
+      expect(v.toOrthogonal().add(origin.negative()).len()).toBeCloseTo(1);
+    });
   });
 });

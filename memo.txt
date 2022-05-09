@@ -10,6 +10,10 @@ npm run build
     ComputeShaderが使えないので無理そう
 最終的に何を出力するか
   Proceduralな生成の強みは
+  Blenderのモディファイアを使った表現を参考に
+  鉄橋
+  繰り返しの装飾
+  無限長
 
 
 TODO
@@ -83,17 +87,9 @@ Subtractionの方はBoundingShapeを付けられる
     円積分の方がいい?
 
 
-リファクタリング
-  Transform
-  Tetrahedron -> Simplex3
-    getNeighbors
-      (0,0,0),
-      (1,0,0),(0,1,0),(-1,0,0),(0,-1,0),(1,-1,0),(-1,1,0),
-      (0,0,1),(-1,0,1),(0,-1,1),(0,0,-1),(1,0,-1),(0,1,-1),
-
-
 shapeFBMのShapesRand
-simplexCoordのroundsだと距離関数がおかしくなってそう(無限ループバグの元)
+  距離関数がおかしくなってそう(無限ループバグの元)
+
 
 findNearestDrawable
 rayCastのl + obj_distance < EPS となるものは無視?

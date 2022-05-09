@@ -11,7 +11,7 @@ export class SpheresRand extends Shape3D {
     this.randGen = randGen;
     this.dependentGlEntities.push(randGen);
   }
-  getSphereDistance(point: util.Vec3, tetraIndex: util.TetrahedronCoord): number {
+  getSphereDistance(point: util.Vec3, tetraIndex: util.Simplex3Coord): number {
     let seed = rand.hash32([tetraIndex[0], tetraIndex[1], tetraIndex[2]]);
     let state = rand.PCG16.init(seed);
     let r = 0.5 * util.smoothclamp(this.randGen.rand(state).value, 0.01, 1, 0.1); // select rand
@@ -24,42 +24,25 @@ export class SpheresRand extends Shape3D {
       uint rand_state;
       PCG16_init(hash32( uint[](uIndex.x, uIndex.y, uIndex.z) ), rand_state);
       float r = 0.5 * smoothclamp( rand_${this.randGen.id}(rand_state), 0.01, 1.0, 0.1 );
-      vec3 origin = coord_TetrahedronToOrthogonal(tetraIndex);
+      vec3 origin = coord_Simplex3ToOrthogonal(tetraIndex);
       return length(point-origin) - r;
     }
   `;}
   override getDistance(point: util.Vec3): number {
-    let tetraCoord = util.TetrahedronCoord.fromOrthogonal(point);
-    let tetraIndices = tetraCoord.rounds();
-    let distances = tetraIndices.map((i) => this.getSphereDistance(point, util.TetrahedronCoord.asTetrahedronCoord(i)));
-    return Math.min(
-      distances[0], distances[1], distances[2], distances[3],
-      distances[4], distances[5], distances[6], distances[7],
-    );
+    let tetraCoord = util.Simplex3Coord.fromOrthogonal(point);
+    let tetraIndices = tetraCoord.neighbors();
+    let distances = tetraIndices.map((i) => this.getSphereDistance(point, util.Simplex3Coord.asSimplex3Coord(i)));
+    return distances.reduce((prev,current) => Math.min(prev, current));
   }
   GlFunc_getDistance(): string {return `
     float getDistance_${this.id}(vec3 point) {
-      vec3 tetraCoord = coord_OrthogonalToTetrahedron(point);
-      vec3[8] tetraIndices = coord_rounds(tetraCoord);
-      return min(
-        min(
-          min(
-            getSphereDistance_${this.id}(point,tetraIndices[0]),
-            getSphereDistance_${this.id}(point,tetraIndices[1])
-          ), min(
-            getSphereDistance_${this.id}(point,tetraIndices[2]),
-            getSphereDistance_${this.id}(point,tetraIndices[3])
-          )
-        ), min(
-          min(
-            getSphereDistance_${this.id}(point,tetraIndices[4]),
-            getSphereDistance_${this.id}(point,tetraIndices[5])
-          ), min(
-            getSphereDistance_${this.id}(point,tetraIndices[6]),
-            getSphereDistance_${this.id}(point,tetraIndices[7])
-          )
-        )
-      );
+      vec3 tetraCoord = coord_OrthogonalToSimplex3(point);
+      vec3[13] tetraIndices = simplex3_neighbors(tetraCoord);
+      float res = getSphereDistance_${this.id}(point,tetraIndices[0]);
+      for (int i=1; i<tetraIndices.length(); i++) {
+        res = min(res, getSphereDistance_${this.id}(point,tetraIndices[i]));
+      }
+      return res;
     }
   `;}
   override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
