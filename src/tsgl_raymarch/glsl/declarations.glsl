@@ -23,6 +23,13 @@ struct Transform {
   vec4 rotation;
   float scale;
 };
+struct TexturePatch {
+  vec3 albedo;
+  float roughness;
+  float specular;
+  vec3 point;
+  vec3 normal;
+};
 
 /*util.glsl*/
 vec4 quaternion_fromDCM(mat3 dcm);
@@ -76,19 +83,18 @@ ${lights.map((l) => l.getGlDeclarations()).join("")}
 ${drawables.map((d) => d.getGlDeclarations()).join("")}
 float getDistance(int id, vec3 point);
 vec3 getNormal(int id, vec3 point);
-vec3 getAmbient(int id, vec3 point, in Ray view);
-vec3 getDiffuse(int id, vec3 point, in Photon photon, in Ray view);
-vec3 getSpecular(int id, vec3 point, in Photon photon, in Ray view);
+vec3 calcAmbient(int id, vec3 point, in vec3 intensity, in Ray view);
+vec3 calcDiffuse(int id, vec3 point, in Photon photon, in Ray view);
+vec3 calcSpecular(int id, vec3 point, in Photon photon, in Ray view);
 
 vec3 coord_transform(in Transform t, vec3 point);
 vec3 coord_inverse(in Transform t, vec3 point);
 Ray coord_transform(in Transform t, in Ray ray);
 Ray coord_inverse(in Transform t, in Ray ray);
 
-vec3 getAmbient_constant(vec3 color);
-vec3 getDiffuse_Phong(vec3 color, float metalness, vec3 normal, in Photon photon);
-vec3 getSpecular_Phong(float metalness, float specular, vec3 normal, in Photon photon, in Ray view);
-
+vec3 calcAmbient_constant(in TexturePatch p, in vec3 intensity, in Ray view);
+vec3 calcDiffuse_Phong(in TexturePatch p, in Photon photon);
+vec3 calcSpecular_Phong(in TexturePatch p, in Photon photon, in Ray view);
 
 /*raymarch*/
 int findNearestDrawable(in Ray ray, out float obj_distance);

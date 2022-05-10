@@ -1,6 +1,47 @@
 import {Vec3, smoothmax, smoothmin, clamp} from './util';
-import {GlEntity, HasShape, Shape3D, Transform} from './gl_entity';
+import {GlEntity, Transform} from './gl_entity';
 
+export interface HasShape {
+  getDistance(point: Vec3): number;
+  GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
+  getNormal(point: Vec3): Vec3;
+  GlFunc_getNormal(): string;
+}
+export abstract class Shape3D extends GlEntity implements HasShape {
+  constructor() {
+    super();
+  }
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    float getDistance_${this.id} (vec3 point);
+    vec3 getNormal_${this.id} (vec3 point);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_getDistance()}
+    ${this.GlFunc_getNormal()}
+  `;}
+  abstract getDistance(point: Vec3): number;
+  abstract GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
+  getNormal(point: Vec3): Vec3 {
+    const EPS = 0.0001;
+    let v: Vec3 = new Vec3(
+      this.getDistance(point.add(new Vec3(+EPS,0,0))) - this.getDistance(point.add(new Vec3(-EPS,0,0))),
+      this.getDistance(point.add(new Vec3(0,+EPS,0))) - this.getDistance(point.add(new Vec3(0,-EPS,0))),
+      this.getDistance(point.add(new Vec3(0,0,+EPS))) - this.getDistance(point.add(new Vec3(0,0,-EPS))),
+    );
+    return v.normalize();
+  }
+  GlFunc_getNormal(): string {
+    return `vec3 getNormal_${this.id} (vec3 point) {
+      return normalize(vec3(
+        getDistance_${this.id}(point+vec3(+EPS,0,0)) - getDistance_${this.id}(point+vec3(-EPS,0,0)),
+        getDistance_${this.id}(point+vec3(0,+EPS,0)) - getDistance_${this.id}(point+vec3(0,-EPS,0)),
+        getDistance_${this.id}(point+vec3(0,0,+EPS)) - getDistance_${this.id}(point+vec3(0,0,-EPS))
+      ));
+    }`;
+  }
+}
 
 export class Transformed extends Shape3D {
   original: GlEntity & HasShape;

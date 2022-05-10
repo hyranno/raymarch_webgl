@@ -1,6 +1,19 @@
 import {Vec3} from './util';
-import {GlEntity, Light} from './gl_entity';
+import {GlEntity} from './gl_entity';
 
+
+export abstract class Light extends GlEntity {
+  abstract GlFunc_getPhotonTo(): string; //void light_getPhotonTo_${this.id} (vec3 point, out Photon photon);
+  //abstract GlFunc_getPhoton(): string; //void light_getPhoton_(out Photon photon), random photon
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    void light_getPhotonTo_${this.id} (vec3 point, out Photon photon);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_getPhotonTo()}
+  `;}
+}
 
 export class PointLight extends Light {
   position: Vec3;

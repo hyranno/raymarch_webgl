@@ -1,5 +1,63 @@
-import {Vec3} from './util';
-import {GlEntity, Material, HasMaterial, Transform} from './gl_entity';
+import {GlEntity, Transform} from './gl_entity';
+import {ReflectanceDistribution} from './reflectances';
+import {Texture} from './textures';
+
+
+export interface HasMaterial {
+  GlFunc_calcAmbient(): string; //vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view)
+  GlFunc_calcDiffuse(): string; //vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+  GlFunc_calcSpecular(): string; //vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+}
+export abstract class Material extends GlEntity implements HasMaterial {
+  constructor() {
+    super();
+  }
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view);
+    vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+    vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_calcAmbient()}
+    ${this.GlFunc_calcDiffuse()}
+    ${this.GlFunc_calcSpecular()}
+  `;}
+  abstract GlFunc_calcAmbient(): string;
+  abstract GlFunc_calcDiffuse(): string;
+  abstract GlFunc_calcSpecular(): string;
+}
+
+
+export class TextureReflectanceModel extends Material {
+  texture: Texture;
+  reflectance: ReflectanceDistribution;
+  constructor(texture: Texture, reflectance: ReflectanceDistribution) {
+    super();
+    this.texture = texture;
+    this.reflectance = reflectance;
+    this.dependentGlEntities.push(texture, reflectance);
+  }
+  override GlFunc_calcAmbient(): string { return `
+    vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
+      TexturePatch t = getTexturePatch_${this.texture.id}(point, normal);
+      return calcAmbient_${this.reflectance.id}(t, intensity, view);
+    }
+  `;}
+  override GlFunc_calcDiffuse(): string { return `
+    vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+      TexturePatch t = getTexturePatch_${this.texture.id}(point, normal);
+      return calcDiffuse_${this.reflectance.id}(t, photon, view);
+    }
+  `;}
+  override GlFunc_calcSpecular(): string { return `
+    vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+      TexturePatch t = getTexturePatch_${this.texture.id}(point, normal);
+      return calcSpecular_${this.reflectance.id}(t, photon, view);
+    }
+  `;}
+}
 
 
 export class Transformed extends Material {
@@ -11,77 +69,32 @@ export class Transformed extends Material {
     this.transform = transform;
     this.dependentGlEntities.push(original, transform);
   }
-  GlFunc_getAmbient(): string {
-    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-      return getAmbient_${this.original.id}(inverse_${this.transform.id}(point), inverse_${this.transform.id}(view));
+  GlFunc_calcAmbient(): string {
+    return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
+      vec3 t_point = inverse_${this.transform.id}(point);
+      vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
+      Ray t_view = inverse_${this.transform.id}(view);
+      return calcAmbient_${this.original.id}(t_point, t_normal, intensity, t_view);
     }`;
   }
-  GlFunc_getDiffuse(): string {
-    return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+  GlFunc_calcDiffuse(): string {
+    return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       vec3 t_point = inverse_${this.transform.id}(point);
       vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
       Photon t_photon = photon;
       t_photon.ray = inverse_${this.transform.id}(photon.ray);
       Ray t_view = inverse_${this.transform.id}(view);
-      return getDiffuse_${this.original.id}(t_point, t_normal, t_photon, t_view);
+      return calcDiffuse_${this.original.id}(t_point, t_normal, t_photon, t_view);
     }`;
   }
-  GlFunc_getSpecular(): string {
-    return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+  GlFunc_calcSpecular(): string {
+    return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       vec3 t_point = inverse_${this.transform.id}(point);
       vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
       Photon t_photon = photon;
       t_photon.ray = inverse_${this.transform.id}(photon.ray);
       Ray t_view = inverse_${this.transform.id}(view);
-      return getSpecular_${this.original.id}(t_point, t_normal, t_photon, t_view);
-    }`;
-  }
-}
-
-/*
-Ambient: constant
-Diffuse: Lambert
-Specular: normalized Phong
-*/
-export class Phong extends Material {
-  ambient: Vec3;
-  diffuse: Vec3;
-  metalness: number;
-  specular: number;
-  constructor(ambient: Vec3, diffuse: Vec3, metalness: number, specular: number) {
-    super();
-    this.ambient = ambient;
-    this.diffuse = diffuse;
-    this.metalness = metalness;
-    this.specular = specular;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform vec3 ambient_${this.id};
-    uniform vec3 diffuse_${this.id};
-    uniform float metalness_${this.id};
-    uniform float specular_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `ambient_${this.id}`, this.ambient);
-    GlEntity.setGlUniformVec3(gl, program, `diffuse_${this.id}`, this.diffuse);
-    GlEntity.setGlUniformFloat(gl, program, `metalness_${this.id}`, this.metalness);
-    GlEntity.setGlUniformFloat(gl, program, `specular_${this.id}`, this.specular);
-  }
-  override GlFunc_getAmbient(): string {
-    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-      return getAmbient_constant(ambient_${this.id});
-    }`;
-  }
-  override GlFunc_getDiffuse(): string {
-    return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      return getDiffuse_Phong(diffuse_${this.id}, metalness_${this.id}, normal, photon);
-    }`;
-  }
-  override GlFunc_getSpecular(): string {
-    return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      return getSpecular_Phong(metalness_${this.id}, specular_${this.id}, normal, photon, view);
+      return calcSpecular_${this.original.id}(t_point, t_normal, t_photon, t_view);
     }`;
   }
 }

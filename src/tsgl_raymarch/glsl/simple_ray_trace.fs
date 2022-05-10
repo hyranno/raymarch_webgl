@@ -8,6 +8,7 @@ void main() {
   float obj_distance;
   int obj = rayCast(ray, MAX_DISTANCE, obj_distance);
   vec3 point = ray.start + obj_distance*ray.direction;
+  vec3 ambient_light = vec3(1)*0.2;
   vec3 ambient = vec3(0);
   vec3 diffuse = vec3(0);
   vec3 specular = vec3(0);
@@ -17,9 +18,9 @@ void main() {
     float light_distance;
     rayCast(photon.ray, MAX_DISTANCE, light_distance);
     float light_isHit = mix(0.0,1.0, length(point - photon.ray.start) - 0.4 < light_distance);
-    ambient += getAmbient(obj, point, ray);
-    diffuse += getDiffuse(obj, point, photon, ray) * light_isHit;
-    specular += getSpecular(obj, point, photon, ray) * light_isHit;
+    ambient += calcAmbient(obj, point, ambient_light, ray);
+    diffuse += calcDiffuse(obj, point, photon, ray) * light_isHit;
+    specular += calcSpecular(obj, point, photon, ray) * light_isHit;
   }`).join("")}
   vec3 skyColor = vec3(0.2,0,0.1);
   ambient += mix(0.0,1.0, obj<0)* skyColor;

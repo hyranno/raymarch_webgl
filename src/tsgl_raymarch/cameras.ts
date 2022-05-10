@@ -1,5 +1,44 @@
-import {Vec2, Vec3} from './util';
-import {GlEntity, Camera} from './gl_entity';
+import {Vec2, Vec3, Quaternion} from './util';
+import {GlEntity} from './gl_entity';
+
+
+export abstract class Camera extends GlEntity {
+  position: Vec3;
+  rotation: Quaternion;
+  screen_size: Vec2;
+  resolution: Vec2;
+  constructor(position: Vec3, upper_center: Vec3, center_right: Vec3, resolution: Vec2) {
+    super();
+    this.position = position;
+    this.screen_size = new Vec2(center_right.len(), upper_center.len())
+    this.rotation = Quaternion.fromXY(center_right.normalize(), upper_center.normalize());
+    this.resolution = resolution;
+  }
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    uniform vec3 position_${this.id};
+    uniform vec4 rotation_${this.id};
+    uniform vec2 screen_size_${this.id};
+    uniform vec2 resolution_${this.id};
+    void getRay_${this.id}(out Ray ray);
+  `;}
+  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
+    super.setGlVars(gl, program);
+    GlEntity.setGlUniformVec3(gl, program, `position_${this.id}`, this.position);
+    GlEntity.setGlUniformQuaternion(gl, program, `rotation_${this.id}`, this.rotation);
+    GlEntity.setGlUniformFloat(gl, program, `screen_size_${this.id}`,
+      this.screen_size[0], this.screen_size[1]
+    );
+    GlEntity.setGlUniformFloat(gl, program, `resolution_${this.id}`,
+      this.resolution[0], this.resolution[1]
+    );
+  }
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_getRay()}
+  `;}
+  abstract GlFunc_getRay(): string;
+}
 
 export class Perspective extends Camera {
   origin_distance: number;

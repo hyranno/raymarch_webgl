@@ -20,32 +20,32 @@ vec3 getNormal(int id, vec3 point) {
   );
   return normalize(v);
 }
-vec3 getAmbient(int id, vec3 point, in Ray view) {
+vec3 calcAmbient(int id, vec3 point, in vec3 intensity, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    // res += getAmbient_${d.id}(point, view) * mix(0.0, 1.0, ${d.id}==id);
+    // res += calcAmbient_${d.id}(point, view) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
-      res = getAmbient_${d.id}(point, view);
+      res = calcAmbient_${d.id}(point, vec3(0), intensity, view);
     }
   `).join("")}
   return res;
 }
-vec3 getDiffuse(int id, vec3 point, in Photon photon, in Ray view) {
+vec3 calcDiffuse(int id, vec3 point, in Photon photon, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    // res += getDiffuse_${d.id}(point, vec3(0), photon, view) * mix(0.0, 1.0, ${d.id}==id);
+    // res += calcDiffuse_${d.id}(point, vec3(0), photon, view) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
-      res = getDiffuse_${d.id}(point, vec3(0), photon, view);
+      res = calcDiffuse_${d.id}(point, vec3(0), photon, view);
     }
   `).join("")}
   return res;
 }
-vec3 getSpecular(int id, vec3 point, in Photon photon, in Ray view) {
+vec3 calcSpecular(int id, vec3 point, in Photon photon, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    // res += getSpecular_${d.id}(point, vec3(0), photon, view) * mix(0.0, 1.0, ${d.id}==id);
+    // res += calcSpecular_${d.id}(point, vec3(0), photon, view) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
-      res = getSpecular_${d.id}(point, vec3(0), photon, view);
+      res = calcSpecular_${d.id}(point, vec3(0), photon, view);
     }
   `).join("")}
   return res;
@@ -72,17 +72,18 @@ Ray coord_inverse(in Transform t, in Ray ray) {
 }
 
 
-vec3 getAmbient_constant(vec3 color) {
-  return color;
+vec3 calcAmbient_constant(in TexturePatch p, in vec3 intensity, in Ray view) {
+  float cos_member = clamp( dot(-view.direction, p.normal), 0.0, 1.0 );
+  return p.albedo * intensity * cos_member;
 }
-vec3 getDiffuse_Phong(vec3 color, float metalness, vec3 normal, in Photon photon) {
-  float cos_member = clamp( -dot(photon.ray.direction, normal), 0.0, 1.0 );
-  vec3 f_rd = color;
-  return (1.0-metalness) * f_rd * photon.color * cos_member;
+vec3 calcDiffuse_Phong(in TexturePatch p, in Photon photon) {
+  float cos_member = clamp( -dot(photon.ray.direction, p.normal), 0.0, 1.0 );
+  vec3 f_rd = p.albedo;
+  return p.roughness * f_rd * photon.color * cos_member;
 }
-vec3 getSpecular_Phong(float metalness, float specular, vec3 normal, in Photon photon, in Ray view) {
-  float cos_member = clamp( dot(reflect(photon.ray.direction, normal), -view.direction), 0.0, 1.0 );
-  float n = specular;
+vec3 calcSpecular_Phong(in TexturePatch p, in Photon photon, in Ray view) {
+  float cos_member = clamp( dot(reflect(photon.ray.direction, p.normal), -view.direction), 0.0, 1.0 );
+  float n = p.specular;
   float f_rs = (n + 2.0) / radians(360.0) * pow(cos_member, n);
-  return metalness * f_rs * photon.color;
+  return (1.0-p.roughness) * f_rs * photon.color;
 }

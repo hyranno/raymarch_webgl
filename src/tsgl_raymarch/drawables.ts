@@ -3,10 +3,37 @@ import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
 
-export class MaterializedShape extends glEntities.Drawable {
-  shape: glEntities.GlEntity & glEntities.HasShape;
-  material: glEntities.GlEntity & glEntities.HasMaterial;
-  constructor(shape: glEntities.GlEntity & glEntities.HasShape, material: glEntities.GlEntity & glEntities.HasMaterial) {
+export abstract class Drawable extends glEntities.GlEntity implements shapes.HasShape, materials.HasMaterial {
+  abstract GlFunc_calcAmbient(): string;
+  abstract GlFunc_calcDiffuse(): string;
+  abstract GlFunc_calcSpecular(): string;
+  abstract getDistance(point: Vec3): number;
+  abstract GlFunc_getDistance(): string;
+  abstract getNormal(point: Vec3): Vec3;
+  abstract GlFunc_getNormal(): string;
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    float getDistance_${this.id} (vec3 point);
+    vec3 getNormal_${this.id} (vec3 point);
+    vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view);
+    vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+    vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_getDistance()}
+    ${this.GlFunc_getNormal()}
+    ${this.GlFunc_calcAmbient()}
+    ${this.GlFunc_calcDiffuse()}
+    ${this.GlFunc_calcSpecular()}
+  `;}
+}
+
+
+export class MaterializedShape extends Drawable {
+  shape: glEntities.GlEntity & shapes.HasShape;
+  material: glEntities.GlEntity & materials.HasMaterial;
+  constructor(shape: glEntities.GlEntity & shapes.HasShape, material: glEntities.GlEntity & materials.HasMaterial) {
     super();
     this.shape = shape;
     this.material = material;
@@ -28,27 +55,28 @@ export class MaterializedShape extends glEntities.Drawable {
       return getNormal_${this.shape.id}(point);
     }`;
   }
-  GlFunc_getAmbient(): string {
-    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
-      return getAmbient_${this.material.id}(point, view);
+  GlFunc_calcAmbient(): string {
+    return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
+      normal = getNormal_${this.shape.id}(point);
+      return calcAmbient_${this.material.id}(point, normal, intensity, view);
     }`;
   }
-  GlFunc_getDiffuse(): string {
-    return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+  GlFunc_calcDiffuse(): string {
+    return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       normal = getNormal_${this.shape.id}(point);
-      return getDiffuse_${this.material.id}(point, normal, photon, view);
+      return calcDiffuse_${this.material.id}(point, normal, photon, view);
     }`;
   }
-  GlFunc_getSpecular(): string {
-    return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+  GlFunc_calcSpecular(): string {
+    return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       normal = getNormal_${this.shape.id}(point);
-      return getSpecular_${this.material.id}(point, normal, photon, view);
+      return calcSpecular_${this.material.id}(point, normal, photon, view);
     }`;
   }
 }
 
 export class Transformed extends MaterializedShape {
-  constructor(original: glEntities.Drawable, transform: glEntities.Transform){
+  constructor(original: Drawable, transform: glEntities.Transform){
     super(
       new shapes.Transformed(original, transform),
       new materials.Transformed(original, transform)
@@ -56,9 +84,9 @@ export class Transformed extends MaterializedShape {
   }
 }
 
-export class Group extends glEntities.Drawable {
-  contents: glEntities.Drawable[];
-  constructor(contents: glEntities.Drawable[]) {
+export class Group extends Drawable {
+  contents: Drawable[];
+  constructor(contents: Drawable[]) {
     super();
     this.contents = contents;
     contents.forEach((d) => this.dependentGlEntities.push(d));
@@ -71,7 +99,7 @@ export class Group extends glEntities.Drawable {
     ${super.getGlImplements()}
     ${this.GlFunc_findNearest()}
   `;}
-  findNearest(point: Vec3): glEntities.Drawable {
+  findNearest(point: Vec3): Drawable {
     return this.contents.reduce((prev, current) =>
       (prev.getDistance(point) < current.getDistance(point)) ? prev : current
     );
@@ -116,21 +144,21 @@ export class Group extends glEntities.Drawable {
       return res;
     }`;
   }
-  override GlFunc_getAmbient(): string {
-    return `vec3 getAmbient_${this.id} (vec3 point, in Ray view) {
+  override GlFunc_calcAmbient(): string {
+    return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
       vec3 res = vec3(0);
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
-          res = getAmbient_${d.id}(point, view);
+          res = calcAmbient_${d.id}(point, normal, intensity, view);
         }
       `).join("")}
       return res;
     }`;
   }
-  override GlFunc_getDiffuse(): string {
-    return `vec3 getDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+  override GlFunc_calcDiffuse(): string {
+    return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
       normal = vec3(0);
       float obj_distance;
@@ -142,14 +170,14 @@ export class Group extends glEntities.Drawable {
       `).join("")}
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
-          res = getDiffuse_${d.id}(point, normal, photon, view);
+          res = calcDiffuse_${d.id}(point, normal, photon, view);
         }
       `).join("")}
       return res;
     }`;
   }
-  override GlFunc_getSpecular(): string {
-    return `vec3 getSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+  override GlFunc_calcSpecular(): string {
+    return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
       normal = vec3(0);
       float obj_distance;
@@ -158,7 +186,7 @@ export class Group extends glEntities.Drawable {
         normal += getNormal_${d.id}(point) * mix(0.0,1.0, nearest==${d.id});
       `).join("")}
       ${this.contents.map((d) => `
-        res += getSpecular_${d.id}(point, normal, photon, view) * mix(0.0,1.0, nearest==${d.id});
+        res += calcSpecular_${d.id}(point, normal, photon, view) * mix(0.0,1.0, nearest==${d.id});
       `).join("")}
       return res;
     }`;

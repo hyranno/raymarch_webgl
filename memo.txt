@@ -11,19 +11,26 @@ npm run build
 最終的に何を出力するか
   Proceduralな生成の強みは
   Blenderのモディファイアを使った表現を参考に
-  鉄橋
+  鉄橋, レンガ橋
   繰り返しの装飾
   無限長
 
 
 TODO
-now: refactoring
+now: procedural material
+  Textureと反射モデル(ReflectanceDistribution)は別の概念として持ったほうがよいか
+  Textureクラスを新しく作るか?
+    getAlbedo
+    normalMap, specularMap, diffuseMap
+  hyranno@ShaderToy から引っ張ってくる
+  normal, metalness, specular, diffuse 等パラメータの揺れ
+    normalの揺れはマイクロファセットの分布関数で既にある程度考慮されている
+  Cell
+    Simplex
+    Bricks
+  Fractional Brownian Motion
+  Stripes
 future:
-  procedural material
-    hyranno@ShaderToy から引っ張ってくる
-    normal, metalness, specular, diffuse 等パラメータの揺れ
-      normalの揺れはマイクロファセットの分布関数で既にある程度考慮されている
-    Fractional Brownian Motion
   Drawable同士のUnion,SmoothUnion
   いろいろ動かす
     時間依存shape, material
@@ -50,33 +57,24 @@ soooooon:
     波のGPUシミュレーション
 
 
-GPUの性能が厳しい
-  Intel UHD Graphics 620
-  Intel Iris Xe Graphics
-    gl driver message (opengl, performance, gl_close_path_nv, high): gpu stall due to readpixels
-  CPU内蔵のグラフィック機能でレイマーチングを回すのがそもそも厳しいか
-  WebGL conformance test
-    https://www.khronos.org/registry/webgl/sdk/tests/webgl-conformance-tests.html?version=2.0.1
+struct TexturePatch {
+  vec3 albedo;
+  float roughness;
+  float specular;
+  vec3 point;
+  vec3 normal;
+};
+ReflectanceDistribution
+  vec3 calcAmbient(in TexturePatch tex, in vec3 intensity, in Ray view);
+  vec3 calcDiffuse(in TexturePatch tex, in Photon photon, in Ray view);
+  vec3 calcSpecular(in TexturePatch tex, in Photon photon, in Ray view);
+Texture
+  TexturePatch getTexturePatch(vec3 point, vec3 normal);
 
-
-InigoQuilez: FBM detail in SDFs
-  ランダムなサイズのsphere?を各座標に生成
-    Sphereの原点はround(直交座標)でない方がよいか(正四面体の座標系など)
-    Sphereの半径が従う確率分布?
-      指数分布
-        Unionのみ/Subtractionのみの場合に有効そう
-      正規分布
-        平均0の正規分布にしてUnionとSubtractionに分けられないか?
-        UniSphere...ru=max(r,0), SubSphere...rs=(max(-r,0))
-  SmoothIntersection(Hollowed(original), spheres) で球の取り出し
-    SmoothBooleanOp そのままではなく手を加えてもよい
-    変位の大きい部分の形状を調整
-  SmoothUnion / SmoothSubtraction で対象と結合
-    変位の小さい部分の形状を調整
-  新たな対象としてループ
-周期的に表面から離れた場所に球が生える
-Subtractionの方はBoundingShapeを付けられる
-
+TexturePatchがReflectanceDistribution固有のものになってしまう
+  Material内部で使う分には問題ないが外部から呼ぶ関数には入れたくない
+  Textureに対応ReflectanceDistributionを示すInterfaceを付けるか
+  Cook-Torranceまでは対応できるしとりあえず固定でええか
 
 
 球状のウェーブレット(のようなもの)
@@ -87,9 +85,16 @@ Subtractionの方はBoundingShapeを付けられる
     円積分の方がいい?
 
 
-shapeFBMのShapesRand
-  距離関数がおかしくなってそう(無限ループバグの元)
 
+リファクタリング
+gl_entityに格納されてるShapeやMaterialの相応しいファイルへの移動
+
+
+
+InigoQuilez: FBM detail in SDFs
+  入れ子
+  shapeFBMのShapesRand
+    距離関数がおかしくなってそう(無限ループバグの元)
 
 findNearestDrawable
 rayCastのl + obj_distance < EPS となるものは無視?
@@ -116,6 +121,13 @@ ray-marching
 
 
 パストレーシング、計算誤差の影響が結構大きい(ray.directionの精度?)
+
+GPUの性能が厳しい
+  Intel UHD Graphics 620
+  Intel Iris Xe Graphics
+  CPU内蔵のグラフィック機能でレイマーチングを回すのがそもそも厳しいか
+  WebGL conformance test
+    https://www.khronos.org/registry/webgl/sdk/tests/webgl-conformance-tests.html?version=2.0.1
 
 
 rgb<->hsv

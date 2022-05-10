@@ -1,10 +1,10 @@
 import * as util from './util';
-import {GlEntity, HasShape, Shape3D, Transform} from './gl_entity';
+import {GlEntity, Transform} from './gl_entity';
 import * as shapes from './shapes';
 import * as rand from './random';
 
 
-export class SpheresRand extends Shape3D {
+export class SpheresRand extends shapes.Shape3D {
   randGen: rand.GlRandom;
   constructor(randGen: rand.GlRandom) {
     super();
@@ -56,12 +56,12 @@ export class SpheresRand extends Shape3D {
 }
 
 
-export class HullSpheres extends Shape3D {
+export class HullSpheres extends shapes.Shape3D {
   hull: shapes.Hollowed;
   spheres: shapes.Transformed;
   smoothness: number;
   weight: number;
-  constructor(original: GlEntity & HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number){
+  constructor(original: GlEntity & shapes.HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number){
     super();
     this.hull = new shapes.Hollowed(original, scale);
     this.spheres = new shapes.Transformed(
@@ -97,11 +97,11 @@ export class HullSpheres extends Shape3D {
   }
 }
 
-export class BlendBrownianMotion extends Shape3D {
+export class BlendBrownianMotion extends shapes.Shape3D {
   isUnion: boolean;
-  original: GlEntity & HasShape;
+  original: GlEntity & shapes.HasShape;
   brownianMotion: HullSpheres;
-  constructor(original: GlEntity & HasShape, isUnion: boolean, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
+  constructor(original: GlEntity & shapes.HasShape, isUnion: boolean, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
     super();
     this.isUnion = isUnion;
     this.original = original;
@@ -125,12 +125,12 @@ export class BlendBrownianMotion extends Shape3D {
 }
 
 export class UnionBrownianMotion extends BlendBrownianMotion {
-  constructor(original: GlEntity & HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
+  constructor(original: GlEntity & shapes.HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
     super(original, true, randGen, scale, smoothness, weight);
   }
 }
 export class SubtractBrownianMotion extends BlendBrownianMotion {
-  constructor(original: GlEntity & HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
+  constructor(original: GlEntity & shapes.HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
     super(original, false, randGen, scale, smoothness, weight);
   }
 }

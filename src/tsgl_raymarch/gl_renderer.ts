@@ -1,5 +1,7 @@
 import {asTemplate} from './util';
-import {Drawable, Light, Camera} from './gl_entity';
+import {Camera} from './cameras';
+import {Drawable} from './drawables';
+import {Light} from './lights';
 
 import {fragShaderTemplate} from './gl_source';
 
