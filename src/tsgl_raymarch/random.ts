@@ -1,3 +1,4 @@
+import * as util from './util';
 import {GlEntity} from './gl_entity';
 
 export function uint16ToFloat01(v: number): number{
@@ -31,12 +32,13 @@ export class PCG16 { //PCG-XSH-RR
     res.value = uint16ToFloat01(res.value);
     return res;
   }
-  static rand_normal(state: number): {value: number, state: number} { // Polar's Method
+  static rand_normal(state: number): {value: number, state: number} { // Box-Muller's Method
     let x = PCG16.rand_uniform(state);
     let y = PCG16.rand_uniform(x.state);
-    let s = (x.value*x.value + y.value*y.value);
-    let r = Math.sqrt(-2*Math.log(s)/s);
-    return {value: x.value*r, state: y.state}; //and y.value*r
+    let xv = util.mix(x.value, 0.5, x.value==0 ?1:0);
+    let yv = util.mix(y.value, 0.5, y.value==0 ?1:0);
+    let r = Math.sqrt(-2*Math.log(xv));
+    return {value: r*Math.cos(2*Math.PI*yv), state: y.state}; //and r*Math.sin(2*Math.PI*yv)
   }
   static rand_exponential(state: number): {value: number, state: number} {
     let average = 1;
@@ -82,9 +84,14 @@ export function hash32(data: number[]): number {
 
 export abstract class GlRandom extends GlEntity {
   abstract rand(state: number): {value: number, state: number};
+  abstract GlFunc_rand(): string;
   override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
       ${super.getGlDeclarations()}
       float rand_${this.id} (inout uint state);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_rand()}
   `;}
 }
 export class Constant extends GlRandom {
@@ -100,8 +107,7 @@ export class Constant extends GlRandom {
     ${super.getGlDeclarations()}
     uniform float value_${this.id};
   `;}
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
+  override GlFunc_rand(): string {return `
     float rand_${this.id} (inout uint state) {
       return value_${this.id};
     }`;
@@ -115,8 +121,7 @@ export class Uniform extends GlRandom {
   override rand(state: number): {value: number, state: number} {
     return PCG16.rand_uniform(state);
   }
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
+  override GlFunc_rand(): string { return `
     float rand_${this.id} (inout uint state) {
       return rand_uniform(state);
     }`;
@@ -126,8 +131,7 @@ export class Normal extends GlRandom {
   override rand(state: number): {value: number, state: number} {
     return PCG16.rand_normal(state);
   }
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
+  override GlFunc_rand(): string { return `
     float rand_${this.id} (inout uint state) {
       return rand_normal(state);
     }`;
@@ -137,10 +141,60 @@ export class Exponential extends GlRandom {
   override rand(state: number): {value: number, state: number} {
     return PCG16.rand_exponential(state);
   }
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
+  override GlFunc_rand(): string { return `
     float rand_${this.id} (inout uint state) {
       return rand_exponential(state);
+    }`;
+  }
+}
+
+
+export abstract class Reduce extends GlRandom {
+  lhs: GlRandom;
+  rhs: GlRandom[];
+  constructor(lhs: GlRandom, rhs: GlRandom[]) {
+    super();
+    this.lhs = lhs;
+    this.rhs = rhs;
+    this.dependentGlEntities.push(lhs);
+    this.dependentGlEntities = this.dependentGlEntities.concat(rhs);
+  }
+}
+export class Add extends Reduce {
+  override rand(state: number): {value: number, state: number} {
+    let res = this.lhs.rand(state);
+    this.rhs.forEach((r) => {
+      let tmp = r.rand(res.state);
+      res = {value: res.value + tmp.value, state: tmp.state};
+    });
+    return res;
+  }
+  override GlFunc_rand(): string { return `
+    float rand_${this.id} (inout uint state) {
+      float res = rand_${this.lhs.id}(state);
+      ${this.rhs.map((r)=>`
+        res += rand_${r.id}(state);
+      `).join("")}
+      return res;
+    }`;
+  }
+}
+export class Mult extends Reduce {
+  override rand(state: number): {value: number, state: number} {
+    let res = this.lhs.rand(state);
+    this.rhs.forEach((r) => {
+      let tmp = r.rand(res.state);
+      res = {value: res.value * tmp.value, state: tmp.state};
+    });
+    return res;
+  }
+  override GlFunc_rand(): string { return `
+    float rand_${this.id} (inout uint state) {
+      float res = rand_${this.lhs.id}(state);
+      ${this.rhs.map((r)=>`
+        res *= rand_${r.id}(state);
+      `).join("")}
+      return res;
     }`;
   }
 }

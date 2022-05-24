@@ -2,6 +2,7 @@ import {Vec3} from './util';
 import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
+import * as fields from '@tsgl/scalar_fields';
 
 export abstract class Drawable extends glEntities.GlEntity implements shapes.HasShape, materials.HasMaterial {
   abstract GlFunc_calcAmbient(): string;
@@ -39,37 +40,34 @@ export class MaterializedShape extends Drawable {
     this.material = material;
     this.dependentGlEntities.push(shape, material);
   }
-  getDistance(point: Vec3): number {
+  override getDistance(point: Vec3): number {
     return this.shape.getDistance(point);
   }
-  getNormal(point: Vec3): Vec3 {
+  override getNormal(point: Vec3): Vec3 {
     return this.shape.getNormal(point);
   }
-  GlFunc_getDistance(): string {
+  override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
       return getDistance_${this.shape.id}(point);
     }`;
   }
-  GlFunc_getNormal(): string {
+  override GlFunc_getNormal(): string {
     return `vec3 getNormal_${this.id} (vec3 point) {
       return getNormal_${this.shape.id}(point);
     }`;
   }
-  GlFunc_calcAmbient(): string {
+  override GlFunc_calcAmbient(): string {
     return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
-      normal = getNormal_${this.shape.id}(point);
       return calcAmbient_${this.material.id}(point, normal, intensity, view);
     }`;
   }
-  GlFunc_calcDiffuse(): string {
+  override GlFunc_calcDiffuse(): string {
     return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      normal = getNormal_${this.shape.id}(point);
       return calcDiffuse_${this.material.id}(point, normal, photon, view);
     }`;
   }
-  GlFunc_calcSpecular(): string {
+  override GlFunc_calcSpecular(): string {
     return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      normal = getNormal_${this.shape.id}(point);
       return calcSpecular_${this.material.id}(point, normal, photon, view);
     }`;
   }
@@ -118,7 +116,7 @@ export class Group extends Drawable {
       return prev_id;
     }`;
   }
-  getDistance(point: Vec3): number {
+  override getDistance(point: Vec3): number {
     return this.findNearest(point).getDistance(point);
   }
   override GlFunc_getDistance(): string {
@@ -128,7 +126,7 @@ export class Group extends Drawable {
       return res;
     }`;
   }
-  getNormal(point: Vec3): Vec3 {
+  override getNormal(point: Vec3): Vec3 {
     return this.findNearest(point).getNormal(point);
   }
   override GlFunc_getNormal(): string {
@@ -160,14 +158,8 @@ export class Group extends Drawable {
   override GlFunc_calcDiffuse(): string {
     return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
-      normal = vec3(0);
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
-      ${this.contents.map((d) => `
-        if (nearest==${d.id}) {
-          normal = getNormal_${d.id}(point);
-        }
-      `).join("")}
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
           res = calcDiffuse_${d.id}(point, normal, photon, view);
@@ -179,16 +171,83 @@ export class Group extends Drawable {
   override GlFunc_calcSpecular(): string {
     return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
-      normal = vec3(0);
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
-        normal += getNormal_${d.id}(point) * mix(0.0,1.0, nearest==${d.id});
-      `).join("")}
-      ${this.contents.map((d) => `
-        res += calcSpecular_${d.id}(point, normal, photon, view) * mix(0.0,1.0, nearest==${d.id});
+        if (nearest==${d.id}) {
+          res = calcSpecular_${d.id}(point, normal, photon, view);
+        }
       `).join("")}
       return res;
+    }`;
+  }
+}
+
+
+export class NormalMap extends Drawable {
+  original: Drawable;
+  quantity: fields.ScalarField;
+  axis: fields.ScalarField;
+  constructor(original: Drawable, quantity: fields.ScalarField, axis: fields.ScalarField){
+    super();
+    this.original = original;
+    this.quantity = quantity;
+    this.axis = axis;
+    this.dependentGlEntities.push(original, quantity, axis);
+  }
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    vec3 mapNormal_${this.id} (vec3 point, vec3 normal);
+  `;}
+  override getGlImplements(): string { return this.isGlImplemented()? `` : `
+    ${super.getGlImplements()}
+    ${this.GlFunc_mapNormal()}
+  `;}
+  override getDistance(point: Vec3): number {
+    return this.original.getDistance(point);
+  }
+  override getNormal(point: Vec3): Vec3 {
+    return this.original.getNormal(point);
+  }
+  override GlFunc_getDistance(): string {
+    return `float getDistance_${this.id} (vec3 point) {
+      return getDistance_${this.original.id}(point);
+    }`;
+  }
+  override GlFunc_getNormal(): string {
+    return `vec3 getNormal_${this.id} (vec3 point) {
+      return getNormal_${this.original.id}(point);
+    }`;
+  }
+  GlFunc_mapNormal(): string {return `
+    vec3 mapNormal_${this.id} (vec3 point, vec3 normal) {
+      float angle = get_${this.quantity.id}(point);
+      vec3 axis = quaternion_rot3(
+        quaternion_fromSrcDest(vec3(0,1,0), normal),
+        quaternion_rot3(
+          quaternion_fromAngleAxis(get_${this.axis.id}(point), vec3(0,1,0)),
+          vec3(1,0,0)
+        )
+      );
+      return quaternion_rot3(
+        quaternion_fromAngleAxis(angle, axis),
+        normal
+      );
+    }
+  `;}
+  override GlFunc_calcAmbient(): string {
+    return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
+      return calcAmbient_${this.original.id}(point, mapNormal_${this.id}(point, normal), intensity, view);
+    }`;
+  }
+  override GlFunc_calcDiffuse(): string {
+    return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+      return calcDiffuse_${this.original.id}(point, mapNormal_${this.id}(point, normal), photon, view);
+    }`;
+  }
+  override GlFunc_calcSpecular(): string {
+    return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+      return calcSpecular_${this.original.id}(point, mapNormal_${this.id}(point, normal), photon, view);
     }`;
   }
 }

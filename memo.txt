@@ -18,17 +18,11 @@ npm run build
 
 TODO
 now: procedural material
-  Textureと反射モデル(ReflectanceDistribution)は別の概念として持ったほうがよいか
-  Textureクラスを新しく作るか?
-    getAlbedo
-    normalMap, specularMap, diffuseMap
-  hyranno@ShaderToy から引っ張ってくる
-  normal, metalness, specular, diffuse 等パラメータの揺れ
-    normalの揺れはマイクロファセットの分布関数で既にある程度考慮されている
-  Cell
+  //hyranno@ShaderToy から引っ張ってくる
+  Fractional Brownian Motion
+  Voronoi
     Simplex
     Bricks
-  Fractional Brownian Motion
   Stripes
 future:
   Drawable同士のUnion,SmoothUnion
@@ -57,38 +51,31 @@ soooooon:
     波のGPUシミュレーション
 
 
-struct TexturePatch {
-  vec3 albedo;
-  float roughness;
-  float specular;
-  vec3 point;
-  vec3 normal;
-};
-ReflectanceDistribution
-  vec3 calcAmbient(in TexturePatch tex, in vec3 intensity, in Ray view);
-  vec3 calcDiffuse(in TexturePatch tex, in Photon photon, in Ray view);
-  vec3 calcSpecular(in TexturePatch tex, in Photon photon, in Ray view);
-Texture
-  TexturePatch getTexturePatch(vec3 point, vec3 normal);
-
-TexturePatchがReflectanceDistribution固有のものになってしまう
-  Material内部で使う分には問題ないが外部から呼ぶ関数には入れたくない
-  Textureに対応ReflectanceDistributionを示すInterfaceを付けるか
-  Cook-Torranceまでは対応できるしとりあえず固定でええか
-
-
-球状のウェーブレット(のようなもの)
-  3次関数v(r)を使って、v(step(r))
-  v(0) = 1, dv_dr(0) = 0
-  v(1) = 0, dv_dr(1) = 0
-  球積分(v(r), 0<=r<=1) = 0
-    円積分の方がいい?
-
-
 
 リファクタリング
-gl_entityに格納されてるShapeやMaterialの相応しいファイルへの移動
+  NormalMapはVec3Fieldを取る?
+  hash32を取るとき、先頭にseedとしてidを含める?
+  Reduceをジェネリクスとかでまとめられないか
+  this.glVarsからuniform宣言とsetGlVarsを作れないか
+  Simplex.neighborsあたりなんかバグありそう
+  Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
 
+
+球状のウェーブレット(のようなもの)fr
+  4次関数v(r)を使って、v(clamp(r, 0.0, 1.0))
+    v : +c4*r**4 +c3*r**3 +c2*r**2 +c1*r +c0 $
+    dv_dr : diff(v,r)$
+    eqn : [
+      ev(v, r=0) = 1,
+      ev(v, r=1) = 0,
+      ev(dv_dr, r=0) = 0,
+      ev(dv_dr, r=1) = 0,
+      integrate( integrate(v*r, r,0,1), a,0,2*%pi) = 0 /*circular*/
+      /*integrate( integrate( integrate(v*sin(b)*r**2, r,0,1), a,0,2*%pi), b,0,%pi) = 0*/ /*spherical*/
+    ]$
+    solve(eqn, [c4, c3, c2, c1, c0]);
+    /* circular : [c4=−9, c3=20, c2=−12, c1=0, c0=1] */
+    /* spherical : [c4=−7, c3=16, c2=−10, c1=0, c0=1] */
 
 
 InigoQuilez: FBM detail in SDFs
@@ -130,7 +117,6 @@ GPUの性能が厳しい
     https://www.khronos.org/registry/webgl/sdk/tests/webgl-conformance-tests.html?version=2.0.1
 
 
-rgb<->hsv
 
 右手系の座標を扱う: cross(x,y) = z
 

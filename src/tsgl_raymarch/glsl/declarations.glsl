@@ -34,6 +34,7 @@ struct TexturePatch {
 /*util.glsl*/
 vec4 quaternion_fromDCM(mat3 dcm);
 vec4 quaternion_fromAngleAxis(float angle, vec3 axis);
+vec4 quaternion_fromSrcDest(vec3 src, vec3 dest);
 vec4 quaternion_inverse(vec4 q);
 vec4 quaternion_mul(vec4 q0, vec4 q1);
 vec3 quaternion_rot3(vec4 q, vec3 v);
@@ -46,6 +47,9 @@ float smoothmin(float v1, float v2, float smoothness);
 float smoothmax(float v1, float v2, float smoothness);
 float smoothclamp(float v, float bottom, float top, float smoothness);
 
+vec3 rgb2hsv(vec3 rgb);
+vec3 hsv2rgb(vec3 hsv);
+
 /*random*/
 uint rotr16(uint x, uint shift);
 void PCG16_init(uint seed, out uint state);
@@ -54,13 +58,16 @@ uint hash32(uint data, uint seed);
 ${(new Array(5).fill(0)).map((_, maxIndex) => `
   uint hash32(uint data[${maxIndex+1}]);
 `).join("")}
+uint hash32(vec2 data);
+uint hash32(vec3 data);
+uint hash32(vec4 data);
 
 /*coord*/
-const mat3 Simplex3Basis = transpose(mat3(
-  cos(radians(180.0)/6.0), +sin(radians(180.0)/6.0), 0,
-  cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0,
-  sqrt(1.0/3.0), 0, sqrt(2.0/3.0)
-));
+const mat3 Simplex3Basis = mat3(
+  vec3(cos(radians(180.0)/6.0), +sin(radians(180.0)/6.0), 0),
+  vec3(cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0),
+  vec3(sqrt(1.0/3.0), 0, sqrt(2.0/3.0))
+);
 const mat3 InvSimplex3Basis = inverse(Simplex3Basis);
 const vec3 Simplex3Center = (
   +vec3(cos(radians(180.0)/6.0), +sin(radians(180.0)/6.0), 0)
@@ -70,6 +77,8 @@ const vec3 Simplex3Center = (
 vec3 coord_OrthogonalToSimplex3(vec3 p);
 vec3 coord_Simplex3ToOrthogonal(vec3 p);
 vec3[8] coord_rounds(vec3 point);
+vec3 simplex3_round(vec3 point);
+float simplex3_length(vec3 vec);
 vec3[13] simplex3_neighbors(vec3 point);
 
 /*camera*/

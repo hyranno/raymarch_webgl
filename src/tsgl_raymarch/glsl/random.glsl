@@ -38,17 +38,37 @@ ${(new Array(5).fill(0)).map((_, maxIndex) => `
     return seed;
   }
 `).join("")}
-
+/*
+${[2,3,4].map((i) => `
+  uint hash32(vec${i} data) {
+    uvec${i} v = floatBitsToUint(data);
+    return hash32(uint[]( ${(new Array(i)).map((_, j) => `v[${j}]`).join(",")} ));
+  }
+`).join("")}
+*/
+uint hash32(vec2 data) {
+  uvec2 v = floatBitsToUint(data);
+  return hash32(uint[](v[0], v[1]));
+}
+uint hash32(vec3 data) {
+  uvec3 v = floatBitsToUint(data);
+  return hash32(uint[](v[0], v[1], v[2]));
+}
+uint hash32(vec4 data) {
+  uvec4 v = floatBitsToUint(data);
+  return hash32(uint[](v[0], v[1], v[2], v[3]));
+}
 
 float rand_uniform (inout uint state) {
   return uint16ToFloat01( PCG16_rand(state) );
 }
-float rand_normal (inout uint state) { // Polar's Method
+float rand_normal (inout uint state) { // Box-Muller's Method
   float x = rand_uniform(state);
   float y = rand_uniform(state);
-  float s = (x*x+y*y);
-  float r = sqrt(-2.0*log(s)/s);
-  return x*r; //and y*r
+  float xv = mix(x, 0.5, x==0.0);
+  float yv = mix(y, 0.5, y==0.0);
+  float r = sqrt(-2.0*log(xv));
+  return r*cos(radians(360.0)*y); //and r*sin(radians(360.0)*y)
 }
 float rand_exponential (inout uint state) { // inversion method
   return -log(1.0-rand_uniform(state));

@@ -42,7 +42,7 @@ export class Vec2 {
     return Vec2.fromClosure((i)=>f(this[i]));
   }
   rounds(): Vec2[] {
-    let res = new Array<Vec2>(1<<2);
+    let res = (new Array<Vec2>(1<<2)).fill(new Vec2(0,0));
     return res.map((_,i) =>
       new Vec2(
         Math.floor(this[0])+((i>>0)&1),
@@ -99,7 +99,7 @@ export class Vec3 {
     return new Vec3(f(this[0]), f(this[1]), f(this[2]));
   }
   rounds(): Vec3[] {
-    let res = new Array<Vec3>(1<<3);
+    let res = (new Array<Vec3>(1<<3)).fill(new Vec3(0,0,0));
     return res.map((_,i) =>
       new Vec3(
         Math.floor(this[0])+((i>>0)&1),
@@ -123,35 +123,48 @@ export class Quaternion {
   static fromNumbers(x: number, y: number, z: number, w: number): Quaternion {
     return new Quaternion(new Vec3(x,y,z), w);
   }
-  static fromDCM(dcm: Array<Array<number>>): Quaternion {
-    const w  = Math.sqrt((+dcm[0][0] +dcm[1][1] +dcm[2][2] + 1)/4);
-    const tx = Math.sqrt((+dcm[0][0] -dcm[1][1] -dcm[2][2] + 1)/4);
-    const ty = Math.sqrt((-dcm[0][0] +dcm[1][1] -dcm[2][2] + 1)/4);
-    const tz = Math.sqrt((-dcm[0][0] -dcm[1][1] +dcm[2][2] + 1)/4);
-    const x = tx * Math.sign(dcm[1][2] - dcm[2][1]);
-    const y = ty * Math.sign(dcm[2][0] - dcm[0][2]);
-    const z = tz * Math.sign(dcm[0][1] - dcm[1][0]);
-    return new Quaternion(new Vec3(x,y,z), w);
+  static fromDCM(dcm: Mat3): Quaternion {
+    let res = [0,0,0,0];
+    const a4v = [
+      2 *Math.sqrt(+dcm[0][0] -dcm[1][1] -dcm[2][2] + 1),
+      2 *Math.sqrt(-dcm[0][0] +dcm[1][1] -dcm[2][2] + 1),
+      2 *Math.sqrt(-dcm[0][0] -dcm[1][1] +dcm[2][2] + 1),
+      2 *Math.sqrt(+dcm[0][0] +dcm[1][1] +dcm[2][2] + 1)
+    ];
+    let imax = 0;
+    for (let i=1; i<4; i++) {
+      imax = mix(imax, i, a4v[imax] < a4v[i] ?1:0);
+    }
+    let vs = [
+      [0, dcm[0][1]+dcm[1][0], dcm[2][0]+dcm[0][2], dcm[1][2]-dcm[2][1]],
+      [dcm[0][1]+dcm[1][0], 0, dcm[1][2]+dcm[2][1], dcm[2][0]-dcm[0][2]],
+      [dcm[2][0]+dcm[0][2], dcm[1][2]+dcm[2][1], 0, dcm[0][1]-dcm[1][0]],
+      [dcm[1][2]-dcm[2][1], dcm[2][0]-dcm[0][2], dcm[0][1]-dcm[1][0], 0]
+    ];
+    for (let i=0; i<4; i++) {
+      res[i] = mix(vs[imax][i]/a4v[imax], a4v[imax]/4.0, i==imax? 1:0);
+    }
+    return Quaternion.fromNumbers(res[0], res[1], res[2], res[3]);
   }
+/*  static fromDCM(dcm: Mat3): Quaternion {
+    const w  = Math.sqrt(+dcm[0][0] +dcm[1][1] +dcm[2][2] + 1) / 2;
+    const ax = Math.sqrt(+dcm[0][0] -dcm[1][1] -dcm[2][2] + 1) / 2;
+    const ay = Math.sqrt(-dcm[0][0] +dcm[1][1] -dcm[2][2] + 1) / 2;
+    const az = Math.sqrt(-dcm[0][0] -dcm[1][1] +dcm[2][2] + 1) / 2;
+    const x = ax * (dcm[1][2] < dcm[2][1] ?-1:1); //mix(+1,-1, dcm[1][2] < dcm[2][1] ?1:0);
+    const y = ay * (dcm[2][0] < dcm[0][2] ?-1:1); //mix(+1,-1, dcm[2][0] < dcm[0][2] ?1:0);
+    const z = az * (dcm[0][1] < dcm[1][0] ?-1:1); //mix(+1,-1, dcm[0][1] < dcm[1][0] ?1:0);
+    return new Quaternion(new Vec3(x,y,z), w);
+  }*/
   static fromXY(x: Vec3, y: Vec3): Quaternion {
     const z = x.cross(y);
-    const x_ = x.normalize();
-    const y_ = y.normalize();
-    const z_ = z.normalize();
-    const m = [
-      [x_[0], y_[0], z_[0]],
-      [x_[1], y_[1], z_[1]],
-      [x_[2], y_[2], z_[2]]
-    ];
-    const determinant =
-      +m[0][0]*m[1][1]*m[2][2]
-      -m[0][0]*m[1][2]*m[2][1]
-      +m[0][1]*m[1][2]*m[2][0]
-      -m[0][1]*m[1][0]*m[2][2]
-      +m[0][2]*m[1][0]*m[2][1]
-      -m[0][2]*m[1][1]*m[2][0]
-    ;
-    return Quaternion.fromDCM(m.map((v)=>v.map((e)=>e/determinant)));
+    const m = Mat3.fromCols([x.normalize(), y.normalize(), z.normalize()]);
+    return Quaternion.fromDCM(m); //m.mulScalar(1/m.determinant())
+  }
+  static fromXZ(x: Vec3, z: Vec3): Quaternion {
+    const y = x.cross(z).negative();
+    const m = Mat3.fromCols([x.normalize(), y.normalize(), z.normalize()]);
+    return Quaternion.fromDCM(m);
   }
   static fromAngleAxis(rad: number, axis: Vec3): Quaternion {
     const a = axis.normalize();
@@ -198,6 +211,9 @@ export class Mat2 {
       }
     }
     return res;
+  }
+  static fromCols(cols: [Vec2, Vec2]): Mat2 {
+    return Mat2.fromClosure((i,j) => cols[j][i]);
   }
   clone(): Mat2 {
     return Mat2.fromNumbers([this[0],this[1]]);
@@ -264,6 +280,9 @@ export class Mat3 {
     }
     return res;
   }
+  static fromCols(cols: [Vec3, Vec3, Vec3]): Mat3 {
+    return Mat3.fromClosure((i,j) => cols[j][i]);
+  }
   clone(): Mat3 {
     return Mat3.fromNumbers([this[0],this[1],this[3]]);
   }
@@ -317,11 +336,11 @@ export class Mat3 {
 
 
 export class Simplex3Coord extends Vec3 {
-  static basis = Mat3.fromNumbers([
-    [+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0],
-    [+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0],
-    [Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)]
-  ]).transpose();
+  static basis = Mat3.fromCols([
+    new Vec3(+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0),
+    new Vec3(+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0),
+    new Vec3(Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0))
+  ]);
   static invBasis = Simplex3Coord.basis.inverse();
   static Simplex3Center = (
     Simplex3Coord.basis.getCol(0)
@@ -337,8 +356,18 @@ export class Simplex3Coord extends Vec3 {
   toOrthogonal(): Vec3 {
     return Simplex3Coord.basis.mul3x1(this);
   }
+  override len(): number {
+    return this.toOrthogonal().len();
+  }
+  round(): Simplex3Coord {
+    let r = this.rounds().map((e) => Simplex3Coord.asSimplex3Coord(e));
+    let n = r.reduce((prev, current) => (
+      current.toOrthogonal().add(this.toOrthogonal().negative()).len() < prev.toOrthogonal().add(this.toOrthogonal().negative()).len()
+    ) ? current : prev);
+    return n;
+  }
   neighbors(): Simplex3Coord[] {
-    let center = this.map((v) => Math.round(v));
+    let center = this.round();
     return [
       center,
       center.add( new Vec3(+1, 0, 0) ),
@@ -357,6 +386,38 @@ export class Simplex3Coord extends Vec3 {
   }
 }
 
+
+export class ColorSpace {
+  static RGB2HSV(rgb: Vec3): Vec3 {
+    let maxval = Math.max(rgb[0], rgb[1], rgb[2]);
+    let minval = Math.min(rgb[0], rgb[1], rgb[2]);
+    let maxIndex = 0;
+    for (let i=0; i<3; i++) {
+      maxIndex = mix(maxIndex, i, rgb[maxIndex] < rgb[i] ?1:0);
+    }
+    let Hs = (maxval-minval == 0) ? 0 : 1/6 *((rgb[(maxIndex+1)%3] - rgb[(maxIndex+2)%3])/(maxval-minval) +2*maxIndex);
+    let H = ((Hs % 1) + 1) % 1;
+    let S = (maxval == 0) ? 0 : (maxval-minval)/maxval;
+    let V = maxval;
+    return new Vec3(H,S,V);
+  }
+  static HSV2RGB(hsv: Vec3): Vec3 {
+    let maxval = hsv[2];
+    let minval = maxval*(1-hsv[1]);
+    let Hn = hsv[0] / (1/6);
+    let Hi = Math.floor(Hn);
+    //let maxIndex = Math.round(Hn/2) % 3;
+    let vs = [
+      new Vec3(maxval, (Hn)*(maxval-minval)+minval, minval),
+      new Vec3(-(Hn-2)*(maxval-minval)+minval, maxval, minval),
+      new Vec3(minval, maxval, +(Hn-2)*(maxval-minval)+minval),
+      new Vec3(minval, -(Hn-4)*(maxval-minval)+minval, maxval),
+      new Vec3(+(Hn-4)*(maxval-minval)+minval, minval, maxval),
+      new Vec3(maxval, minval, -(Hn-6)*(maxval-minval)+minval),
+    ];
+    return vs[Hi];
+  }
+}
 
 
 export class Range implements IterableIterator<number> {
@@ -385,7 +446,7 @@ export function clamp(v:number, bottom: number, top: number): number {
   return Math.max(Math.min(v, top), bottom);
 }
 export function mix(v1:number, v2: number, t: number): number {
-  return (t-1)*v1 + t*v2;
+  return (1-t)*v1 + t*v2;
 }
 
 export function blend(v1: number, v2: number, isMin: boolean, smoothness: number, weight: number): number {
