@@ -37,6 +37,11 @@ export abstract class GlEntity {
   setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
     this.dependentGlEntities.forEach((entity) => entity.setGlVars(gl, program));
   }
+  static setGlUniformInt(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, ...values: number[]): void {
+    let location: WebGLUniformLocation = gl.getUniformLocation(program, name);
+    let f = [gl.uniform1iv, gl.uniform2iv, gl.uniform3iv, gl.uniform4iv, ];
+    f[values.length-1].call(gl, location, values);
+  }
   static setGlUniformFloat(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, ...values: number[]): void {
     let location: WebGLUniformLocation = gl.getUniformLocation(program, name);
     let f = [gl.uniform1fv, gl.uniform2fv, gl.uniform3fv, gl.uniform4fv, ];

@@ -19,7 +19,6 @@ npm run build
 TODO
 now: procedural material
   //hyranno@ShaderToy から引っ張ってくる
-  Fractional Brownian Motion
   Voronoi
     Simplex
     Bricks
@@ -53,10 +52,14 @@ soooooon:
 
 
 リファクタリング
-  NormalMapはVec3Fieldを取る?
+  this.glUniformVarsからuniform宣言とsetGlVarsを作れないか
+  ScalarField, Vec3Field を Field<T> にできないか?
+    TypeScript側の型 -> Gl側の型名 にするテーブルがあると便利そう
   hash32を取るとき、先頭にseedとしてidを含める?
+  NormalMapはVec3Fieldを取る?
+    何かしら改善が必要かも
+    SDFへの変更が重過ぎなければNormalMap自体使わんでいいって話ではあるが
   Reduceをジェネリクスとかでまとめられないか
-  this.glVarsからuniform宣言とsetGlVarsを作れないか
   Simplex.neighborsあたりなんかバグありそう
   Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
 

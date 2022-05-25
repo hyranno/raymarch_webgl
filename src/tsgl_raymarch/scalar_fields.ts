@@ -1,3 +1,4 @@
+import * as util from './util';
 import {GlRandom} from './random';
 import {GlEntity, Transform} from './gl_entity';
 
@@ -148,4 +149,40 @@ export class SimplexRotationalInterpolation extends ScalarField {
   }`;}
 }
 
-// export class FractionalBrownianMotion extends ScalarField {}
+export class FractionalBrownianMotion extends ScalarField {
+  gain: number;
+  depth: number;
+  offset: util.Vec3;
+  layer: ScalarField;
+  constructor (gain: number, depth: number, offset: util.Vec3, layer: ScalarField) {
+    super();
+    this.gain = gain;
+    this.depth = depth;
+    this.layer = layer;
+    this.offset = offset;
+    this.dependentGlEntities.push(layer);
+  }
+  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+    float res = 0.0;
+    float a = 1.0;
+    vec3 p = point;
+    for (int i=0; i < depth_${this.id}; i++) {
+      res += a * get_${this.layer.id}(p);
+      a *= gain_${this.id};
+      p = 2.0*p + offset_${this.id};
+    }
+    return res;
+  }`;}
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    uniform float gain_${this.id};
+    uniform int depth_${this.id};
+    uniform vec3 offset_${this.id};
+  `;}
+  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
+    super.setGlVars(gl, program);
+    GlEntity.setGlUniformFloat(gl, program, `gain_${this.id}`, this.gain);
+    GlEntity.setGlUniformInt(gl, program, `depth_${this.id}`, this.depth);
+    GlEntity.setGlUniformVec3(gl, program, `offset_${this.id}`, this.offset);
+  }
+}
