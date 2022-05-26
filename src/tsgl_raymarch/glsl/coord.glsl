@@ -18,6 +18,13 @@ Ray coord_inverse(in Transform t, in Ray ray) {
   );
 }
 
+vec3 coord_OrthogonalToPolar(vec3 p){
+  return vec3(length(p), atan(p.z, p.x), asin(normalize(p).y));
+}
+vec3 coord_PolarToOrthogonal(vec3 p){
+  return p.x * vec3(cos(p.z)*cos(p.y), sin(p.z), cos(p.z)*sin(p.y));
+}
+
 vec3 coord_OrthogonalToSimplex3(vec3 p){ return InvSimplex3Basis*p; }
 vec3 coord_Simplex3ToOrthogonal(vec3 p){ return Simplex3Basis*p; }
 

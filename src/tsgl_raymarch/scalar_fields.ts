@@ -1,6 +1,7 @@
 import * as util from './util';
 import {GlRandom} from './random';
 import {GlEntity, Transform} from './gl_entity';
+import * as v3fields from '@tsgl/vec3_fields';
 
 export abstract class ScalarField extends GlEntity {
   abstract GlFunc_get(): string;
@@ -186,3 +187,88 @@ export class FractionalBrownianMotion extends ScalarField {
     GlEntity.setGlUniformVec3(gl, program, `offset_${this.id}`, this.offset);
   }
 }
+
+
+export class VoronoiEdgeSimplex extends ScalarField {
+  centerDelta: v3fields.Vec3Field;
+  constructor(centerDelta: v3fields.Vec3Field) {
+    super();
+    this.centerDelta = centerDelta;
+    this.dependentGlEntities.push(centerDelta);
+  }
+  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+    vec3[13] cells = simplex3_neighbors( coord_OrthogonalToSimplex3(point) );
+    float[13] distances;
+    for (int i=0; i < cells.length(); i++) {
+      vec3 planeCell = coord_Simplex3ToOrthogonal(cells[i]);
+      vec3 cell = planeCell + get_${this.centerDelta.id}(planeCell);
+      distances[i] = length(cell -point);
+    }
+    int firstMinIndex = 0;
+    int secondMinIndex = 1;
+    swap(firstMinIndex, secondMinIndex, distances[secondMinIndex] < distances[firstMinIndex]);
+    for (int i=1; i < distances.length(); i++) {
+      int j = i;
+      swap(firstMinIndex, j, distances[j] < distances[firstMinIndex]);
+      swap(secondMinIndex, j, distances[j] < distances[secondMinIndex]);
+    }
+    return distances[secondMinIndex] - distances[firstMinIndex];
+  }`;}
+}
+
+export class VoronoiEdgeOrthogonal extends ScalarField {
+  centerDelta: v3fields.Vec3Field;
+  constructor(centerDelta: v3fields.Vec3Field) {
+    super();
+    this.centerDelta = centerDelta;
+    this.dependentGlEntities.push(centerDelta);
+  }
+  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+    vec3[8] cells = coord_rounds(point);
+    float[8] distances;
+    int minIndex = 0;
+    for (int i=0; i < cells.length(); i++) {
+      vec3 planeCell = cells[i];
+      vec3 cell = planeCell + get_${this.centerDelta.id}(planeCell);
+      distances[i] = length(cell -point);
+    }
+    int firstMinIndex = 0;
+    int secondMinIndex = 1;
+    swap(firstMinIndex, secondMinIndex, distances[secondMinIndex] < distances[firstMinIndex]);
+    for (int i=2; i < distances.length(); i++) {
+      int j = i;
+      swap(firstMinIndex, j, distances[j] < distances[firstMinIndex]);
+      swap(secondMinIndex, j, distances[j] < distances[secondMinIndex]);
+    }
+    return distances[secondMinIndex] - distances[firstMinIndex];
+  }`;}
+}
+
+export class SmoothClamp extends ScalarField {
+  original: ScalarField;
+  bottom: number;
+  top: number;
+  smoothness: number;
+  constructor(original: ScalarField, bottom: number, top: number, smoothness: number) {
+    super();
+    this.original = original;
+    this.bottom = bottom;
+    this.top = top;
+    this.smoothness = smoothness;
+    this.dependentGlEntities.push(original);
+  }
+  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+    return smoothclamp(get_${this.original.id}(point), bottom_${this.id}, top_${this.id}, smoothness_${this.id});
+  }`;}
+  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
+    ${super.getGlDeclarations()}
+    uniform float bottom_${this.id};
+    uniform float top_${this.id};
+    uniform float smoothness_${this.id};
+  `;}
+  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
+    super.setGlVars(gl, program);
+    GlEntity.setGlUniformFloat(gl, program, `bottom_${this.id}`, this.bottom);
+    GlEntity.setGlUniformFloat(gl, program, `top_${this.id}`, this.top);
+    GlEntity.setGlUniformFloat(gl, program, `smoothness_${this.id}`, this.smoothness);
+  }}

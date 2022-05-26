@@ -41,6 +41,10 @@ vec3 quaternion_rot3(vec4 q, vec3 v);
 mat3 dcm_fromXY(vec3 x, vec3 y);
 
 int mix(int a, int b, bool cond);
+void swap(inout float v1, inout float v2);
+void swap(inout float v1, inout float v2, bool cond);
+void swap(inout int v1, inout int v2);
+void swap(inout int v1, inout int v2, bool cond);
 
 float blend(float v1, float v2, bool isMin, float smoothness, float weight);
 float smoothmin(float v1, float v2, float smoothness);
@@ -74,6 +78,8 @@ const vec3 Simplex3Center = (
   +vec3(cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0)
   +vec3(sqrt(1.0/3.0), 0, sqrt(2.0/3.0))
 ) / 4.0;
+vec3 coord_OrthogonalToPolar(vec3 p);
+vec3 coord_PolarToOrthogonal(vec3 p);
 vec3 coord_OrthogonalToSimplex3(vec3 p);
 vec3 coord_Simplex3ToOrthogonal(vec3 p);
 vec3[8] coord_rounds(vec3 point);

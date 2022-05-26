@@ -18,13 +18,14 @@ npm run build
 
 TODO
 now: procedural material
-  //hyranno@ShaderToy から引っ張ってくる
-  Voronoi
-    Simplex
-    Bricks
-  Stripes
+  BumpMap
+    ScalarFieldを接平面で断つ
 future:
   Drawable同士のUnion,SmoothUnion
+  Warp
+  Voronoi
+    座標変換(Warp)になる
+  橋
   いろいろ動かす
     時間依存shape, material
       時間依存のパラメータを計算後にuniformとして渡す方がいいか
@@ -33,9 +34,9 @@ soooooon:
   jest-webgl-canvas-mock
   曲率近似AmbientSelfOcclusion
   曲率依存の汚れマテリアル
-  physics based rendering (material)
   L-System?
     TypeScript側で再帰し、GLSL側には単にUnionなどとして渡す?
+  physics based rendering (material)
   面光源
     photon.ray.start が random_uniform に従う?
   glslify-loader
@@ -50,18 +51,46 @@ soooooon:
     波のGPUシミュレーション
 
 
+クロージャが渡せない場合のソート
+  evaluate(targets[index]) = value とする
+  ソート関数に渡す
+    value配列、targets配列を渡す
+    index配列を作る
+    value配列で比較し、index配列とvalue配列を並べ替える
+    targets配列をindex配列に従い並べ替える
+
+可変長配列が使えない場合のソート
+  最大長のソートを用意する
+  最大長配列にコピーして部分的にソート
+
+
 
 リファクタリング
   this.glUniformVarsからuniform宣言とsetGlVarsを作れないか
+    変数への参照が取れないので変数一式をオブジェクトにまとめる必要がある
+    interface hasGlType
+      getGlTypeString()
+    GlInteger, GlFloat, GlBool
+    GlVec3 extends Vec3
+  GlClosure<A,R> extends GlEntity
+    <A> -> <R>
   ScalarField, Vec3Field を Field<T> にできないか?
-    TypeScript側の型 -> Gl側の型名 にするテーブルがあると便利そう
   hash32を取るとき、先頭にseedとしてidを含める?
   NormalMapはVec3Fieldを取る?
     何かしら改善が必要かも
     SDFへの変更が重過ぎなければNormalMap自体使わんでいいって話ではあるが
   Reduceをジェネリクスとかでまとめられないか
-  Simplex.neighborsあたりなんかバグありそう
+  Coordination
+    Polar
+      radius, yaw, pitch
+    Simplex
+      x, y, z
   Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
+  Simplex.neighborsあたりなんかバグありそう
+
+マクロ vs TypeScript
+  配列の長さごとに宣言/定義してるやつをマクロにする?
+  ジェネリクス的なやつも型名を取るマクロで?
 
 
 球状のウェーブレット(のようなもの)fr

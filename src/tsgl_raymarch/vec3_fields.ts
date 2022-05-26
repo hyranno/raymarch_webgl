@@ -30,6 +30,22 @@ export class FromXYZ extends Vec3Field {
   }`;}
 }
 
+export class FromPolar extends Vec3Field {
+  radius: fields.ScalarField;
+  yaw: fields.ScalarField;
+  pitch: fields.ScalarField;
+  constructor(radius: fields.ScalarField, yaw: fields.ScalarField, pitch: fields.ScalarField) {
+    super();
+    this.radius = radius;
+    this.yaw = yaw;
+    this.pitch = pitch;
+    this.dependentGlEntities.push(radius, yaw, pitch);
+  }
+  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+    return coord_PolarToOrthogonal(vec3(get_${this.radius.id}(point), get_${this.yaw.id}(point), get_${this.pitch.id}(point)));
+  }`;}
+}
+
 export class FromHSV extends Vec3Field {
   h: fields.ScalarField;
   s: fields.ScalarField;
