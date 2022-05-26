@@ -18,6 +18,7 @@ npm run build
 
 TODO
 now: procedural material
+  Quaternion.fromSrcDestがSrc==Destの時におかしくならんか?
   BumpMap
     ScalarFieldを接平面で断つ
 future:

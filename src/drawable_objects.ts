@@ -197,10 +197,10 @@ export class RotatingRoundedCube extends drawables.Transformed {
 
 class SinX extends fields.ScalarField {
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
-    return sin(5.0*point.x);
+    return 0.01*sin(5.0*point.x);
   }`;}
 }
-export class SwingBox extends drawables.MaterializedShape {
+export class SwingBox extends drawables.BumpMap {
   constructor(t: TimeTicks) {
     let shape = new shapes.Transformed(
       new shapes.Box(new util.Vec3(1,1,0.01)),
@@ -214,7 +214,20 @@ export class SwingBox extends drawables.MaterializedShape {
       new TestTexture2(),
       new reflectances.Phong()
     );
-    super(shape, material);
+    let d = new drawables.MaterializedShape(shape, material);
+    let bump = new fields.Mult(
+      new fields.SmoothClamp(
+        new fields.Add(
+          new fields.VoronoiEdgeSimplex(new v3fields.FromPolar(
+            new fields.Random(new rand.Constant(0.1)),
+            new fields.Random(new rand.Mult(new rand.Uniform(), [new rand.Constant(2*Math.PI)])),
+            new fields.Random(new rand.Mult(new rand.Add(new rand.Uniform(), [new rand.Constant(-0.5)]), [new rand.Constant(2*Math.PI)])),
+          )), [new fields.Constant(-0.1)]
+        ),
+        -0.5, 0, 0.2
+      ), [new fields.Constant(0.05)]
+    );
+    super(d, bump);
     t.addEventListener(()=>{
       shape.transform.translate = new util.Vec3(0,0, 2*Math.sin(Date.now()/1000/2));
     });

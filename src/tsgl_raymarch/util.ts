@@ -172,9 +172,9 @@ export class Quaternion {
   }
   static fromSrcDest(src: Vec3, dest: Vec3): Quaternion {
     const cross = src.cross(dest);
-    const axis = cross.normalize();
     const sin = cross.len();
     const cos = src.dot(dest);
+    const axis = (sin==0)? new Vec3(1,0,0): cross.normalize();
     return Quaternion.fromAngleAxis(Math.atan2(sin, cos), axis);
   }
   clone(): Quaternion {

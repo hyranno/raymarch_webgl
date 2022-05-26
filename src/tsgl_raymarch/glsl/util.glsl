@@ -43,10 +43,11 @@ vec4 quaternion_fromAngleAxis(float angle, vec3 axis) {
   return normalize(vec4(x,y,z,w));
 }
 vec4 quaternion_fromSrcDest(vec3 src, vec3 dest) {
-  vec3 c = cross(src, dest);
-  vec3 axis = normalize(c);
-  float angle = atan(length(c), dot(src, dest));
-  return quaternion_fromAngleAxis( angle, axis );
+  vec3 cr = cross(src, dest);
+  float si = length(cr);
+  float co = dot(src, dest);
+  vec3 axis = (si==0.0)? vec3(1,0,0) : normalize(cr);
+  return quaternion_fromAngleAxis( atan(si,co), axis );
 }
 vec4 quaternion_inverse(vec4 q) {
   return vec4(-q.xyz, q.w);
