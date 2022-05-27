@@ -17,10 +17,7 @@ npm run build
 
 
 TODO
-now: procedural material
-  Quaternion.fromSrcDestがSrc==Destの時におかしくならんか?
-  BumpMap
-    ScalarFieldを接平面で断つ
+now: リファクタリング
 future:
   Drawable同士のUnion,SmoothUnion
   Warp
@@ -68,15 +65,11 @@ soooooon:
 
 リファクタリング
   this.glUniformVarsからuniform宣言とsetGlVarsを作れないか
-    変数への参照が取れないので変数一式をオブジェクトにまとめる必要がある
     interface hasGlType
-      getGlTypeString()
-    GlInteger, GlFloat, GlBool
-    GlVec3 extends Vec3
   GlClosure<A,R> extends GlEntity
     <A> -> <R>
-  ScalarField, Vec3Field を Field<T> にできないか?
-  hash32を取るとき、先頭にseedとしてidを含める?
+  ScalarField, Vec3Field = GlClosure<GlFloat,GlFloat>, GlClosure<GlVec3,GlVec3> ?
+  hash32を取るとき、saltを与える?
   NormalMapはVec3Fieldを取る?
     何かしら改善が必要かも
     SDFへの変更が重過ぎなければNormalMap自体使わんでいいって話ではあるが

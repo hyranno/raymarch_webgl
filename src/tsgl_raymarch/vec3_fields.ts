@@ -1,5 +1,6 @@
 import * as util from './util';
 import {GlEntity, Transform} from './gl_entity';
+import {GlInt, GlFloat, GlVec3} from './gl_types';
 import * as fields from './scalar_fields';
 
 export abstract class Vec3Field extends GlEntity {
@@ -85,17 +86,22 @@ export class SimplexInterpolation extends Vec3Field {
 }
 
 export class FractionalBrownianMotion extends Vec3Field {
-  gain: number;
-  depth: number;
-  offset: util.Vec3;
+  gain: GlFloat;
+  depth: GlInt;
+  offset: GlVec3;
   layer: Vec3Field;
   constructor (gain: number, depth: number, offset: util.Vec3, layer: Vec3Field) {
     super();
-    this.gain = gain;
-    this.depth = depth;
-    this.offset = offset;
+    this.gain = new GlFloat(gain);
+    this.depth = new GlInt(depth);
+    this.offset = new GlVec3(offset);
     this.layer = layer;
     this.dependentGlEntities.push(layer);
+    this.glUniformVars.push(
+      {name: "gain", value: this.gain},
+      {name: "depth", value: this.depth},
+      {name: "offset", value: this.offset},
+    );
   }
   override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
     vec3 res = vec3(0);
@@ -108,16 +114,4 @@ export class FractionalBrownianMotion extends Vec3Field {
     }
     return res;
   }`;}
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float gain_${this.id};
-    uniform int depth_${this.id};
-    uniform vec3 offset_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `gain_${this.id}`, this.gain);
-    GlEntity.setGlUniformInt(gl, program, `depth_${this.id}`, this.depth);
-    GlEntity.setGlUniformVec3(gl, program, `offset_${this.id}`, this.offset);
-  }
 }

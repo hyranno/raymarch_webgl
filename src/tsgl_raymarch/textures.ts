@@ -1,5 +1,6 @@
 import {Vec3} from './util';
 import {GlEntity} from './gl_entity';
+import {GlFloat, GlVec3} from './gl_types';
 import * as fields from './scalar_fields';
 import * as v3fields from './vec3_fields';
 
@@ -17,14 +18,19 @@ export abstract class Texture extends GlEntity {
 
 
 export class Constant extends Texture {
-  albedo: Vec3;
-  roughness: number;
-  specular: number;
+  albedo: GlVec3;
+  roughness: GlFloat;
+  specular: GlFloat;
   constructor(albedo: Vec3, roughness: number, specular: number) {
     super();
-    this.albedo = albedo;
-    this.roughness = roughness;
-    this.specular = specular;
+    this.albedo = new GlVec3(albedo);
+    this.roughness = new GlFloat(roughness);
+    this.specular = new GlFloat(specular);
+    this.glUniformVars.push(
+      {name:"albedo", value:this.albedo},
+      {name:"roughness", value:this.roughness},
+      {name:"specular", value:this.specular},
+    );
   }
   override GlFunc_getTexturePatch(): string {return `
     TexturePatch getTexturePatch_${this.id}(vec3 point, vec3 normal) {
@@ -34,18 +40,6 @@ export class Constant extends Texture {
       );
     }
   `;}
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform vec3 albedo_${this.id};
-    uniform float roughness_${this.id};
-    uniform float specular_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void{
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `albedo_${this.id}`, this.albedo);
-    GlEntity.setGlUniformFloat(gl, program, `roughness_${this.id}`, this.roughness);
-    GlEntity.setGlUniformFloat(gl, program, `specular_${this.id}`, this.specular);
-  }
 }
 
 

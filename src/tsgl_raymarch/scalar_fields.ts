@@ -1,6 +1,7 @@
 import * as util from './util';
 import {GlRandom} from './random';
 import {GlEntity, Transform} from './gl_entity';
+import {GlInt, GlFloat, GlVec3} from './gl_types';
 import * as v3fields from '@tsgl/vec3_fields';
 
 export abstract class ScalarField extends GlEntity {
@@ -16,22 +17,15 @@ export abstract class ScalarField extends GlEntity {
 }
 
 export class Constant extends ScalarField {
-  value: number;
+  value: GlFloat;
   constructor(value: number) {
     super();
-    this.value = value;
+    this.value = new GlFloat(value);
+    this.glUniformVars.push({name: "value", value: this.value});
   }
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
     return value_${this.id};
   }`;}
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float value_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `value_${this.id}`, this.value);
-  }
 }
 
 export abstract class Reduce extends ScalarField {
@@ -151,17 +145,22 @@ export class SimplexRotationalInterpolation extends ScalarField {
 }
 
 export class FractionalBrownianMotion extends ScalarField {
-  gain: number;
-  depth: number;
-  offset: util.Vec3;
+  gain: GlFloat;
+  depth: GlInt;
+  offset: GlVec3;
   layer: ScalarField;
   constructor (gain: number, depth: number, offset: util.Vec3, layer: ScalarField) {
     super();
-    this.gain = gain;
-    this.depth = depth;
+    this.gain = new GlFloat(gain);
+    this.depth = new GlInt(depth);
+    this.offset = new GlVec3(offset);
     this.layer = layer;
-    this.offset = offset;
     this.dependentGlEntities.push(layer);
+    this.glUniformVars.push(
+      {name: "gain", value: this.gain},
+      {name: "depth", value: this.depth},
+      {name: "offset", value: this.offset},
+    );
   }
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
     float res = 0.0;
@@ -174,18 +173,6 @@ export class FractionalBrownianMotion extends ScalarField {
     }
     return res;
   }`;}
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float gain_${this.id};
-    uniform int depth_${this.id};
-    uniform vec3 offset_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `gain_${this.id}`, this.gain);
-    GlEntity.setGlUniformInt(gl, program, `depth_${this.id}`, this.depth);
-    GlEntity.setGlUniformVec3(gl, program, `offset_${this.id}`, this.offset);
-  }
 }
 
 
@@ -246,29 +233,23 @@ export class VoronoiEdgeOrthogonal extends ScalarField {
 
 export class SmoothClamp extends ScalarField {
   original: ScalarField;
-  bottom: number;
-  top: number;
-  smoothness: number;
+  bottom: GlFloat;
+  top: GlFloat;
+  smoothness: GlFloat;
   constructor(original: ScalarField, bottom: number, top: number, smoothness: number) {
     super();
     this.original = original;
-    this.bottom = bottom;
-    this.top = top;
-    this.smoothness = smoothness;
+    this.bottom = new GlFloat(bottom);
+    this.top = new GlFloat(top);
+    this.smoothness = new GlFloat(smoothness);
     this.dependentGlEntities.push(original);
+    this.glUniformVars.push(
+      {name: "bottom", value: this.bottom},
+      {name: "top", value: this.top},
+      {name: "smoothness", value: this.smoothness},
+    );
   }
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
     return smoothclamp(get_${this.original.id}(point), bottom_${this.id}, top_${this.id}, smoothness_${this.id});
   }`;}
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float bottom_${this.id};
-    uniform float top_${this.id};
-    uniform float smoothness_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `bottom_${this.id}`, this.bottom);
-    GlEntity.setGlUniformFloat(gl, program, `top_${this.id}`, this.top);
-    GlEntity.setGlUniformFloat(gl, program, `smoothness_${this.id}`, this.smoothness);
-  }}
+}

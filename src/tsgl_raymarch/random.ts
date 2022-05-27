@@ -1,5 +1,6 @@
 import * as util from './util';
 import {GlEntity} from './gl_entity';
+import {GlFloat} from './gl_types';
 
 export function uint16ToFloat01(v: number): number{
   return v / ((1<<16)-1);
@@ -95,26 +96,19 @@ export abstract class GlRandom extends GlEntity {
   `;}
 }
 export class Constant extends GlRandom {
-  value: number;
+  value: GlFloat;
   constructor(value: number) {
     super();
-    this.value = value;
+    this.value = new GlFloat(value);
+    this.glUniformVars.push({name: "value", value: this.value});
   }
   override rand(state: number): {value: number, state: number} {
-    return {value: this.value, state: state};
+    return {value: this.value.value, state: state};
   }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float value_${this.id};
-  `;}
   override GlFunc_rand(): string {return `
     float rand_${this.id} (inout uint state) {
       return value_${this.id};
     }`;
-  }
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `value_${this.id}`, this.value);
   }
 }
 export class Uniform extends GlRandom {

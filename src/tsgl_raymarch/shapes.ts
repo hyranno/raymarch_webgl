@@ -1,5 +1,6 @@
 import {Vec3, smoothmax, smoothmin, clamp} from './util';
 import {GlEntity, Transform} from './gl_entity';
+import {GlFloat, GlVec3} from './gl_types';
 
 export interface HasShape {
   getDistance(point: Vec3): number;
@@ -55,7 +56,7 @@ export class Transformed extends Shape3D {
   override getDistance(point: Vec3): number {
     let p = this.transform.inverse(point);
     let d = this.original.getDistance(p);
-    return d * this.transform.scale;
+    return d * this.transform.scale.value;
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
@@ -66,10 +67,13 @@ export class Transformed extends Shape3D {
 }
 
 export class Box extends Shape3D {
-  size: Vec3;
+  size: GlVec3;
   constructor(size: Vec3) {
     super();
-    this.size = size;
+    this.size = new GlVec3(size);
+    this.glUniformVars.push(
+      {name: "size", value: this.size},
+    );
   }
   override getDistance(point: Vec3): number {
     let p_abs = point.map((v)=>Math.abs(v));
@@ -87,14 +91,6 @@ export class Box extends Shape3D {
       return positive + negative;
     }`;
   }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform vec3 size_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `size_${this.id}`, this.size);
-  }
 }
 
 export class Sphere extends Shape3D {
@@ -110,55 +106,43 @@ export class Sphere extends Shape3D {
 
 export class Bloated extends Shape3D {
   original: GlEntity & HasShape;
-  radius: number;
+  radius: GlFloat;
   constructor(original: GlEntity & HasShape, radius: number) {
     super();
     this.original = original;
-    this.radius = radius;
+    this.radius = new GlFloat(radius);
     this.dependentGlEntities.push(original);
+    this.glUniformVars.push({name:"radius", value:this.radius});
   }
   override getDistance(point: Vec3): number {
-    return this.original.getDistance(point) - this.radius;
+    return this.original.getDistance(point) - this.radius.value;
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
       return getDistance_${this.original.id}(point) - radius_${this.id};
     }`;
   }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float radius_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `radius_${this.id}`, this.radius);
-  }
 }
 
 export class Hollowed extends Shape3D {
   original: GlEntity & HasShape;
-  thickness: number;
+  thickness: GlFloat;
   constructor(original: GlEntity & HasShape, thickness: number) {
     super();
     this.original = original;
-    this.thickness = thickness;
+    this.thickness = new GlFloat(thickness);
     this.dependentGlEntities.push(original);
+    this.glUniformVars.push(
+      {name: "thickness", value: this.thickness},
+    );
   }
   override getDistance(point: Vec3): number {
-    return Math.abs(this.original.getDistance(point)) - this.thickness;
+    return Math.abs(this.original.getDistance(point)) - this.thickness.value;
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
       return abs(getDistance_${this.original.id}(point)) - thickness_${this.id};
     }`;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float thickness_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `thickness_${this.id}`, this.thickness);
   }
 }
 
@@ -204,23 +188,16 @@ export class Intersection extends BooleanOp {
 }
 
 export abstract class SmoothBooleanOp extends BooleanOp {
-  smoothness: number;
+  smoothness: GlFloat;
   constructor(shape1: GlEntity & HasShape, shape2: GlEntity & HasShape, smoothness: number) {
     super(shape1, shape2);
-    this.smoothness = smoothness;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float smoothness_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `smoothness_${this.id}`, this.smoothness);
+    this.smoothness = new GlFloat(smoothness);
+    this.glUniformVars.push({name:"smoothness", value:this.smoothness});
   }
 }
 export class SmoothUnion extends SmoothBooleanOp {
   override getDistance(point: Vec3): number {
-    return smoothmin( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness );
+    return smoothmin( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness.value );
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
@@ -230,7 +207,7 @@ export class SmoothUnion extends SmoothBooleanOp {
 }
 export class SmoothSubtraction extends SmoothBooleanOp {
   override getDistance(point: Vec3): number {
-    return smoothmax( this.shape1.getDistance(point), -this.shape2.getDistance(point), this.smoothness );
+    return smoothmax( this.shape1.getDistance(point), -this.shape2.getDistance(point), this.smoothness.value );
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
@@ -240,7 +217,7 @@ export class SmoothSubtraction extends SmoothBooleanOp {
 }
 export class SmoothIntersection extends SmoothBooleanOp {
   override getDistance(point: Vec3): number {
-    return smoothmax( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness );
+    return smoothmax( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness.value );
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
@@ -278,10 +255,11 @@ export abstract class Displacement extends Shape3D {
 }
 
 export class RepetitionInf extends Displacement {
-  interval: Vec3;
+  interval: GlVec3;
   constructor(original: GlEntity & HasShape, interval: Vec3) {
     super(original);
-    this.interval = interval;
+    this.interval = new GlVec3(interval);
+    this.glUniformVars.push({name:"interval", value:this.interval});
   }
   override displace(point: Vec3): Vec3 {
     let origin = Vec3.fromClosure((i) => this.interval[i] * Math.round(point[i]/this.interval[i]));
@@ -293,23 +271,19 @@ export class RepetitionInf extends Displacement {
       return point - origin;
     }`;
   }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform vec3 interval_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `interval_${this.id}`, this.interval);
-  }
 }
 
 export class Repetition extends Displacement {
-  interval: Vec3;
-  max_indices: Vec3;
+  interval: GlVec3;
+  max_indices: GlVec3;
   constructor(original: GlEntity & HasShape, interval: Vec3, max_indices: Vec3) {
     super(original);
-    this.interval = interval;
-    this.max_indices = max_indices;
+    this.interval = new GlVec3(interval);
+    this.max_indices = new GlVec3(max_indices);
+    this.glUniformVars.push(
+      {name: "interval", value: this.interval},
+      {name: "max_indices", value: this.max_indices},
+    );
   }
   override displace(point: Vec3): Vec3 {
     let origin = Vec3.fromClosure((i) =>
@@ -323,33 +297,24 @@ export class Repetition extends Displacement {
       return point - origin;
     }`;
   }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform vec3 interval_${this.id};
-    uniform vec3 max_indices_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `interval_${this.id}`, this.interval);
-    GlEntity.setGlUniformVec3(gl, program, `max_indices_${this.id}`, this.max_indices);
-  }
 }
 
 
 export class BoundingShape extends Shape3D {
   original: GlEntity & HasShape;
   bounding: GlEntity & HasShape;
-  margin: number;
+  margin: GlFloat;
   constructor(original: GlEntity & HasShape, bounding: GlEntity & HasShape, margin: number) {
     super();
-    this.margin = margin;
+    this.margin = new GlFloat(margin);
     this.original = original;
     this.bounding = bounding;
     this.dependentGlEntities.push(original, bounding);
+    this.glUniformVars.push({name:"margin", value:this.margin});
   }
   override getDistance(point: Vec3): number {
     let res = this.bounding.getDistance(point);
-    if (res < this.margin) {
+    if (res < this.margin.value) {
       res = this.original.getDistance(point);
     }
     return res;
@@ -362,13 +327,5 @@ export class BoundingShape extends Shape3D {
       }
       return res;
     }`;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float margin_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `margin_${this.id}`, this.margin);
   }
 }

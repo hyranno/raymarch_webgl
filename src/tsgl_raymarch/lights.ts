@@ -1,5 +1,6 @@
 import {Vec3} from './util';
 import {GlEntity} from './gl_entity';
+import {GlVec3} from './gl_types';
 
 
 export abstract class Light extends GlEntity {
@@ -16,22 +17,16 @@ export abstract class Light extends GlEntity {
 }
 
 export class PointLight extends Light {
-  position: Vec3;
-  color: Vec3;
+  position: GlVec3;
+  color: GlVec3;
   constructor(position: Vec3, color: Vec3) {
     super();
-    this.position = position;
-    this.color = color;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform vec3 position_${this.id};
-    uniform vec3 color_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `position_${this.id}`, this.position);
-    GlEntity.setGlUniformVec3(gl, program, `color_${this.id}`, this.color);
+    this.position = new GlVec3(position);
+    this.color = new GlVec3(color);
+    this.glUniformVars.push(
+      {name: "position", value: this.position},
+      {name: "color", value: this.color},
+    );
   }
   GlFunc_getPhotonTo(): string {
     return `void light_getPhotonTo_${this.id} (vec3 point, out Photon photon) {
@@ -43,22 +38,16 @@ export class PointLight extends Light {
 }
 
 export class DirectionalLight extends Light {
-  direction: Vec3;
-  color: Vec3;
+  direction: GlVec3;
+  color: GlVec3;
   constructor(direction: Vec3, color: Vec3) {
     super();
-    this.direction = direction;
-    this.color = color;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform vec3 direction_${this.id};
-    uniform vec3 color_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `direction_${this.id}`, this.direction);
-    GlEntity.setGlUniformVec3(gl, program, `color_${this.id}`, this.color);
+    this.direction = new GlVec3(direction);
+    this.color = new GlVec3(color);
+    this.glUniformVars.push(
+      {name: "direction", value: this.direction},
+      {name: "color", value: this.color},
+    );
   }
   GlFunc_getPhotonTo(): string {
     return `void light_getPhotonTo_${this.id} (vec3 point, out Photon photon){

@@ -9,6 +9,7 @@ import * as materials from '@tsgl/materials';
 import * as textures from '@tsgl/textures';
 import * as reflectances from '@tsgl/reflectances';
 import * as drawables from '@tsgl/drawables';
+import {GlVec3, GlQuaternion} from '@tsgl/gl_types';
 import {TimeTicks} from './event_stream';
 
 
@@ -152,7 +153,7 @@ export class OrbitingSphere extends drawables.Transformed {
     let transform = new glEntities.Transform(1, util.Quaternion.identity(), new util.Vec3(3,0,0));
     super(drawable, transform);
     t.addEventListener(()=>{
-      transform.translate = transform.translate.rotate(util.Quaternion.fromAngleAxis(Math.PI/30, new util.Vec3(0,1,0)));
+      transform.translate = new GlVec3( transform.translate.rotate(util.Quaternion.fromAngleAxis(Math.PI/30, new util.Vec3(0,1,0))) );
     });
   }
 }
@@ -188,7 +189,7 @@ export class RotatingRoundedCube extends drawables.Transformed {
     super(org, transform);
     let angular_velocity = util.Quaternion.fromAngleAxis(-Math.PI/20, new util.Vec3(0,1,0));
     t.addEventListener(()=>{
-      transform.rotation = angular_velocity.mul(transform.rotation);
+      transform.rotation = new GlQuaternion( angular_velocity.mul(transform.rotation) );
     });
   }
 }
@@ -229,7 +230,7 @@ export class SwingBox extends drawables.BumpMap {
     );
     super(d, bump);
     t.addEventListener(()=>{
-      shape.transform.translate = new util.Vec3(0,0, 2*Math.sin(Date.now()/1000/2));
+      shape.transform.translate = new GlVec3( new util.Vec3(0,0, 2*Math.sin(Date.now()/1000/2)) );
     });
   }
 }

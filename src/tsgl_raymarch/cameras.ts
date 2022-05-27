@@ -1,38 +1,30 @@
 import {Vec2, Vec3, Quaternion} from './util';
 import {GlEntity} from './gl_entity';
+import {GlFloat, GlVec2, GlVec3, GlQuaternion} from './gl_types';
 
 
 export abstract class Camera extends GlEntity {
-  position: Vec3;
-  rotation: Quaternion;
-  screen_size: Vec2;
-  resolution: Vec2;
+  position: GlVec3;
+  rotation: GlQuaternion;
+  screen_size: GlVec2;
+  resolution: GlVec2;
   constructor(position: Vec3, upper_center: Vec3, center_right: Vec3, resolution: Vec2) {
     super();
-    this.position = position;
-    this.screen_size = new Vec2(center_right.len(), upper_center.len())
-    this.rotation = Quaternion.fromXY(center_right.normalize(), upper_center.normalize());
-    this.resolution = resolution;
+    this.position = new GlVec3(position);
+    this.screen_size = new GlVec2(new Vec2(center_right.len(), upper_center.len()));
+    this.rotation = new GlQuaternion( Quaternion.fromXY(center_right.normalize(), upper_center.normalize()) );
+    this.resolution = new GlVec2(resolution);
+    this.glUniformVars.push(
+      {name:`position`, value: this.position},
+      {name:`rotation`, value: this.rotation},
+      {name:`screen_size`, value: this.screen_size},
+      {name:`resolution`, value: this.resolution},
+    );
   }
   override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
-    uniform vec3 position_${this.id};
-    uniform vec4 rotation_${this.id};
-    uniform vec2 screen_size_${this.id};
-    uniform vec2 resolution_${this.id};
     void getRay_${this.id}(out Ray ray);
   `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformVec3(gl, program, `position_${this.id}`, this.position);
-    GlEntity.setGlUniformQuaternion(gl, program, `rotation_${this.id}`, this.rotation);
-    GlEntity.setGlUniformFloat(gl, program, `screen_size_${this.id}`,
-      this.screen_size[0], this.screen_size[1]
-    );
-    GlEntity.setGlUniformFloat(gl, program, `resolution_${this.id}`,
-      this.resolution[0], this.resolution[1]
-    );
-  }
   override getGlImplements(): string { return this.isGlImplemented()? `` : `
     ${super.getGlImplements()}
     ${this.GlFunc_getRay()}
@@ -41,18 +33,11 @@ export abstract class Camera extends GlEntity {
 }
 
 export class Perspective extends Camera {
-  origin_distance: number;
+  origin_distance: GlFloat;
   constructor(position: Vec3, upper_center: Vec3, center_right: Vec3, origin_distance: number, resolution: Vec2) {
     super(position, upper_center, center_right, resolution);
-    this.origin_distance = origin_distance;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float origin_distance_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram): void {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `origin_distance_${this.id}`, this.origin_distance);
+    this.origin_distance = new GlFloat(origin_distance);
+    this.glUniformVars.push({name:"origin_distance", value:this.origin_distance});
   }
   override GlFunc_getRay(): string {return `
     void getRay_${this.id}(out Ray ray) {
@@ -67,7 +52,6 @@ export class Perspective extends Camera {
 }
 
 export class Orthogonal extends Camera {
-  origin_distance: number;
   constructor(position: Vec3, upper_center: Vec3, center_right: Vec3, resolution: Vec2) {
     super(position, upper_center, center_right, resolution);
   }

@@ -1,5 +1,6 @@
 import * as util from './util';
 import {GlEntity, Transform} from './gl_entity';
+import {GlFloat} from './gl_types';
 import * as shapes from './shapes';
 import * as rand from './random';
 
@@ -59,8 +60,8 @@ export class SpheresRand extends shapes.Shape3D {
 export class HullSpheres extends shapes.Shape3D {
   hull: shapes.Hollowed;
   spheres: shapes.Transformed;
-  smoothness: number;
-  weight: number;
+  smoothness: GlFloat;
+  weight: GlFloat;
   constructor(original: GlEntity & shapes.HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number){
     super();
     this.hull = new shapes.Hollowed(original, scale);
@@ -68,23 +69,18 @@ export class HullSpheres extends shapes.Shape3D {
       new SpheresRand(randGen),
       new Transform(scale, util.Quaternion.identity(), util.Vec3.zero())
     );
-    this.smoothness = smoothness;
-    this.weight = weight;
+    this.smoothness = new GlFloat(smoothness);
+    this.weight = new GlFloat(weight);
     this.dependentGlEntities.push(this.hull, this.spheres);
+    this.glUniformVars.push(
+      {name: "smoothness", value: this.smoothness},
+      {name: "weight", value: this.weight},
+    );
   }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    uniform float smoothness_${this.id};
-    uniform float weight_${this.id};
-  `;}
-  override setGlVars(gl: WebGL2RenderingContext, program: WebGLProgram) {
-    super.setGlVars(gl, program);
-    GlEntity.setGlUniformFloat(gl, program, `smoothness_${this.id}`, this.smoothness);
-    GlEntity.setGlUniformFloat(gl, program, `weight_${this.id}`, this.weight);
-  }
+
   override getDistance(point: util.Vec3): number { //blendIntersection
     return util.blend(
-      this.hull.getDistance(point), this.spheres.getDistance(point), false, this.smoothness, this.weight
+      this.hull.getDistance(point), this.spheres.getDistance(point), false, this.smoothness.value, this.weight.value
     );
   }
   override GlFunc_getDistance(): string {
@@ -111,7 +107,7 @@ export class BlendBrownianMotion extends shapes.Shape3D {
   override getDistance(point: util.Vec3): number { //blendUnion
     return util.blend(
       this.original.getDistance(point), (this.isUnion?1:-1)*this.brownianMotion.getDistance(point),
-      this.isUnion, this.brownianMotion.smoothness, this.brownianMotion.weight
+      this.isUnion, this.brownianMotion.smoothness.value, this.brownianMotion.weight.value
     );
   }
   override GlFunc_getDistance(): string {
