@@ -64,23 +64,30 @@ soooooon:
 
 
 リファクタリング
-  this.glUniformVarsからuniform宣言とsetGlVarsを作れないか
-    interface hasGlType
-  GlClosure<A,R> extends GlEntity
-    <A> -> <R>
-  ScalarField, Vec3Field = GlClosure<GlFloat,GlFloat>, GlClosure<GlVec3,GlVec3> ?
+  GlClosureの利用
+    GlClosure1Args<GlFloat, GlFloat>
+    GlClosure1Args<GlVec3, GlVec3>
+    Reduceをジェネリクスとかでまとめられないか
+      ReduceがGlClosure<A,A,A>を取る
+    Transform
+      transform: GlClosure<GlVec3, GlVec3>
+      inverse: GlClosure<GlVec3, GlVec3>
+  Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
+    GlVec3なども同様
+    ReturnType<typeof this>?
   hash32を取るとき、saltを与える?
   NormalMapはVec3Fieldを取る?
     何かしら改善が必要かも
     SDFへの変更が重過ぎなければNormalMap自体使わんでいいって話ではあるが
-  Reduceをジェネリクスとかでまとめられないか
   Coordination
     Polar
       radius, yaw, pitch
     Simplex
       x, y, z
-  Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
   Simplex.neighborsあたりなんかバグありそう
+
+リファクタリング(2)
+  GlClosure0Args, GlClosure1Args, GlClosure2Args,... をまとめたい
 
 マクロ vs TypeScript
   配列の長さごとに宣言/定義してるやつをマクロにする?

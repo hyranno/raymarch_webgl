@@ -1,19 +1,13 @@
 import * as util from './util';
 import {GlRandom} from './random';
-import {GlEntity, Transform} from './gl_entity';
+import {Transform, GlClosure1Args} from './gl_entity';
 import {GlInt, GlFloat, GlVec3} from './gl_types';
 import * as v3fields from '@tsgl/vec3_fields';
 
-export abstract class ScalarField extends GlEntity {
-  abstract GlFunc_get(): string;
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    float get_${this.id} (vec3 point);
-  `;}
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
-    ${this.GlFunc_get()}
-  `;}
+export abstract class ScalarField extends GlClosure1Args<GlVec3, GlFloat> {
+  constructor(){
+    super(GlVec3.default(), GlFloat.default());
+  }
 }
 
 export class Constant extends ScalarField {
@@ -29,9 +23,9 @@ export class Constant extends ScalarField {
 }
 
 export abstract class Reduce extends ScalarField {
-  lhs: ScalarField;
-  rhs: ScalarField[];
-  constructor(lhs: ScalarField, rhs: ScalarField[]) {
+  lhs: GlClosure1Args<GlVec3, GlFloat>;
+  rhs: GlClosure1Args<GlVec3, GlFloat>[];
+  constructor(lhs: GlClosure1Args<GlVec3, GlFloat>, rhs: GlClosure1Args<GlVec3, GlFloat>[]) {
     super();
     this.lhs = lhs;
     this.rhs = rhs;
@@ -74,9 +68,9 @@ export class SphericalyZeroSum extends ScalarField {
 }
 
 export class Transformed extends ScalarField {
-  original: ScalarField;
+  original: GlClosure1Args<GlVec3, GlFloat>;
   transform: Transform;
-  constructor(original: ScalarField, transform: Transform) {
+  constructor(original: GlClosure1Args<GlVec3, GlFloat>, transform: Transform) {
     super();
     this.original = original;
     this.transform = transform;
@@ -102,9 +96,9 @@ export class Random extends ScalarField {
 }
 
 export class SimplexInterpolation extends ScalarField {
-  discrete: ScalarField;
-  localField: ScalarField;
-  constructor(discrete: ScalarField, localField: ScalarField) {
+  discrete: GlClosure1Args<GlVec3, GlFloat>;
+  localField: GlClosure1Args<GlVec3, GlFloat>;
+  constructor(discrete: GlClosure1Args<GlVec3, GlFloat>, localField: GlClosure1Args<GlVec3, GlFloat>) {
     super();
     this.discrete = discrete;
     this.localField = localField;
@@ -122,9 +116,9 @@ export class SimplexInterpolation extends ScalarField {
   }`;}
 }
 export class SimplexRotationalInterpolation extends ScalarField {
-  discrete: ScalarField;
-  localField: ScalarField;
-  constructor(discrete: ScalarField, localField: ScalarField) {
+  discrete: GlClosure1Args<GlVec3, GlFloat>;
+  localField: GlClosure1Args<GlVec3, GlFloat>;
+  constructor(discrete: GlClosure1Args<GlVec3, GlFloat>, localField: GlClosure1Args<GlVec3, GlFloat>) {
     super();
     this.discrete = discrete;
     this.localField = localField;
@@ -148,8 +142,8 @@ export class FractionalBrownianMotion extends ScalarField {
   gain: GlFloat;
   depth: GlInt;
   offset: GlVec3;
-  layer: ScalarField;
-  constructor (gain: number, depth: number, offset: util.Vec3, layer: ScalarField) {
+  layer: GlClosure1Args<GlVec3, GlFloat>;
+  constructor (gain: number, depth: number, offset: util.Vec3, layer: GlClosure1Args<GlVec3, GlFloat>) {
     super();
     this.gain = new GlFloat(gain);
     this.depth = new GlInt(depth);
@@ -232,11 +226,11 @@ export class VoronoiEdgeOrthogonal extends ScalarField {
 }
 
 export class SmoothClamp extends ScalarField {
-  original: ScalarField;
+  original: GlClosure1Args<GlVec3, GlFloat>;
   bottom: GlFloat;
   top: GlFloat;
   smoothness: GlFloat;
-  constructor(original: ScalarField, bottom: number, top: number, smoothness: number) {
+  constructor(original: GlClosure1Args<GlVec3, GlFloat>, bottom: number, top: number, smoothness: number) {
     super();
     this.original = original;
     this.bottom = new GlFloat(bottom);
@@ -250,6 +244,6 @@ export class SmoothClamp extends ScalarField {
     );
   }
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
-    return smoothclamp(get_${this.original.id}(point), bottom_${this.id}, top_${this.id}, smoothness_${this.id});
+    return smoothclamp(${this.original.glFuncName}(point), bottom_${this.id}, top_${this.id}, smoothness_${this.id});
   }`;}
 }

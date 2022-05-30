@@ -1,25 +1,18 @@
 import * as util from './util';
-import {GlEntity, Transform} from './gl_entity';
+import {GlClosure1Args} from './gl_entity';
 import {GlInt, GlFloat, GlVec3} from './gl_types';
-import * as fields from './scalar_fields';
 
-export abstract class Vec3Field extends GlEntity {
-  abstract GlFunc_get(): string;
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    vec3 get_${this.id} (vec3 point);
-  `;}
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
-    ${this.GlFunc_get()}
-  `;}
+export abstract class Vec3Field extends GlClosure1Args<GlVec3, GlVec3> {
+  constructor(){
+    super(GlVec3.default(), GlVec3.default());
+  }
 }
 
 export class FromXYZ extends Vec3Field {
-  x: fields.ScalarField;
-  y: fields.ScalarField;
-  z: fields.ScalarField;
-  constructor(x: fields.ScalarField, y: fields.ScalarField, z: fields.ScalarField) {
+  x: GlClosure1Args<GlVec3, GlFloat>;
+  y: GlClosure1Args<GlVec3, GlFloat>;
+  z: GlClosure1Args<GlVec3, GlFloat>;
+  constructor(x: GlClosure1Args<GlVec3, GlFloat>, y: GlClosure1Args<GlVec3, GlFloat>, z: GlClosure1Args<GlVec3, GlFloat>) {
     super();
     this.x = x;
     this.y = y;
@@ -32,10 +25,10 @@ export class FromXYZ extends Vec3Field {
 }
 
 export class FromPolar extends Vec3Field {
-  radius: fields.ScalarField;
-  yaw: fields.ScalarField;
-  pitch: fields.ScalarField;
-  constructor(radius: fields.ScalarField, yaw: fields.ScalarField, pitch: fields.ScalarField) {
+  radius: GlClosure1Args<GlVec3, GlFloat>;
+  yaw: GlClosure1Args<GlVec3, GlFloat>;
+  pitch: GlClosure1Args<GlVec3, GlFloat>;
+  constructor(radius: GlClosure1Args<GlVec3, GlFloat>, yaw: GlClosure1Args<GlVec3, GlFloat>, pitch: GlClosure1Args<GlVec3, GlFloat>) {
     super();
     this.radius = radius;
     this.yaw = yaw;
@@ -48,10 +41,10 @@ export class FromPolar extends Vec3Field {
 }
 
 export class FromHSV extends Vec3Field {
-  h: fields.ScalarField;
-  s: fields.ScalarField;
-  v: fields.ScalarField;
-  constructor(h: fields.ScalarField, s: fields.ScalarField, v: fields.ScalarField) {
+  h: GlClosure1Args<GlVec3, GlFloat>;
+  s: GlClosure1Args<GlVec3, GlFloat>;
+  v: GlClosure1Args<GlVec3, GlFloat>;
+  constructor(h: GlClosure1Args<GlVec3, GlFloat>, s: GlClosure1Args<GlVec3, GlFloat>, v: GlClosure1Args<GlVec3, GlFloat>) {
     super();
     this.h = h;
     this.s = s;
@@ -65,9 +58,9 @@ export class FromHSV extends Vec3Field {
 }
 
 export class SimplexInterpolation extends Vec3Field {
-  discrete: Vec3Field;
-  localField: fields.ScalarField;
-  constructor(discrete: Vec3Field, localField: fields.ScalarField) {
+  discrete: GlClosure1Args<GlVec3, GlVec3>;
+  localField: GlClosure1Args<GlVec3, GlFloat>;
+  constructor(discrete: GlClosure1Args<GlVec3, GlVec3>, localField: GlClosure1Args<GlVec3, GlFloat>) {
     super();
     this.discrete = discrete;
     this.localField = localField;
@@ -89,8 +82,8 @@ export class FractionalBrownianMotion extends Vec3Field {
   gain: GlFloat;
   depth: GlInt;
   offset: GlVec3;
-  layer: Vec3Field;
-  constructor (gain: number, depth: number, offset: util.Vec3, layer: Vec3Field) {
+  layer: GlClosure1Args<GlVec3, GlVec3>;
+  constructor (gain: number, depth: number, offset: util.Vec3, layer: GlClosure1Args<GlVec3, GlVec3>) {
     super();
     this.gain = new GlFloat(gain);
     this.depth = new GlInt(depth);

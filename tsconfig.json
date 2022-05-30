@@ -10,5 +10,6 @@
       "@tsgl/*": ["src/tsgl_raymarch/*"]
     },
     "esModuleInterop": true,
+    "experimentalDecorators": true,
   },
 }
