@@ -1,5 +1,5 @@
 import * as util from './util';
-import {GlClosure1Args} from './gl_entity';
+import {GlClosure1Args} from './gl_closure';
 import {GlInt, GlFloat, GlVec3} from './gl_types';
 
 export abstract class Vec3Field extends GlClosure1Args<GlVec3, GlVec3> {
@@ -9,10 +9,10 @@ export abstract class Vec3Field extends GlClosure1Args<GlVec3, GlVec3> {
 }
 
 export class FromXYZ extends Vec3Field {
-  x: GlClosure1Args<GlVec3, GlFloat>;
-  y: GlClosure1Args<GlVec3, GlFloat>;
-  z: GlClosure1Args<GlVec3, GlFloat>;
-  constructor(x: GlClosure1Args<GlVec3, GlFloat>, y: GlClosure1Args<GlVec3, GlFloat>, z: GlClosure1Args<GlVec3, GlFloat>) {
+  x: GlClosure1Args<GlFloat, GlVec3>;
+  y: GlClosure1Args<GlFloat, GlVec3>;
+  z: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(x: GlClosure1Args<GlFloat, GlVec3>, y: GlClosure1Args<GlFloat, GlVec3>, z: GlClosure1Args<GlFloat, GlVec3>) {
     super();
     this.x = x;
     this.y = y;
@@ -25,10 +25,10 @@ export class FromXYZ extends Vec3Field {
 }
 
 export class FromPolar extends Vec3Field {
-  radius: GlClosure1Args<GlVec3, GlFloat>;
-  yaw: GlClosure1Args<GlVec3, GlFloat>;
-  pitch: GlClosure1Args<GlVec3, GlFloat>;
-  constructor(radius: GlClosure1Args<GlVec3, GlFloat>, yaw: GlClosure1Args<GlVec3, GlFloat>, pitch: GlClosure1Args<GlVec3, GlFloat>) {
+  radius: GlClosure1Args<GlFloat, GlVec3>;
+  yaw: GlClosure1Args<GlFloat, GlVec3>;
+  pitch: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(radius: GlClosure1Args<GlFloat, GlVec3>, yaw: GlClosure1Args<GlFloat, GlVec3>, pitch: GlClosure1Args<GlFloat, GlVec3>) {
     super();
     this.radius = radius;
     this.yaw = yaw;
@@ -41,10 +41,10 @@ export class FromPolar extends Vec3Field {
 }
 
 export class FromHSV extends Vec3Field {
-  h: GlClosure1Args<GlVec3, GlFloat>;
-  s: GlClosure1Args<GlVec3, GlFloat>;
-  v: GlClosure1Args<GlVec3, GlFloat>;
-  constructor(h: GlClosure1Args<GlVec3, GlFloat>, s: GlClosure1Args<GlVec3, GlFloat>, v: GlClosure1Args<GlVec3, GlFloat>) {
+  h: GlClosure1Args<GlFloat, GlVec3>;
+  s: GlClosure1Args<GlFloat, GlVec3>;
+  v: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(h: GlClosure1Args<GlFloat, GlVec3>, s: GlClosure1Args<GlFloat, GlVec3>, v: GlClosure1Args<GlFloat, GlVec3>) {
     super();
     this.h = h;
     this.s = s;
@@ -59,8 +59,8 @@ export class FromHSV extends Vec3Field {
 
 export class SimplexInterpolation extends Vec3Field {
   discrete: GlClosure1Args<GlVec3, GlVec3>;
-  localField: GlClosure1Args<GlVec3, GlFloat>;
-  constructor(discrete: GlClosure1Args<GlVec3, GlVec3>, localField: GlClosure1Args<GlVec3, GlFloat>) {
+  localField: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(discrete: GlClosure1Args<GlVec3, GlVec3>, localField: GlClosure1Args<GlFloat, GlVec3>) {
     super();
     this.discrete = discrete;
     this.localField = localField;

@@ -1,8 +1,9 @@
 import {Vec3} from './util';
+import {GlFloat, GlVec3} from './gl_types';
 import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
-import * as fields from '@tsgl/scalar_fields';
+import {GlClosure1Args} from './gl_closure';
 
 export abstract class Drawable extends glEntities.GlEntity implements shapes.HasShape, materials.HasMaterial {
   abstract GlFunc_calcAmbient(): string;
@@ -186,9 +187,9 @@ export class Group extends Drawable {
 
 export class NormalMap extends Drawable {
   original: Drawable;
-  quantity: fields.ScalarField;
-  axis: fields.ScalarField;
-  constructor(original: Drawable, quantity: fields.ScalarField, axis: fields.ScalarField){
+  quantity: GlClosure1Args<GlFloat, GlVec3>;
+  axis: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(original: Drawable, quantity: GlClosure1Args<GlFloat, GlVec3>, axis: GlClosure1Args<GlFloat, GlVec3>){
     super();
     this.original = original;
     this.quantity = quantity;
@@ -254,8 +255,8 @@ export class NormalMap extends Drawable {
 
 export class BumpMap extends Drawable {
   original: Drawable;
-  bump: fields.ScalarField;
-  constructor(original: Drawable, bump: fields.ScalarField){
+  bump: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(original: Drawable, bump: GlClosure1Args<GlFloat, GlVec3>){
     super();
     this.original = original;
     this.bump = bump;

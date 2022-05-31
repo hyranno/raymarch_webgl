@@ -1,55 +1,29 @@
 import * as util from './util';
 import {GlRandom} from './random';
-import {Transform, GlClosure1Args} from './gl_entity';
+import {Transform} from './gl_entity';
+import {GlClosure1Args} from './gl_closure';
+import * as glClosure from './gl_closure';
 import {GlInt, GlFloat, GlVec3} from './gl_types';
-import * as v3fields from '@tsgl/vec3_fields';
 
-export abstract class ScalarField extends GlClosure1Args<GlVec3, GlFloat> {
+export abstract class ScalarField extends GlClosure1Args<GlFloat, GlVec3> {
   constructor(){
-    super(GlVec3.default(), GlFloat.default());
+    super(GlFloat.default(), GlVec3.default());
   }
 }
-
-export class Constant extends ScalarField {
-  value: GlFloat;
+export class Constant extends glClosure.Constant1Args<GlFloat, GlVec3> {
   constructor(value: number) {
-    super();
-    this.value = new GlFloat(value);
-    this.glUniformVars.push({name: "value", value: this.value});
-  }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
-    return value_${this.id};
-  }`;}
-}
-
-export abstract class Reduce extends ScalarField {
-  lhs: GlClosure1Args<GlVec3, GlFloat>;
-  rhs: GlClosure1Args<GlVec3, GlFloat>[];
-  constructor(lhs: GlClosure1Args<GlVec3, GlFloat>, rhs: GlClosure1Args<GlVec3, GlFloat>[]) {
-    super();
-    this.lhs = lhs;
-    this.rhs = rhs;
-    this.dependentGlEntities.push(lhs);
-    this.dependentGlEntities = this.dependentGlEntities.concat(rhs);
+    super(new GlFloat(value), GlVec3.default());
   }
 }
-export class Add extends Reduce {
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
-    float res = get_${this.lhs.id}(point);
-    ${this.rhs.map((f)=>`
-      res += get_${f.id}(point);
-    `).join("")}
-    return res;
-  }`;}
+export class Add extends glClosure.Reduce1Args<GlFloat, GlVec3> {
+  constructor(lhs: GlClosure1Args<GlFloat, GlVec3>, rhs: GlClosure1Args<GlFloat, GlVec3>[]){
+    super(new glClosure.Add(GlFloat.default()), lhs, rhs);
+  }
 }
-export class Mult extends Reduce {
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
-    float res = get_${this.lhs.id}(point);
-    ${this.rhs.map((f)=>`
-      res *= get_${f.id}(point);
-    `).join("")}
-    return res;
-  }`;}
+export class Mult extends glClosure.Reduce1Args<GlFloat, GlVec3> {
+  constructor(lhs: GlClosure1Args<GlFloat, GlVec3>, rhs: GlClosure1Args<GlFloat, GlVec3>[]){
+    super(new glClosure.Mult(GlFloat.default()), lhs, rhs);
+  }
 }
 
 export class CircularyZeroSum extends ScalarField {
@@ -68,9 +42,9 @@ export class SphericalyZeroSum extends ScalarField {
 }
 
 export class Transformed extends ScalarField {
-  original: GlClosure1Args<GlVec3, GlFloat>;
+  original: GlClosure1Args<GlFloat, GlVec3>;
   transform: Transform;
-  constructor(original: GlClosure1Args<GlVec3, GlFloat>, transform: Transform) {
+  constructor(original: GlClosure1Args<GlFloat, GlVec3>, transform: Transform) {
     super();
     this.original = original;
     this.transform = transform;
@@ -96,9 +70,9 @@ export class Random extends ScalarField {
 }
 
 export class SimplexInterpolation extends ScalarField {
-  discrete: GlClosure1Args<GlVec3, GlFloat>;
-  localField: GlClosure1Args<GlVec3, GlFloat>;
-  constructor(discrete: GlClosure1Args<GlVec3, GlFloat>, localField: GlClosure1Args<GlVec3, GlFloat>) {
+  discrete: GlClosure1Args<GlFloat, GlVec3>;
+  localField: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(discrete: GlClosure1Args<GlFloat, GlVec3>, localField: GlClosure1Args<GlFloat, GlVec3>) {
     super();
     this.discrete = discrete;
     this.localField = localField;
@@ -116,9 +90,9 @@ export class SimplexInterpolation extends ScalarField {
   }`;}
 }
 export class SimplexRotationalInterpolation extends ScalarField {
-  discrete: GlClosure1Args<GlVec3, GlFloat>;
-  localField: GlClosure1Args<GlVec3, GlFloat>;
-  constructor(discrete: GlClosure1Args<GlVec3, GlFloat>, localField: GlClosure1Args<GlVec3, GlFloat>) {
+  discrete: GlClosure1Args<GlFloat, GlVec3>;
+  localField: GlClosure1Args<GlFloat, GlVec3>;
+  constructor(discrete: GlClosure1Args<GlFloat, GlVec3>, localField: GlClosure1Args<GlFloat, GlVec3>) {
     super();
     this.discrete = discrete;
     this.localField = localField;
@@ -142,8 +116,8 @@ export class FractionalBrownianMotion extends ScalarField {
   gain: GlFloat;
   depth: GlInt;
   offset: GlVec3;
-  layer: GlClosure1Args<GlVec3, GlFloat>;
-  constructor (gain: number, depth: number, offset: util.Vec3, layer: GlClosure1Args<GlVec3, GlFloat>) {
+  layer: GlClosure1Args<GlFloat, GlVec3>;
+  constructor (gain: number, depth: number, offset: util.Vec3, layer: GlClosure1Args<GlFloat, GlVec3>) {
     super();
     this.gain = new GlFloat(gain);
     this.depth = new GlInt(depth);
@@ -171,8 +145,8 @@ export class FractionalBrownianMotion extends ScalarField {
 
 
 export class VoronoiEdgeSimplex extends ScalarField {
-  centerDelta: v3fields.Vec3Field;
-  constructor(centerDelta: v3fields.Vec3Field) {
+  centerDelta: GlClosure1Args<GlVec3, GlVec3>;
+  constructor(centerDelta: GlClosure1Args<GlVec3, GlVec3>) {
     super();
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
@@ -198,8 +172,8 @@ export class VoronoiEdgeSimplex extends ScalarField {
 }
 
 export class VoronoiEdgeOrthogonal extends ScalarField {
-  centerDelta: v3fields.Vec3Field;
-  constructor(centerDelta: v3fields.Vec3Field) {
+  centerDelta: GlClosure1Args<GlVec3, GlVec3>;
+  constructor(centerDelta: GlClosure1Args<GlVec3, GlVec3>) {
     super();
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
@@ -226,11 +200,11 @@ export class VoronoiEdgeOrthogonal extends ScalarField {
 }
 
 export class SmoothClamp extends ScalarField {
-  original: GlClosure1Args<GlVec3, GlFloat>;
+  original: GlClosure1Args<GlFloat, GlVec3>;
   bottom: GlFloat;
   top: GlFloat;
   smoothness: GlFloat;
-  constructor(original: GlClosure1Args<GlVec3, GlFloat>, bottom: number, top: number, smoothness: number) {
+  constructor(original: GlClosure1Args<GlFloat, GlVec3>, bottom: number, top: number, smoothness: number) {
     super();
     this.original = original;
     this.bottom = new GlFloat(bottom);

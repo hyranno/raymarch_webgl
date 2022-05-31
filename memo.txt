@@ -20,9 +20,9 @@ TODO
 now: リファクタリング
 future:
   Drawable同士のUnion,SmoothUnion
-  Warp
+  Displace
   Voronoi
-    座標変換(Warp)になる
+    座標変換(Displace)になる
   橋
   いろいろ動かす
     時間依存shape, material
@@ -49,6 +49,16 @@ soooooon:
     波のGPUシミュレーション
 
 
+後で必要になりそうなもの
+Texture
+  Reduce
+    GlClosure<A,A,A>
+  Map
+    GlClosure<A, A>
+  Displace
+    GlClosure<Vec3, Vec3>
+
+
 クロージャが渡せない場合のソート
   evaluate(targets[index]) = value とする
   ソート関数に渡す
@@ -65,20 +75,15 @@ soooooon:
 
 リファクタリング
   GlClosureの利用
-    GlClosure1Args<GlFloat, GlFloat>
-    GlClosure1Args<GlVec3, GlVec3>
-    Reduceをジェネリクスとかでまとめられないか
-      ReduceがGlClosure<A,A,A>を取る
     Transform
-      transform: GlClosure<GlVec3, GlVec3>
-      inverse: GlClosure<GlVec3, GlVec3>
+      transformAsClosure: GlClosure<GlVec3, GlVec3>
+      inverseAsClosure: GlClosure<GlVec3, GlVec3>
   Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
     GlVec3なども同様
     ReturnType<typeof this>?
   hash32を取るとき、saltを与える?
+  NormalMap, BumpMap は material では
   NormalMapはVec3Fieldを取る?
-    何かしら改善が必要かも
-    SDFへの変更が重過ぎなければNormalMap自体使わんでいいって話ではあるが
   Coordination
     Polar
       radius, yaw, pitch
