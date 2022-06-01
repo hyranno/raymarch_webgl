@@ -58,22 +58,11 @@ Texture
   Displace
     GlClosure<Vec3, Vec3>
 
-
-クロージャが渡せない場合のソート
-  evaluate(targets[index]) = value とする
-  ソート関数に渡す
-    value配列、targets配列を渡す
-    index配列を作る
-    value配列で比較し、index配列とvalue配列を並べ替える
-    targets配列をindex配列に従い並べ替える
-
-可変長配列が使えない場合のソート
-  最大長のソートを用意する
-  最大長配列にコピーして部分的にソート
-
-
-
 リファクタリング
+  GlType
+    TexturePatch
+  TextureのGlClosure対応
+  TransformはGlTypeか?
   GlClosureの利用
     Transform
       transformAsClosure: GlClosure<GlVec3, GlVec3>
@@ -89,10 +78,11 @@ Texture
       radius, yaw, pitch
     Simplex
       x, y, z
-  Simplex.neighborsあたりなんかバグありそう
+  util.glsl swapをマクロで宣言+定義
 
-リファクタリング(2)
+リファクタリング(対処が分かり次第)
   GlClosure0Args, GlClosure1Args, GlClosure2Args,... をまとめたい
+  Simplex.neighborsあたりなんかバグありそう
 
 マクロ vs TypeScript
   配列の長さごとに宣言/定義してるやつをマクロにする?
@@ -115,6 +105,17 @@ Texture
     /* circular : [c4=−9, c3=20, c2=−12, c1=0, c0=1] */
     /* spherical : [c4=−7, c3=16, c2=−10, c1=0, c0=1] */
 
+クロージャが渡せない場合のソート
+  evaluate(targets[index]) = value とする
+  ソート関数に渡す
+    value配列、targets配列を渡す
+    index配列を作る
+    value配列で比較し、index配列とvalue配列を並べ替える
+    targets配列をindex配列に従い並べ替える
+
+可変長配列が使えない場合のソート
+  最大長のソートを用意する
+  最大長配列にコピーして部分的にソート
 
 InigoQuilez: FBM detail in SDFs
   入れ子

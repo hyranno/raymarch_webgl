@@ -1,28 +1,28 @@
 import * as util from './util';
 import {GlRandom} from './random';
 import {Transform} from './gl_entity';
-import {GlClosure1Args} from './gl_closure';
+import {GlClosure} from './gl_closure';
 import * as glClosure from './gl_closure';
 import {GlInt, GlFloat, GlVec3} from './gl_types';
 
-export abstract class ScalarField extends GlClosure1Args<GlFloat, GlVec3> {
+export abstract class ScalarField extends GlClosure<GlFloat, [GlVec3]> {
   constructor(){
-    super(GlFloat.default(), GlVec3.default());
+    super("get", GlFloat.default(), [GlVec3.default()]);
   }
 }
-export class Constant extends glClosure.Constant1Args<GlFloat, GlVec3> {
+export class Constant extends glClosure.Constant<GlFloat, [GlVec3]> {
   constructor(value: number) {
-    super(new GlFloat(value), GlVec3.default());
+    super("get", new GlFloat(value), [GlVec3.default()]);
   }
 }
-export class Add extends glClosure.Reduce1Args<GlFloat, GlVec3> {
-  constructor(lhs: GlClosure1Args<GlFloat, GlVec3>, rhs: GlClosure1Args<GlFloat, GlVec3>[]){
-    super(new glClosure.Add(GlFloat.default()), lhs, rhs);
+export class Add extends glClosure.Reduce<GlFloat, [GlVec3]> {
+  constructor(lhs: GlClosure<GlFloat, [GlVec3]>, rhs: GlClosure<GlFloat, [GlVec3]>[]){
+    super("get", new glClosure.Add("add", GlFloat.default()), lhs, rhs);
   }
 }
-export class Mult extends glClosure.Reduce1Args<GlFloat, GlVec3> {
-  constructor(lhs: GlClosure1Args<GlFloat, GlVec3>, rhs: GlClosure1Args<GlFloat, GlVec3>[]){
-    super(new glClosure.Mult(GlFloat.default()), lhs, rhs);
+export class Mult extends glClosure.Reduce<GlFloat, [GlVec3]> {
+  constructor(lhs: GlClosure<GlFloat, [GlVec3]>, rhs: GlClosure<GlFloat, [GlVec3]>[]){
+    super("get", new glClosure.Mult("mul", GlFloat.default()), lhs, rhs);
   }
 }
 
@@ -42,9 +42,9 @@ export class SphericalyZeroSum extends ScalarField {
 }
 
 export class Transformed extends ScalarField {
-  original: GlClosure1Args<GlFloat, GlVec3>;
+  original: GlClosure<GlFloat, [GlVec3]>;
   transform: Transform;
-  constructor(original: GlClosure1Args<GlFloat, GlVec3>, transform: Transform) {
+  constructor(original: GlClosure<GlFloat, [GlVec3]>, transform: Transform) {
     super();
     this.original = original;
     this.transform = transform;
@@ -70,9 +70,9 @@ export class Random extends ScalarField {
 }
 
 export class SimplexInterpolation extends ScalarField {
-  discrete: GlClosure1Args<GlFloat, GlVec3>;
-  localField: GlClosure1Args<GlFloat, GlVec3>;
-  constructor(discrete: GlClosure1Args<GlFloat, GlVec3>, localField: GlClosure1Args<GlFloat, GlVec3>) {
+  discrete: GlClosure<GlFloat, [GlVec3]>;
+  localField: GlClosure<GlFloat, [GlVec3]>;
+  constructor(discrete: GlClosure<GlFloat, [GlVec3]>, localField: GlClosure<GlFloat, [GlVec3]>) {
     super();
     this.discrete = discrete;
     this.localField = localField;
@@ -90,9 +90,9 @@ export class SimplexInterpolation extends ScalarField {
   }`;}
 }
 export class SimplexRotationalInterpolation extends ScalarField {
-  discrete: GlClosure1Args<GlFloat, GlVec3>;
-  localField: GlClosure1Args<GlFloat, GlVec3>;
-  constructor(discrete: GlClosure1Args<GlFloat, GlVec3>, localField: GlClosure1Args<GlFloat, GlVec3>) {
+  discrete: GlClosure<GlFloat, [GlVec3]>;
+  localField: GlClosure<GlFloat, [GlVec3]>;
+  constructor(discrete: GlClosure<GlFloat, [GlVec3]>, localField: GlClosure<GlFloat, [GlVec3]>) {
     super();
     this.discrete = discrete;
     this.localField = localField;
@@ -116,8 +116,8 @@ export class FractionalBrownianMotion extends ScalarField {
   gain: GlFloat;
   depth: GlInt;
   offset: GlVec3;
-  layer: GlClosure1Args<GlFloat, GlVec3>;
-  constructor (gain: number, depth: number, offset: util.Vec3, layer: GlClosure1Args<GlFloat, GlVec3>) {
+  layer: GlClosure<GlFloat, [GlVec3]>;
+  constructor (gain: number, depth: number, offset: util.Vec3, layer: GlClosure<GlFloat, [GlVec3]>) {
     super();
     this.gain = new GlFloat(gain);
     this.depth = new GlInt(depth);
@@ -145,8 +145,8 @@ export class FractionalBrownianMotion extends ScalarField {
 
 
 export class VoronoiEdgeSimplex extends ScalarField {
-  centerDelta: GlClosure1Args<GlVec3, GlVec3>;
-  constructor(centerDelta: GlClosure1Args<GlVec3, GlVec3>) {
+  centerDelta: GlClosure<GlVec3, [GlVec3]>;
+  constructor(centerDelta: GlClosure<GlVec3, [GlVec3]>) {
     super();
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
@@ -172,8 +172,8 @@ export class VoronoiEdgeSimplex extends ScalarField {
 }
 
 export class VoronoiEdgeOrthogonal extends ScalarField {
-  centerDelta: GlClosure1Args<GlVec3, GlVec3>;
-  constructor(centerDelta: GlClosure1Args<GlVec3, GlVec3>) {
+  centerDelta: GlClosure<GlVec3, [GlVec3]>;
+  constructor(centerDelta: GlClosure<GlVec3, [GlVec3]>) {
     super();
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
@@ -200,11 +200,11 @@ export class VoronoiEdgeOrthogonal extends ScalarField {
 }
 
 export class SmoothClamp extends ScalarField {
-  original: GlClosure1Args<GlFloat, GlVec3>;
+  original: GlClosure<GlFloat, [GlVec3]>;
   bottom: GlFloat;
   top: GlFloat;
   smoothness: GlFloat;
-  constructor(original: GlClosure1Args<GlFloat, GlVec3>, bottom: number, top: number, smoothness: number) {
+  constructor(original: GlClosure<GlFloat, [GlVec3]>, bottom: number, top: number, smoothness: number) {
     super();
     this.original = original;
     this.bottom = new GlFloat(bottom);

@@ -13,22 +13,24 @@ export function setGlUniformFloat(gl: WebGL2RenderingContext, program: WebGLProg
 }
 
 
+export interface GlAdditive {}
+
 export interface HasGlType {
   getGlTypeString(): string;
   setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void;
 }
-export interface HasGlTypeStatic {
-  new(...args :any[]): HasGlType;
-  glTypeString: string;
-  default(): HasGlType;
+export interface HasGlTypeStatic<T extends HasGlType> {
+  new(...args :any[]): T;
+  readonly glTypeString: string;
+  default(): T;
 }
 
 function staticImplements<T>() {/* class decorator */
     return <U extends T>(constructor: U) => {constructor};
 }
 
-@staticImplements<HasGlTypeStatic>()
-export class GlFloat implements HasGlType {
+@staticImplements<HasGlTypeStatic<GlFloat>>()
+export class GlFloat implements HasGlType, GlAdditive {
   static glTypeString: string = "float";
   value: number;
   constructor(value: number) {
@@ -45,8 +47,8 @@ export class GlFloat implements HasGlType {
   }
 }
 
-@staticImplements<HasGlTypeStatic>()
-export class GlInt implements HasGlType {
+@staticImplements<HasGlTypeStatic<GlInt>>()
+export class GlInt implements HasGlType, GlAdditive {
   static glTypeString: string = "int";
   value: number;
   constructor(value: number) {
@@ -63,8 +65,8 @@ export class GlInt implements HasGlType {
   }
 }
 
-@staticImplements<HasGlTypeStatic>()
-export class GlVec2 extends util.Vec2 implements HasGlType {
+@staticImplements<HasGlTypeStatic<GlVec2>>()
+export class GlVec2 extends util.Vec2 implements HasGlType, GlAdditive {
   static glTypeString: string = "vec2";
   constructor(value: util.Vec2){
     super(value[0], value[1]);
@@ -79,8 +81,8 @@ export class GlVec2 extends util.Vec2 implements HasGlType {
     setGlUniformFloat(gl, program, name, this[0], this[1]);
   }
 }
-@staticImplements<HasGlTypeStatic>()
-export class GlVec3 extends util.Vec3 implements HasGlType {
+@staticImplements<HasGlTypeStatic<GlVec3>>()
+export class GlVec3 extends util.Vec3 implements HasGlType, GlAdditive {
   static glTypeString: string = "vec3";
   constructor(value: util.Vec3){
     super(value[0], value[1], value[2]);
@@ -95,7 +97,7 @@ export class GlVec3 extends util.Vec3 implements HasGlType {
     setGlUniformFloat(gl, program, name, this[0], this[1], this[2]);
   }
 }
-@staticImplements<HasGlTypeStatic>()
+@staticImplements<HasGlTypeStatic<GlQuaternion>>()
 export class GlQuaternion extends util.Quaternion implements HasGlType {
   static glTypeString: string = "vec4";
   constructor(value: util.Quaternion){
@@ -109,5 +111,31 @@ export class GlQuaternion extends util.Quaternion implements HasGlType {
   }
   setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
     setGlUniformFloat(gl, program, name, this.xyz[0], this.xyz[1], this.xyz[2], this.w);
+  }
+}
+
+
+@staticImplements<HasGlTypeStatic<TexturePatch>>()
+export class TexturePatch implements HasGlType, GlAdditive {
+  albedo: util.Vec3;
+  roughness: number;
+  specular: number;
+  //point: util.Vec3;
+  //normal: util.Vec3;
+  static glTypeString: string = "TexturePatch";
+  static default(): TexturePatch {
+    let res: TexturePatch;
+    res.albedo = new util.Vec3(0,0,0);
+    res.roughness = 0;
+    res.specular = 0;
+    return res;
+  }
+  getGlTypeString(): string {
+    return TexturePatch.glTypeString;
+  }
+  setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
+    setGlUniformFloat(gl, program, `${name}.albedo`, this.albedo[0], this.albedo[1], this.albedo[2]);
+    setGlUniformFloat(gl, program, `${name}.roughness`, this.roughness);
+    setGlUniformFloat(gl, program, `${name}.specular`, this.specular);
   }
 }

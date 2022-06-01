@@ -1,6 +1,6 @@
 import {Vec3} from './util';
 import {GlEntity} from './gl_entity';
-import {GlClosure1Args} from './gl_closure';
+import {GlClosure} from './gl_closure';
 import {GlFloat, GlVec3} from './gl_types';
 import * as fields from './scalar_fields';
 
@@ -72,8 +72,8 @@ export class Add extends Reduce {
 }
 export class MulScalarField extends Texture {
   original: Texture;
-  scale: GlClosure1Args<GlFloat, GlVec3>;
-  constructor(original: Texture, scale: GlClosure1Args<GlFloat, GlVec3>) {
+  scale: GlClosure<GlFloat, [GlVec3]>;
+  constructor(original: Texture, scale: GlClosure<GlFloat, [GlVec3]>) {
     super();
     this.original = original;
     this.scale = scale;
@@ -101,10 +101,10 @@ export class Mean extends MulScalarField {
 
 
 export class FieldDefined extends Texture {
-  albedo: GlClosure1Args<GlVec3, GlVec3>;
-  roughness: GlClosure1Args<GlFloat, GlVec3>;
-  specular: GlClosure1Args<GlFloat, GlVec3>;
-  constructor(albedo: GlClosure1Args<GlVec3, GlVec3>, roughness: GlClosure1Args<GlFloat, GlVec3>, specular: GlClosure1Args<GlFloat, GlVec3>) {
+  albedo: GlClosure<GlVec3, [GlVec3]>;
+  roughness: GlClosure<GlFloat, [GlVec3]>;
+  specular: GlClosure<GlFloat, [GlVec3]>;
+  constructor(albedo: GlClosure<GlVec3, [GlVec3]>, roughness: GlClosure<GlFloat, [GlVec3]>, specular: GlClosure<GlFloat, [GlVec3]>) {
     super();
     this.albedo = albedo;
     this.roughness = roughness;

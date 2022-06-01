@@ -31,6 +31,23 @@ struct TexturePatch {
   vec3 normal;
 };
 
+/*types.glsl*/
+float add(float v1, float v2);
+vec2 add(vec2 v1, vec2 v2);
+vec3 add(vec3 v1, vec3 v2);
+int add(int v1, int v2);
+TexturePatch add(TexturePatch v1, TexturePatch v2);
+float mul(float scale, float v);
+vec2 mul(vec2 scale, vec2 v);
+vec3 mul(vec3 scale, vec3 v);
+int mul(float scale, int v);
+TexturePatch mul(float scale, TexturePatch v);
+vec2 mix(vec2 a, vec2 b, bool cond);
+vec3 mix(vec3 a, vec3 b, bool cond);
+int mix(int a, int b, bool cond);
+TexturePatch mix(TexturePatch a, TexturePatch b, float weight);
+TexturePatch mix(TexturePatch a, TexturePatch b, bool weight);
+
 /*util.glsl*/
 vec4 quaternion_fromDCM(mat3 dcm);
 vec4 quaternion_fromAngleAxis(float angle, vec3 axis);
@@ -40,7 +57,6 @@ vec4 quaternion_mul(vec4 q0, vec4 q1);
 vec3 quaternion_rot3(vec4 q, vec3 v);
 mat3 dcm_fromXY(vec3 x, vec3 y);
 
-int mix(int a, int b, bool cond);
 void swap(inout float v1, inout float v2);
 void swap(inout float v1, inout float v2, bool cond);
 void swap(inout int v1, inout int v2);
