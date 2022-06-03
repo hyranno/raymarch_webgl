@@ -9,23 +9,24 @@ import * as materials from '@tsgl/materials';
 import * as textures from '@tsgl/textures';
 import * as reflectances from '@tsgl/reflectances';
 import * as drawables from '@tsgl/drawables';
-import {GlVec3, GlQuaternion} from '@tsgl/gl_types';
+import {GlClosure} from '@tsgl/gl_closure';
+import {TexturePatch, GlVec3, GlQuaternion} from '@tsgl/gl_types';
 import {TimeTicks} from './event_stream';
 
 
 export class TestTexture extends textures.Constant {
-  override GlFunc_getTexturePatch(): string {return `
+  override GlFunc_get(): string {return `
     TexturePatch getTexturePatch_${this.id}(vec3 point, vec3 normal) {
       return TexturePatch(
-        albedo_${this.id} + mix(0.0,1.0, 0.5<point.x) * vec3(1, 0, 0),
-        roughness_${this.id}, specular_${this.id},
+        value_${this.id}.albedo + mix(0.0,1.0, 0.5<point.x) * vec3(1, 0, 0),
+        value_${this.id}.roughness, value_${this.id}.specular,
         point, normal
       );
     }
   `;}
 }
 export class TestTexture2 extends textures.Texture {
-  tex: textures.Texture;
+  tex: GlClosure<TexturePatch, [GlVec3, GlVec3]>;
   constructor() {
     super();
     let tex_constant = new textures.Constant(new util.Vec3(0.5,0.5,0.5), 0.7, 10);
@@ -69,7 +70,7 @@ export class TestTexture2 extends textures.Texture {
   }
   override GlFunc_getTexturePatch(): string {return `
     TexturePatch getTexturePatch_${this.id}(vec3 point, vec3 normal) {
-      return getTexturePatch_${this.tex.id}(point, normal);
+      return ${this.tex.glFuncName}(point, normal);
     }
   `;}
 }

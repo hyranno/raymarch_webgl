@@ -123,11 +123,13 @@ export class TexturePatch implements HasGlType, GlAdditive {
   //point: util.Vec3;
   //normal: util.Vec3;
   static glTypeString: string = "TexturePatch";
+  constructor(albedo: util.Vec3, roughness: number, specular: number) {
+    this.albedo = albedo;
+    this.roughness = roughness;
+    this.specular = specular;
+  }
   static default(): TexturePatch {
-    let res: TexturePatch;
-    res.albedo = new util.Vec3(0,0,0);
-    res.roughness = 0;
-    res.specular = 0;
+    let res = new TexturePatch(new util.Vec3(0,0,0), 0, 0);
     return res;
   }
   getGlTypeString(): string {

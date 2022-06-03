@@ -37,16 +37,6 @@ export class Add<A extends HasGlType & GlAdditive> extends GlClosure<A,[A,A]> {
     }
   `;}
 }
-export class MulScalar<A extends HasGlType & GlAdditive> extends GlClosure<A,[GlFloat,A]> {
-  constructor(glFuncName: string, argTypedDummy: A) {
-    super(glFuncName, argTypedDummy, [GlFloat.default(), argTypedDummy]);
-  }
-  override GlFunc_get(): string { return `
-    ${this.getGlFuncDeclaration()} {
-      return mul(v0, v1);
-    }
-  `;}
-}
 export class Mult<A extends HasGlType> extends GlClosure<A,[A,A]> {
   constructor(glFuncName: string, argTypedDummy: A) {
     super(glFuncName, argTypedDummy, [argTypedDummy, argTypedDummy]);
@@ -95,4 +85,19 @@ export class Reduce<R extends HasGlType, A extends HasGlType[]> extends GlClosur
       }
     `;
   }
+}
+export class MulScalar<R extends HasGlType, A extends (HasGlType & GlAdditive)[]> extends GlClosure<R,A> {
+  scale: GlFloat;
+  v: GlClosure<R,A>;
+  constructor(glFuncName: string, scale: number, v: GlClosure<R,A>) {
+    super(glFuncName, v.returnTypedDummy, v.argTypedDummies);
+    this.scale = new GlFloat(scale);
+    this.glUniformVars.push({name:"scale", value:this.scale});
+    this.dependentGlEntities.push(v);
+  }
+  override GlFunc_get(): string { return `
+    ${this.getGlFuncDeclaration()} {
+      return mul(scale_${this.id}, ${this.v.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}));
+    }
+  `;}
 }

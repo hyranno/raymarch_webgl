@@ -1,6 +1,7 @@
 import {GlEntity, Transform} from './gl_entity';
 import {ReflectanceDistribution} from './reflectances';
-import {Texture} from './textures';
+import {TexturePatch, GlVec3} from '@tsgl/gl_types';
+import {GlClosure} from './gl_closure';
 
 
 export interface HasMaterial {
@@ -31,9 +32,9 @@ export abstract class Material extends GlEntity implements HasMaterial {
 
 
 export class TextureReflectanceModel extends Material {
-  texture: Texture;
+  texture: GlClosure<TexturePatch, [GlVec3, GlVec3]>;
   reflectance: ReflectanceDistribution;
-  constructor(texture: Texture, reflectance: ReflectanceDistribution) {
+  constructor(texture: GlClosure<TexturePatch, [GlVec3, GlVec3]>, reflectance: ReflectanceDistribution) {
     super();
     this.texture = texture;
     this.reflectance = reflectance;
@@ -41,19 +42,19 @@ export class TextureReflectanceModel extends Material {
   }
   override GlFunc_calcAmbient(): string { return `
     vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
-      TexturePatch t = getTexturePatch_${this.texture.id}(point, normal);
+      TexturePatch t = ${this.texture.glFuncName}(point, normal);
       return calcAmbient_${this.reflectance.id}(t, intensity, view);
     }
   `;}
   override GlFunc_calcDiffuse(): string { return `
     vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      TexturePatch t = getTexturePatch_${this.texture.id}(point, normal);
+      TexturePatch t = ${this.texture.glFuncName}(point, normal);
       return calcDiffuse_${this.reflectance.id}(t, photon, view);
     }
   `;}
   override GlFunc_calcSpecular(): string { return `
     vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      TexturePatch t = getTexturePatch_${this.texture.id}(point, normal);
+      TexturePatch t = ${this.texture.glFuncName}(point, normal);
       return calcSpecular_${this.reflectance.id}(t, photon, view);
     }
   `;}

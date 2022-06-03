@@ -62,7 +62,10 @@ Texture
   GlType
     TexturePatch
   TextureのGlClosure対応
+    各所の Texture を GlClosure<TexturePatch, [GlVec3, GlVec3]> に置き換える
+    GlClosure::glFuncName を使うよう改める
   TransformはGlTypeか?
+    transform_, inverse_ を coord_transform, coord_inverse に置き換え
   GlClosureの利用
     Transform
       transformAsClosure: GlClosure<GlVec3, GlVec3>
@@ -81,7 +84,6 @@ Texture
   util.glsl swapをマクロで宣言+定義
 
 リファクタリング(対処が分かり次第)
-  GlClosure0Args, GlClosure1Args, GlClosure2Args,... をまとめたい
   Simplex.neighborsあたりなんかバグありそう
 
 マクロ vs TypeScript
