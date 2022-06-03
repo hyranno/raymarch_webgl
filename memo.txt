@@ -59,17 +59,11 @@ Texture
     GlClosure<Vec3, Vec3>
 
 リファクタリング
-  GlType
-    TexturePatch
-  TextureのGlClosure対応
-    各所の Texture を GlClosure<TexturePatch, [GlVec3, GlVec3]> に置き換える
-    GlClosure::glFuncName を使うよう改める
-  TransformはGlTypeか?
-    transform_, inverse_ を coord_transform, coord_inverse に置き換え
-  GlClosureの利用
-    Transform
-      transformAsClosure: GlClosure<GlVec3, GlVec3>
-      inverseAsClosure: GlClosure<GlVec3, GlVec3>
+  Displace
+    GlClosure<GlVec3, GlVec3> を取る
+  Transformed を Displace に
+    GlClosure_transform: GlClosure<GlVec3, GlVec3>
+    GlClosure_inverse: GlClosure<GlVec3, GlVec3>
   Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
     GlVec3なども同様
     ReturnType<typeof this>?

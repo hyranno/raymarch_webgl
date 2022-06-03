@@ -141,3 +141,36 @@ export class TexturePatch implements HasGlType, GlAdditive {
     setGlUniformFloat(gl, program, `${name}.specular`, this.specular);
   }
 }
+
+@staticImplements<HasGlTypeStatic<Transform>>()
+export class Transform implements HasGlType {
+  scale: number;
+  rotation: util.Quaternion;
+  translate: util.Vec3;
+  static glTypeString: string = "Transform";
+  constructor(scale: number, rotation: util.Quaternion, translate: util.Vec3) {
+    this.scale = scale;
+    this.rotation = rotation;
+    this.translate = translate;
+  }
+  static default(): Transform {
+    let res = new Transform(1, util.Quaternion.identity(), new util.Vec3(0,0,0));
+    return res;
+  }
+  getGlTypeString(): string {
+    return Transform.glTypeString;
+  }
+  setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
+    setGlUniformFloat(gl, program, `${name}.scale`, this.scale);
+    setGlUniformFloat(gl, program, `${name}.rotation`, this.rotation.xyz[0], this.rotation.xyz[1], this.rotation.xyz[2], this.rotation.w);
+    setGlUniformFloat(gl, program, `${name}.translate`, this.translate[0], this.translate[1], this.translate[2]);
+  }
+  transform(p: util.Vec3): util.Vec3 {
+    let res: util.Vec3 = p.clone();
+    return res.mul(this.scale).rotate(this.rotation).add(this.translate);
+  }
+  inverse(p: util.Vec3): util.Vec3 {
+    let res: util.Vec3 = p.add(this.translate.negative()).rotate(this.rotation.inverse()).mul(1/this.scale);
+    return res;
+  }
+}

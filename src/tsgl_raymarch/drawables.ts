@@ -1,5 +1,5 @@
 import {Vec3} from './util';
-import {GlFloat, GlVec3} from './gl_types';
+import {GlFloat, GlVec3, Transform} from './gl_types';
 import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
@@ -75,7 +75,7 @@ export class MaterializedShape extends Drawable {
 }
 
 export class Transformed extends MaterializedShape {
-  constructor(original: Drawable, transform: glEntities.Transform){
+  constructor(original: Drawable, transform: Transform){
     super(
       new shapes.Transformed(original, transform),
       new materials.Transformed(original, transform)

@@ -1,9 +1,8 @@
 import * as util from './util';
 import {GlRandom} from './random';
-import {Transform} from './gl_entity';
 import {GlClosure} from './gl_closure';
 import * as glClosure from './gl_closure';
-import {GlInt, GlFloat, GlVec3} from './gl_types';
+import {GlInt, GlFloat, GlVec3, Transform} from './gl_types';
 
 export abstract class ScalarField extends GlClosure<GlFloat, [GlVec3]> {
   constructor(){
@@ -48,10 +47,11 @@ export class Transformed extends ScalarField {
     super();
     this.original = original;
     this.transform = transform;
-    this.dependentGlEntities.push(original, transform);
+    this.glUniformVars.push({name:"transform", value:transform});
+    this.dependentGlEntities.push(original);
   }
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
-    return get_${this.original.id}( inverse_${this.transform.id}(point) );
+    return get_${this.original.id}( coord_inverse(transform_${this.id}(point) );
   }`;}
 }
 

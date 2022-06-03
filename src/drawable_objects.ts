@@ -10,7 +10,7 @@ import * as textures from '@tsgl/textures';
 import * as reflectances from '@tsgl/reflectances';
 import * as drawables from '@tsgl/drawables';
 import {GlClosure} from '@tsgl/gl_closure';
-import {TexturePatch, GlVec3, GlQuaternion} from '@tsgl/gl_types';
+import {TexturePatch, GlVec3, GlQuaternion, Transform} from '@tsgl/gl_types';
 import {TimeTicks} from './event_stream';
 
 
@@ -86,7 +86,7 @@ export class CornellBox extends drawables.Group {
             new reflectances.Phong()
           )
         ),
-        new glEntities.Transform(1, util.Quaternion.identity(), new util.Vec3(0,2,0))
+        new Transform(1, util.Quaternion.identity(), new util.Vec3(0,2,0))
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
@@ -96,7 +96,7 @@ export class CornellBox extends drawables.Group {
             new reflectances.Phong()
           )
         ),
-        new glEntities.Transform(1, util.Quaternion.identity(), new util.Vec3(0,-2,0))
+        new Transform(1, util.Quaternion.identity(), new util.Vec3(0,-2,0))
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
@@ -106,7 +106,7 @@ export class CornellBox extends drawables.Group {
             new reflectances.Phong()
           )
         ),
-        new glEntities.Transform(1, util.Quaternion.identity(), new util.Vec3(0,0,-2))
+        new Transform(1, util.Quaternion.identity(), new util.Vec3(0,0,-2))
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
@@ -116,7 +116,7 @@ export class CornellBox extends drawables.Group {
             new reflectances.Phong()
           )
         ),
-        new glEntities.Transform(1, util.Quaternion.identity(), new util.Vec3(2,0,0))
+        new Transform(1, util.Quaternion.identity(), new util.Vec3(2,0,0))
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
@@ -126,7 +126,7 @@ export class CornellBox extends drawables.Group {
             new reflectances.Phong()
           )
         ),
-        new glEntities.Transform(1, util.Quaternion.identity(), new util.Vec3(-2,0,0))
+        new Transform(1, util.Quaternion.identity(), new util.Vec3(-2,0,0))
       ),
     ];
     super(walls);
@@ -151,7 +151,7 @@ export class OrbitingSphere extends drawables.Transformed {
       sphere, //shape,
       material
     );
-    let transform = new glEntities.Transform(1, util.Quaternion.identity(), new util.Vec3(3,0,0));
+    let transform = new Transform(1, util.Quaternion.identity(), new util.Vec3(3,0,0));
     super(drawable, transform);
     t.addEventListener(()=>{
       transform.translate = new GlVec3( transform.translate.rotate(util.Quaternion.fromAngleAxis(Math.PI/30, new util.Vec3(0,1,0))) );
@@ -171,7 +171,7 @@ export class RotatingRoundedCube extends drawables.Transformed {
       ),
       new shapes.Transformed(
         new shapes.Box(new util.Vec3(1,1,1)),
-        new glEntities.Transform( 0.2, util.Quaternion.fromAngleAxis(0, new util.Vec3(1,0,0)), new util.Vec3(0.4,0.7,0.3) )
+        new Transform( 0.2, util.Quaternion.fromAngleAxis(0, new util.Vec3(1,0,0)), new util.Vec3(0.4,0.7,0.3) )
       ),
       0.1
     );
@@ -182,7 +182,7 @@ export class RotatingRoundedCube extends drawables.Transformed {
         new reflectances.Phong()
       )
     );
-    let transform = new glEntities.Transform(
+    let transform = new Transform(
       1,
       util.Quaternion.fromSrcDest((new util.Vec3(1,1,1)).normalize(), new util.Vec3(0,1,0)),
       new util.Vec3(0,0,0)
@@ -206,7 +206,7 @@ export class SwingBox extends drawables.BumpMap {
   constructor(t: TimeTicks) {
     let shape = new shapes.Transformed(
       new shapes.Box(new util.Vec3(1,1,0.01)),
-      new glEntities.Transform(
+      new Transform(
         3,
         util.Quaternion.identity(),
         new util.Vec3(0,0,0)

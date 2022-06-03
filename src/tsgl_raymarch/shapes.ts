@@ -1,6 +1,6 @@
 import {Vec3, smoothmax, smoothmin, clamp} from './util';
-import {GlEntity, Transform} from './gl_entity';
-import {GlFloat, GlVec3} from './gl_types';
+import {GlEntity} from './gl_entity';
+import {GlFloat, GlVec3, Transform} from './gl_types';
 
 export interface HasShape {
   getDistance(point: Vec3): number;
@@ -51,17 +51,18 @@ export class Transformed extends Shape3D {
     super();
     this.original = original;
     this.transform = transform;
-    this.dependentGlEntities.push(original, transform);
+    this.glUniformVars.push({name:"transform", value:transform});
+    this.dependentGlEntities.push(original);
   }
   override getDistance(point: Vec3): number {
     let p = this.transform.inverse(point);
     let d = this.original.getDistance(p);
-    return d * this.transform.scale.value;
+    return d * this.transform.scale;
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
-      float d = getDistance_${this.original.id}( inverse_${this.transform.id}(point) );
-      return d * transformParams_${this.transform.id}.scale;
+      float d = getDistance_${this.original.id}( coord_inverse(transform_${this.id}, point) );
+      return d * transform_${this.id}.scale;
     }`;
   }
 }

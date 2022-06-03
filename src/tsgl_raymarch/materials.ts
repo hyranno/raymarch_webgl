@@ -1,6 +1,6 @@
-import {GlEntity, Transform} from './gl_entity';
+import {GlEntity} from './gl_entity';
 import {ReflectanceDistribution} from './reflectances';
-import {TexturePatch, GlVec3} from '@tsgl/gl_types';
+import {TexturePatch, GlVec3, Transform} from '@tsgl/gl_types';
 import {GlClosure} from './gl_closure';
 
 
@@ -68,33 +68,34 @@ export class Transformed extends Material {
     super();
     this.original = original;
     this.transform = transform;
-    this.dependentGlEntities.push(original, transform);
+    this.glUniformVars.push({name:"transform", value:transform});
+    this.dependentGlEntities.push(original);
   }
   GlFunc_calcAmbient(): string {
     return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
-      vec3 t_point = inverse_${this.transform.id}(point);
-      vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
-      Ray t_view = inverse_${this.transform.id}(view);
+      vec3 t_point = coord_inverse(transform_${this.id}, point);
+      vec3 t_normal = quaternion_rot3(quaternion_inverse(transform_${this.id}.rotation), normal);
+      Ray t_view = coord_inverse(transform_${this.id}, view);
       return calcAmbient_${this.original.id}(t_point, t_normal, intensity, t_view);
     }`;
   }
   GlFunc_calcDiffuse(): string {
     return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      vec3 t_point = inverse_${this.transform.id}(point);
-      vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
+      vec3 t_point = coord_inverse(transform_${this.id}, point);
+      vec3 t_normal = quaternion_rot3(quaternion_inverse(transform_${this.id}.rotation), normal);
       Photon t_photon = photon;
-      t_photon.ray = inverse_${this.transform.id}(photon.ray);
-      Ray t_view = inverse_${this.transform.id}(view);
+      t_photon.ray = coord_inverse(transform_${this.id}, photon.ray);
+      Ray t_view = coord_inverse(transform_${this.id}, view);
       return calcDiffuse_${this.original.id}(t_point, t_normal, t_photon, t_view);
     }`;
   }
   GlFunc_calcSpecular(): string {
     return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      vec3 t_point = inverse_${this.transform.id}(point);
-      vec3 t_normal = quaternion_rot3(quaternion_inverse(transformParams_${this.transform.id}.rotation), normal);
+      vec3 t_point = coord_inverse(transform_${this.id}, point);
+      vec3 t_normal = quaternion_rot3(quaternion_inverse(transform_${this.id}.rotation), normal);
       Photon t_photon = photon;
-      t_photon.ray = inverse_${this.transform.id}(photon.ray);
-      Ray t_view = inverse_${this.transform.id}(view);
+      t_photon.ray = coord_inverse(transform_${this.id}, photon.ray);
+      Ray t_view = coord_inverse(transform_${this.id}, view);
       return calcSpecular_${this.original.id}(t_point, t_normal, t_photon, t_view);
     }`;
   }

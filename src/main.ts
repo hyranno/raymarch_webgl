@@ -1,5 +1,5 @@
 import {GlRenderer} from '@tsgl/gl_renderer';
-import {Transform} from '@tsgl/gl_entity';
+import {Transform} from '@tsgl/gl_types';
 import {Vec2, Vec3, Quaternion} from '@tsgl/util';
 import * as drawables from '@tsgl/drawables';
 import * as lights from '@tsgl/lights';

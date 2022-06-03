@@ -1,6 +1,6 @@
 import * as util from './util';
-import {GlEntity, Transform} from './gl_entity';
-import {GlFloat} from './gl_types';
+import {GlEntity} from './gl_entity';
+import {GlFloat, Transform} from './gl_types';
 import * as shapes from './shapes';
 import * as rand from './random';
 
