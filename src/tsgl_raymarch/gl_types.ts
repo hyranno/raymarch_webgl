@@ -12,6 +12,17 @@ export function setGlUniformFloat(gl: WebGL2RenderingContext, program: WebGLProg
   f[values.length-1].call(gl, location, values);
 }
 
+export type TsTupleType<T> =
+  T extends [infer U, ...infer V] ? [TsType<U>, ...TsTupleType<V>] : [];
+
+export type TsType<T> =
+  T extends GlFloat ? number :
+  T extends GlInt ? number :
+  T extends GlVec2 ? util.Vec2 :
+  T extends GlVec3 ? util.Vec3 :
+  T extends GlQuaternion ? util.Quaternion :
+  T extends Transform ? Transform :
+  never;
 
 export interface GlAdditive {}
 

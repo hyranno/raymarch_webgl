@@ -59,6 +59,12 @@ Texture
     GlClosure<Vec3, Vec3>
 
 リファクタリング
+  GlType -> TsType
+    type TsType<T> = T extends GlFloat ? number : never; とか
+    タプルにも対応したい [infer U, ...infer V] とか可変長型引数?
+  HeteroTsGlClosure extends GlClosure
+    GlClosure + 対応するTypescript関数
+    shapeで使う
   Displace
     GlClosure<GlVec3, GlVec3> を取る
   Transformed を Displace に

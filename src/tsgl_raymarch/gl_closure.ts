@@ -1,5 +1,5 @@
 import {GlEntity} from './gl_entity';
-import {HasGlType, GlAdditive, GlFloat} from './gl_types';
+import {HasGlType, GlAdditive, GlFloat, TsType, TsTupleType} from './gl_types';
 
 
 export abstract class GlClosure<R extends HasGlType, A extends HasGlType[]> extends GlEntity {
@@ -26,6 +26,12 @@ export abstract class GlClosure<R extends HasGlType, A extends HasGlType[]> exte
   abstract GlFunc_get(): string;
 }
 
+export abstract class HeteroTsGlClosure<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A> {
+  abstract tsClosure(args: TsTupleType<A>): TsType<R>;
+  constructor(glFuncName: string, returnTypedDummy: R, argTypedDummies: A) {
+    super(glFuncName, returnTypedDummy, argTypedDummies);
+  }
+}
 
 export class Add<A extends HasGlType & GlAdditive> extends GlClosure<A,[A,A]> {
   constructor(glFuncName: string, argTypedDummy: A) {

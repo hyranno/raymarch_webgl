@@ -1,5 +1,4 @@
-import {Vec3, Quaternion} from './util';
-import {HasGlType, GlFloat, GlVec3, GlQuaternion} from './gl_types';
+import {HasGlType} from './gl_types';
 
 export abstract class GlEntity {
   static nextId = 0;
