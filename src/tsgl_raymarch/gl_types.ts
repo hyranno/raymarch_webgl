@@ -24,7 +24,10 @@ export type TsType<T> =
   T extends Transform ? Transform :
   never;
 
-export interface GlAdditive {}
+export interface GlAdditive {
+  add(v: ReturnType<typeof this>): ReturnType<typeof this>;
+  mul(scale: number): ReturnType<typeof this>;
+}
 
 export interface HasGlType {
   getGlTypeString(): string;
@@ -35,7 +38,6 @@ export interface HasGlTypeStatic<T extends HasGlType> {
   readonly glTypeString: string;
   default(): T;
 }
-
 function staticImplements<T>() {/* class decorator */
     return <U extends T>(constructor: U) => {constructor};
 }
@@ -46,6 +48,12 @@ export class GlFloat implements HasGlType, GlAdditive {
   value: number;
   constructor(value: number) {
     this.value = value;
+  }
+  add(v: GlFloat): GlFloat {
+    return new GlFloat(this.value + v.value);
+  }
+  mul(scale: number): GlFloat {
+    return new GlFloat(this.value * scale);
   }
   static default(): GlFloat {
     return new GlFloat(0);
@@ -65,6 +73,12 @@ export class GlInt implements HasGlType, GlAdditive {
   constructor(value: number) {
     this.value = value;
   }
+  add(v: GlInt): GlInt {
+    return new GlInt(this.value + v.value);
+  }
+  mul(scale: number): GlInt {
+    return new GlInt(this.value * scale);
+  }
   static default(): GlInt {
     return new GlInt(0);
   }
@@ -77,10 +91,17 @@ export class GlInt implements HasGlType, GlAdditive {
 }
 
 @staticImplements<HasGlTypeStatic<GlVec2>>()
-export class GlVec2 extends util.Vec2 implements HasGlType, GlAdditive {
+export class GlVec2 implements HasGlType, GlAdditive {
   static glTypeString: string = "vec2";
+  value: util.Vec2;
   constructor(value: util.Vec2){
-    super(value[0], value[1]);
+    this.value = value;
+  }
+  add(v: GlVec2): GlVec2 {
+    return new GlVec2(this.value.add(v.value));
+  }
+  mul(scale: number): GlVec2 {
+    return new GlVec2(this.value.mul(scale));
   }
   static default(): GlVec2 {
     return new GlVec2(new util.Vec2(0,0));
@@ -89,14 +110,21 @@ export class GlVec2 extends util.Vec2 implements HasGlType, GlAdditive {
     return GlVec2.glTypeString;
   }
   setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
-    setGlUniformFloat(gl, program, name, this[0], this[1]);
+    setGlUniformFloat(gl, program, name, this.value[0], this.value[1]);
   }
 }
 @staticImplements<HasGlTypeStatic<GlVec3>>()
-export class GlVec3 extends util.Vec3 implements HasGlType, GlAdditive {
+export class GlVec3 implements HasGlType, GlAdditive {
   static glTypeString: string = "vec3";
+  value: util.Vec3;
   constructor(value: util.Vec3){
-    super(value[0], value[1], value[2]);
+    this.value = value;
+  }
+  add(v: GlVec3): GlVec3 {
+    return new GlVec3(this.value.add(v.value));
+  }
+  mul(scale: number): GlVec3 {
+    return new GlVec3(this.value.mul(scale));
   }
   static default(): GlVec3 {
     return new GlVec3(new util.Vec3(0,0,0));
@@ -105,14 +133,15 @@ export class GlVec3 extends util.Vec3 implements HasGlType, GlAdditive {
     return GlVec3.glTypeString;
   }
   setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
-    setGlUniformFloat(gl, program, name, this[0], this[1], this[2]);
+    setGlUniformFloat(gl, program, name, this.value[0], this.value[1], this.value[2]);
   }
 }
 @staticImplements<HasGlTypeStatic<GlQuaternion>>()
-export class GlQuaternion extends util.Quaternion implements HasGlType {
+export class GlQuaternion implements HasGlType {
   static glTypeString: string = "vec4";
+  value: util.Quaternion;
   constructor(value: util.Quaternion){
-    super(value.xyz, value.w);
+    this.value = value;
   }
   static default(): GlQuaternion{
     return new GlQuaternion(util.Quaternion.identity());
@@ -121,7 +150,7 @@ export class GlQuaternion extends util.Quaternion implements HasGlType {
     return GlQuaternion.glTypeString;
   }
   setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
-    setGlUniformFloat(gl, program, name, this.xyz[0], this.xyz[1], this.xyz[2], this.w);
+    setGlUniformFloat(gl, program, name, this.value.xyz[0], this.value.xyz[1], this.value.xyz[2], this.value.w);
   }
 }
 
@@ -138,6 +167,12 @@ export class TexturePatch implements HasGlType, GlAdditive {
     this.albedo = albedo;
     this.roughness = roughness;
     this.specular = specular;
+  }
+  add(v: TexturePatch): TexturePatch {
+    return new TexturePatch(this.albedo.add(v.albedo), this.roughness + v.roughness, this.specular + v.specular);
+  }
+  mul(scale: number): TexturePatch {
+    return new TexturePatch(this.albedo.mul(scale), this.roughness*scale, this.specular*scale);
   }
   static default(): TexturePatch {
     let res = new TexturePatch(new util.Vec3(0,0,0), 0, 0);

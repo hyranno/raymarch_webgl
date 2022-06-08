@@ -1,6 +1,7 @@
 import {Vec3, smoothmax, smoothmin, clamp} from './util';
 import {GlEntity} from './gl_entity';
 import {GlFloat, GlVec3, Transform} from './gl_types';
+import {TsGlClosure} from './tsgl_closure';
 
 export interface HasShape {
   getDistance(point: Vec3): number;
@@ -78,7 +79,7 @@ export class Box extends Shape3D {
   }
   override getDistance(point: Vec3): number {
     let p_abs = point.map((v)=>Math.abs(v));
-    let diff = p_abs.add(this.size.negative());
+    let diff = p_abs.add(this.size.value.negative());
     let positive = diff.map((v)=>Math.max(v,0)).len();
     let negative = Math.min(0, Math.max(diff[0], diff[1], diff[2]));
     return positive + negative;

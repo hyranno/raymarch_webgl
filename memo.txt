@@ -11,9 +11,13 @@ npm run build
 最終的に何を出力するか
   Proceduralな生成の強みは
   Blenderのモディファイアを使った表現を参考に
-  鉄橋, レンガ橋
-  繰り返しの装飾
-  無限長
+  レンガ橋
+    Voronoi, VoronoiEdge, noise
+    繰り返しの装飾
+      柵
+        モルタル
+        穴や彫刻
+    無限長
 
 
 TODO
@@ -52,27 +56,26 @@ soooooon:
 後で必要になりそうなもの
 Texture
   Reduce
-    GlClosure<A,A,A>
+    GlClosure<A,[A,A]>
   Map
-    GlClosure<A, A>
-  Displace
-    GlClosure<Vec3, Vec3>
+    GlClosure<A, [A]>
+  Displacement
+    GlClosure<GlVec3, [GlVec3]>
 
 リファクタリング
-  GlType -> TsType
-    type TsType<T> = T extends GlFloat ? number : never; とか
-    タプルにも対応したい [infer U, ...infer V] とか可変長型引数?
-  HeteroTsGlClosure extends GlClosure
-    GlClosure + 対応するTypescript関数
-    shapeで使う
-  Displace
-    GlClosure<GlVec3, GlVec3> を取る
-  Transformed を Displace に
-    GlClosure_transform: GlClosure<GlVec3, GlVec3>
-    GlClosure_inverse: GlClosure<GlVec3, GlVec3>
-  Simplex3Coordの継承メソッドがSimplex3Coordを返すようにしたい
-    GlVec3なども同様
-    ReturnType<typeof this>?
+  Map, Displacement, Reduce をGlClosureを使って表現したい
+    shape
+      shape has signedDistanceFunction: TsGlClosure<GlFloat, [GlVec3]>
+      Map
+        Bloated, Hollowed
+      Displacement
+        Repetition, RepetitionInf
+      Reduce
+        BooleanOp, SmoothBooleanOp
+    Transformed を Displace に
+      GlClosure_transform: GlClosure<GlVec3, GlVec3>
+      GlClosure_inverse: GlClosure<GlVec3, GlVec3>
+  Simplex3Coordを委譲にする
   hash32を取るとき、saltを与える?
   NormalMap, BumpMap は material では
   NormalMapはVec3Fieldを取る?
@@ -85,6 +88,8 @@ Texture
 
 リファクタリング(対処が分かり次第)
   Simplex.neighborsあたりなんかバグありそう
+  GlClosureを型引数によってTsGlClosure化したい
+  GlAdditiveの正しい型付け
 
 マクロ vs TypeScript
   配列の長さごとに宣言/定義してるやつをマクロにする?

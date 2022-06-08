@@ -1,33 +1,15 @@
-import {GlEntity} from './gl_entity';
-import {HasGlType, GlAdditive, GlFloat, GlInt} from './gl_types';
+import {GlClosure} from './gl_closure';
+import {HasGlType, GlAdditive, GlFloat} from './gl_types';
 
 
-export abstract class GlClosure<R extends HasGlType, A extends HasGlType[]> extends GlEntity {
-  readonly argTypedDummies: A;
-  readonly returnTypedDummy: R;
-  readonly glFuncName: string;
+export abstract class TsGlClosure<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A>{
   constructor(glFuncName: string, returnTypedDummy: R, argTypedDummies: A) {
-    super();
-    this.returnTypedDummy = returnTypedDummy;
-    this.argTypedDummies = argTypedDummies;
-    this.glFuncName = `${glFuncName}_${this.id}`;
+    super(glFuncName, returnTypedDummy, argTypedDummies);
   }
-  getGlFuncDeclaration(): string { return `
-    ${this.returnTypedDummy.getGlTypeString()} ${this.glFuncName}(${this.argTypedDummies.map((v,i)=>`${v.getGlTypeString()} v${i}`).join(",")})
-  `;}
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    ${this.getGlFuncDeclaration()};
-  `;}
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
-    ${this.GlFunc_get()}
-  `;}
-  abstract GlFunc_get(): string;
+  abstract tsClosure(args: A): R; //(args: TsTupleType<A>): TsType<R>;
 }
 
-
-export class Add<A extends HasGlType & GlAdditive> extends GlClosure<A,[A,A]> {
+export class Add<A extends HasGlType & GlAdditive> extends TsGlClosure<A,[A,A]> {
   constructor(glFuncName: string, argTypedDummy: A) {
     super(glFuncName, argTypedDummy, [argTypedDummy, argTypedDummy]);
   }
@@ -36,19 +18,12 @@ export class Add<A extends HasGlType & GlAdditive> extends GlClosure<A,[A,A]> {
       return add(v0, v1);
     }
   `;}
-}
-export class Mult<A extends (GlFloat | GlInt)> extends GlClosure<A,[A,A]> {
-  constructor(glFuncName: string, argTypedDummy: A) {
-    super(glFuncName, argTypedDummy, [argTypedDummy, argTypedDummy]);
+  override tsClosure(args: [A,A]): A {
+    return args[0].add(args[1]);
   }
-  override GlFunc_get(): string { return `
-    ${this.getGlFuncDeclaration()} {
-      return v0 * v1;
-    }
-  `;}
 }
 
-export class Constant<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A> {
+export class Constant<R extends HasGlType, A extends HasGlType[]> extends TsGlClosure<R,A> {
   value: R;
   constructor(glFuncName: string, value: R, argTypedDummies: A) {
     super(glFuncName, value, argTypedDummies);
@@ -60,12 +35,16 @@ export class Constant<R extends HasGlType, A extends HasGlType[]> extends GlClos
       return value_${this.id};
     }
   `;}
+  override tsClosure(_:A): R {
+    return this.value;
+  }
 }
-export class Reduce<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A> {
-  lhs: GlClosure<R, A>;
-  rhs: GlClosure<R, A>[];
-  reducer: GlClosure<R,[R,R]>;
-  constructor(glFuncName: string, reducer: GlClosure<R,[R,R]>, lhs: GlClosure<R,A>, rhs: GlClosure<R,A>[]) {
+
+export class Reduce<R extends HasGlType, A extends HasGlType[]> extends TsGlClosure<R,A> {
+  lhs: TsGlClosure<R, A>;
+  rhs: TsGlClosure<R, A>[];
+  reducer: TsGlClosure<R,[R,R]>;
+  constructor(glFuncName: string, reducer: TsGlClosure<R,[R,R]>, lhs: TsGlClosure<R,A>, rhs: TsGlClosure<R,A>[]) {
     super(glFuncName, lhs.returnTypedDummy, lhs.argTypedDummies);
     this.lhs = lhs;
     this.rhs = rhs;
@@ -85,11 +64,17 @@ export class Reduce<R extends HasGlType, A extends HasGlType[]> extends GlClosur
       }
     `;
   }
+  override tsClosure(args: A): R {
+    let res = this.lhs.tsClosure(args);
+    this.rhs.forEach((c)=>{res = this.reducer.tsClosure([res, c.tsClosure(args)])});
+    return res;
+  }
 }
-export class MulScalar<R extends HasGlType & GlAdditive, A extends HasGlType[]> extends GlClosure<R,A> {
+
+export class MulScalar<R extends HasGlType & GlAdditive, A extends HasGlType[]> extends TsGlClosure<R,A> {
   scale: GlFloat;
-  v: GlClosure<R,A>;
-  constructor(glFuncName: string, scale: number, v: GlClosure<R,A>) {
+  v: TsGlClosure<R,A>;
+  constructor(glFuncName: string, scale: number, v: TsGlClosure<R,A>) {
     super(glFuncName, v.returnTypedDummy, v.argTypedDummies);
     this.scale = new GlFloat(scale);
     this.v = v;
@@ -101,12 +86,15 @@ export class MulScalar<R extends HasGlType & GlAdditive, A extends HasGlType[]> 
       return mul(scale_${this.id}, ${this.v.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}));
     }
   `;}
+  override tsClosure(args: A): R {
+    return this.v.tsClosure(args).mul(this.scale.value);
+  }
 }
 
-export class Map<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A> {
-  original: GlClosure<R,A>;
-  mapper: GlClosure<R,[R]>;
-  constructor(glFuncName: string, original: GlClosure<R,A>, mapper: GlClosure<R,[R]>) {
+export class Map<R extends HasGlType, A extends HasGlType[]> extends TsGlClosure<R,A> {
+  original: TsGlClosure<R,A>;
+  mapper: TsGlClosure<R,[R]>;
+  constructor(glFuncName: string, original: TsGlClosure<R,A>, mapper: TsGlClosure<R,[R]>) {
     super(glFuncName, original.returnTypedDummy, original.argTypedDummies);
     this.original = original;
     this.mapper = mapper;
@@ -117,11 +105,14 @@ export class Map<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R
       return ${this.mapper.glFuncName}( ${this.original.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}) );
     }
   `;}
+  override tsClosure(args: A): R {
+    return this.mapper.tsClosure( [this.original.tsClosure(args)] );
+  }
 }
-export class Displacement<R extends HasGlType, A extends HasGlType> extends GlClosure<R,[A]> {
-  original: GlClosure<R,[A]>;
-  displacer: GlClosure<A,[A]>;
-  constructor(glFuncName: string, original: GlClosure<R,[A]>, displacer: GlClosure<A,[A]>) {
+export class Displacement<R extends HasGlType, A extends HasGlType> extends TsGlClosure<R,[A]> {
+  original: TsGlClosure<R,[A]>;
+  displacer: TsGlClosure<A,[A]>;
+  constructor(glFuncName: string, original: TsGlClosure<R,[A]>, displacer: TsGlClosure<A,[A]>) {
     super(glFuncName, original.returnTypedDummy, original.argTypedDummies);
     this.original = original;
     this.displacer = displacer;
@@ -132,4 +123,7 @@ export class Displacement<R extends HasGlType, A extends HasGlType> extends GlCl
       return ${this.original.glFuncName}( ${this.displacer.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}) );
     }
   `;}
+  override tsClosure(args: [A]): R {
+    return this.original.tsClosure( [this.displacer.tsClosure(args)] );
+  }
 }
