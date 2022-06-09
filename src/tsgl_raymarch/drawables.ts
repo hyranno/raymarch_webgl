@@ -1,9 +1,8 @@
 import {Vec3} from './util';
-import {GlFloat, GlVec3, Transform} from './gl_types';
+import {Transform} from './gl_types';
 import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
-import {GlClosure} from './gl_closure';
 
 export abstract class Drawable extends glEntities.GlEntity implements shapes.HasShape, materials.HasMaterial {
   abstract GlFunc_calcAmbient(): string;

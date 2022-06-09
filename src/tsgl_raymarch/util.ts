@@ -335,7 +335,8 @@ export class Mat3 {
 }
 
 
-export class Simplex3Coord extends Vec3 {
+export class Simplex3Coord {
+  value: Vec3;
   static basis = Mat3.fromCols([
     new Vec3(+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0),
     new Vec3(+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0),
@@ -347,6 +348,9 @@ export class Simplex3Coord extends Vec3 {
     .add(Simplex3Coord.basis.getCol(1))
     .add(Simplex3Coord.basis.getCol(2))
   ).mul(1/4);
+  constructor(x:number, y:number, z:number) {
+    this.value = new Vec3(x,y,z);
+  }
   static asSimplex3Coord(v: Vec3): Simplex3Coord {
     return new Simplex3Coord(v[0], v[1], v[2]);
   }
@@ -354,13 +358,16 @@ export class Simplex3Coord extends Vec3 {
     return Simplex3Coord.asSimplex3Coord( Simplex3Coord.invBasis.mul3x1(v) );
   }
   toOrthogonal(): Vec3 {
-    return Simplex3Coord.basis.mul3x1(this);
+    return Simplex3Coord.basis.mul3x1(this.value);
   }
-  override len(): number {
+  len(): number {
     return this.toOrthogonal().len();
   }
+  add(v: Simplex3Coord): Simplex3Coord {
+    return Simplex3Coord.asSimplex3Coord(this.value.add(v.value));
+  }
   round(): Simplex3Coord {
-    let r = this.rounds().map((e) => Simplex3Coord.asSimplex3Coord(e));
+    let r = this.value.rounds().map((e) => Simplex3Coord.asSimplex3Coord(e));
     let n = r.reduce((prev, current) => (
       current.toOrthogonal().add(this.toOrthogonal().negative()).len() < prev.toOrthogonal().add(this.toOrthogonal().negative()).len()
     ) ? current : prev);
@@ -370,19 +377,19 @@ export class Simplex3Coord extends Vec3 {
     let center = this.round();
     return [
       center,
-      center.add( new Vec3(+1, 0, 0) ),
-      center.add( new Vec3( 0,+1, 0) ),
-      center.add( new Vec3( 0, 0,+1) ),
-      center.add( new Vec3(-1, 0, 0) ),
-      center.add( new Vec3( 0,-1, 0) ),
-      center.add( new Vec3( 0, 0,-1) ),
-      center.add( new Vec3(+1,-1, 0) ),
-      center.add( new Vec3(+1, 0,-1) ),
-      center.add( new Vec3(-1,+1, 0) ),
-      center.add( new Vec3( 0,+1,-1) ),
-      center.add( new Vec3(-1, 0,+1) ),
-      center.add( new Vec3( 0,-1,+1) )
-    ].map((v)=>Simplex3Coord.asSimplex3Coord(v));
+      center.add( new Simplex3Coord(+1, 0, 0) ),
+      center.add( new Simplex3Coord( 0,+1, 0) ),
+      center.add( new Simplex3Coord( 0, 0,+1) ),
+      center.add( new Simplex3Coord(-1, 0, 0) ),
+      center.add( new Simplex3Coord( 0,-1, 0) ),
+      center.add( new Simplex3Coord( 0, 0,-1) ),
+      center.add( new Simplex3Coord(+1,-1, 0) ),
+      center.add( new Simplex3Coord(+1, 0,-1) ),
+      center.add( new Simplex3Coord(-1,+1, 0) ),
+      center.add( new Simplex3Coord( 0,+1,-1) ),
+      center.add( new Simplex3Coord(-1, 0,+1) ),
+      center.add( new Simplex3Coord( 0,-1,+1) )
+    ];
   }
 }
 

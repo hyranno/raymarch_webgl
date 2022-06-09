@@ -194,9 +194,9 @@ describe('Simplex3Coord', () => {
     let vx = util.Simplex3Coord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), +Math.sin(Math.PI/6.0), 0));
     let vy = util.Simplex3Coord.fromOrthogonal(new util.Vec3(+Math.cos(Math.PI/6.0), -Math.sin(Math.PI/6.0), 0));
     let vz = util.Simplex3Coord.fromOrthogonal(new util.Vec3(Math.sqrt(1.0/3.0), 0, Math.sqrt(2.0/3.0)));
-    Vec3CloseTo(vx, new util.Vec3(1,0,0));
-    Vec3CloseTo(vy, new util.Vec3(0,1,0));
-    Vec3CloseTo(vz, new util.Vec3(0,0,1));
+    Vec3CloseTo(vx.value, new util.Vec3(1,0,0));
+    Vec3CloseTo(vy.value, new util.Vec3(0,1,0));
+    Vec3CloseTo(vz.value, new util.Vec3(0,0,1));
   });
   test('toOrthogonal', () => {
     let v = new util.Vec3(1,2,3);

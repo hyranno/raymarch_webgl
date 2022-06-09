@@ -33,7 +33,7 @@ export class SpheresRand extends shapes.Shape3D {
   override getDistance(point: util.Vec3): number {
     let tetraCoord = util.Simplex3Coord.fromOrthogonal(point);
     let tetraIndices = tetraCoord.neighbors();
-    let distances = tetraIndices.map((i) => this.getSphereDistance(point, util.Simplex3Coord.asSimplex3Coord(i)));
+    let distances = tetraIndices.map((i) => this.getSphereDistance(point, i));
     return distances.reduce((prev,current) => Math.min(prev, current));
   }
   GlFunc_getDistance(): string {return `

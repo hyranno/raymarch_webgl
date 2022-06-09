@@ -62,16 +62,13 @@ GLSLの最適化
       動かす用のJSで読み込む
 
 リファクタリング
-  Simplex3Coordを委譲にする
-  Coordination
-    Polar
-      radius, yaw, pitch
-    Simplex
-      x, y, z
   util.glsl swapをマクロで宣言+定義
 
-リファクタリング(対処が分かり次第)
+リファクタリング(そのうち)
+  shapeFBM
   hash32を取るとき、saltを与える?
+
+リファクタリング(対処が分かり次第)
   Simplex.neighborsあたりなんかバグありそう
   GlClosureを型引数によってTsGlClosure化したい
   GlAdditiveの正しい型付け
