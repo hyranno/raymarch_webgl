@@ -57,10 +57,11 @@ vec4 quaternion_mul(vec4 q0, vec4 q1);
 vec3 quaternion_rot3(vec4 q, vec3 v);
 mat3 dcm_fromXY(vec3 x, vec3 y);
 
-void swap(inout float v1, inout float v2);
-void swap(inout float v1, inout float v2, bool cond);
-void swap(inout int v1, inout int v2);
-void swap(inout int v1, inout int v2, bool cond);
+#define DECLARE_SWAP(TYPE) \
+  void swap(inout TYPE v1, inout TYPE v2);\
+  void swap(inout TYPE v1, inout TYPE v2, bool cond);
+DECLARE_SWAP(float)
+DECLARE_SWAP(int)
 
 float blend(float v1, float v2, bool isMin, float smoothness, float weight);
 float smoothmin(float v1, float v2, float smoothness);

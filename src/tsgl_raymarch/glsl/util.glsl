@@ -119,26 +119,17 @@ vec3 hsv2rgb(vec3 hsv) {
 }
 
 
-
-void swap(inout float v1, inout float v2) {
-  float t = v1;
-  v1 = v2;
-  v2 = t;
-}
-void swap(inout float v1, inout float v2, bool cond) {
-  float t1 = mix(v1, v2, cond);
-  float t2 = mix(v2, v1, cond);
-  v1 = t1;
-  v2 = t2;
-}
-void swap(inout int v1, inout int v2) {
-  int t = v1;
-  v1 = v2;
-  v2 = t;
-}
-void swap(inout int v1, inout int v2, bool cond) {
-  int t1 = mix(v1, v2, cond);
-  int t2 = mix(v2, v1, cond);
-  v1 = t1;
-  v2 = t2;
-}
+#define IMPLEMENT_SWAP(TYPE) \
+  void swap(inout TYPE v1, inout TYPE v2) {\
+    TYPE t = v1;\
+    v1 = v2;\
+    v2 = t;\
+  }\
+  void swap(inout TYPE v1, inout TYPE v2, bool cond) {\
+    TYPE t1 = mix(v1, v2, cond);\
+    TYPE t2 = mix(v2, v1, cond);\
+    v1 = t1;\
+    v2 = t2;\
+  }
+IMPLEMENT_SWAP(float)
+IMPLEMENT_SWAP(int)
