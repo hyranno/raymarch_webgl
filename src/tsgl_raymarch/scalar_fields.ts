@@ -2,6 +2,7 @@ import * as util from './util';
 import {GlRandom} from './random';
 import {GlClosure} from './gl_closure';
 import * as glClosure from './gl_closure';
+import * as tsglClosure from './tsgl_closure';
 import {GlInt, GlFloat, GlVec3, Transform} from './gl_types';
 
 export abstract class ScalarField extends GlClosure<GlFloat, [GlVec3]> {
@@ -24,6 +25,11 @@ export class Mult extends glClosure.Reduce<GlFloat, [GlVec3]> {
     super("get", new glClosure.Mult("mul", GlFloat.default()), lhs, rhs);
   }
 }
+export class Transformed extends glClosure.Displacement<GlFloat, GlVec3> {
+  constructor(original: GlClosure<GlFloat, [GlVec3]>, transform: Transform) {
+    super("get", original, new tsglClosure.InverseTransform(transform));
+  }
+}
 
 export class CircularyZeroSum extends ScalarField {
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
@@ -40,20 +46,6 @@ export class SphericalyZeroSum extends ScalarField {
   }`;}
 }
 
-export class Transformed extends ScalarField {
-  original: GlClosure<GlFloat, [GlVec3]>;
-  transform: Transform;
-  constructor(original: GlClosure<GlFloat, [GlVec3]>, transform: Transform) {
-    super();
-    this.original = original;
-    this.transform = transform;
-    this.glUniformVars.push({name:"transform", value:transform});
-    this.dependentGlEntities.push(original);
-  }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
-    return get_${this.original.id}( coord_inverse(transform_${this.id}(point) );
-  }`;}
-}
 
 export class Random extends ScalarField {
   rand: GlRandom;

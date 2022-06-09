@@ -94,29 +94,6 @@ export class FromSdfClosure extends Shape3D {
   `;}
 }
 
-export class Transformed extends Shape3D {
-  original: GlEntity & HasShape;
-  transform: Transform;
-  constructor(original: GlEntity & HasShape, transform: Transform) {
-    super();
-    this.original = original;
-    this.transform = transform;
-    this.glUniformVars.push({name:"transform", value:transform});
-    this.dependentGlEntities.push(original);
-  }
-  override getDistance(point: Vec3): number {
-    let p = this.transform.inverse(point);
-    let d = this.original.getDistance(p);
-    return d * this.transform.scale;
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      float d = getDistance_${this.original.id}( coord_inverse(transform_${this.id}, point) );
-      return d * transform_${this.id}.scale;
-    }`;
-  }
-}
-
 export class Box extends Shape3D {
   size: GlVec3;
   constructor(size: Vec3) {
@@ -274,6 +251,11 @@ export class Displacement extends FromSdfClosure {
   }
 }
 
+export class Transformed extends Displacement {
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, transform: Transform) {
+    super(original, new tsgl_closure.InverseTransform(transform));
+  }
+}
 export class RepetitionInf extends Displacement {
   interval: GlVec3;
   constructor(original: TsGlClosure<GlFloat, [GlVec3]>, interval: Vec3) {

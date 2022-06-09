@@ -77,7 +77,7 @@ export class MaterializedShape extends Drawable {
 export class Transformed extends MaterializedShape {
   constructor(original: Drawable, transform: Transform){
     super(
-      new shapes.Transformed(original, transform),
+      new shapes.Transformed(new shapes.Shape3DWrapper(original), transform),
       new materials.Transformed(original, transform)
     );
   }

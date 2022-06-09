@@ -1,5 +1,6 @@
 import {GlClosure} from './gl_closure';
-import {HasGlType, GlAdditive, GlFloat} from './gl_types';
+import {HasGlType, GlAdditive} from './gl_types';
+import * as glType from './gl_types';
 
 
 export abstract class TsGlClosure<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A>{
@@ -84,11 +85,11 @@ export class Reduce<R extends HasGlType, A extends HasGlType[]> extends TsGlClos
 }
 
 export class MulScalar<R extends HasGlType & GlAdditive, A extends HasGlType[]> extends TsGlClosure<R,A> {
-  scale: GlFloat;
+  scale: glType.GlFloat;
   v: TsGlClosure<R,A>;
   constructor(glFuncName: string, scale: number, v: TsGlClosure<R,A>) {
     super(glFuncName, v.returnTypedDummy, v.argTypedDummies);
-    this.scale = new GlFloat(scale);
+    this.scale = new glType.GlFloat(scale);
     this.v = v;
     this.glUniformVars.push({name:"scale", value:this.scale});
     this.dependentGlEntities.push(v);
@@ -137,5 +138,38 @@ export class Displacement<R extends HasGlType, A extends HasGlType> extends TsGl
   `;}
   override tsClosure(args: [A]): R {
     return this.original.tsClosure( [this.displacer.tsClosure(args)] );
+  }
+}
+
+export class Transform extends TsGlClosure<glType.GlVec3, [glType.GlVec3]> {
+  transform: glType.Transform;
+  constructor(transform: glType.Transform) {
+    super("transform", glType.GlVec3.default(), [glType.GlVec3.default()]);
+    this.transform = transform;
+    this.glUniformVars.push({name:"transformParams", value:this.transform});
+  }
+  override GlFunc_get(): string { return `
+    ${this.getGlFuncDeclaration()} {
+      return coord_transform(transformParams_${this.id}, v0);
+    }
+  `;}
+  override tsClosure([point]: [glType.GlVec3]): glType.GlVec3 {
+    return new glType.GlVec3(this.transform.transform(point.value));
+  }
+}
+export class InverseTransform extends TsGlClosure<glType.GlVec3, [glType.GlVec3]> {
+  transform: glType.Transform;
+  constructor(transform: glType.Transform) {
+    super("transform", glType.GlVec3.default(), [glType.GlVec3.default()]);
+    this.transform = transform;
+    this.glUniformVars.push({name:"transformParams", value:this.transform});
+  }
+  override GlFunc_get(): string { return `
+    ${this.getGlFuncDeclaration()} {
+      return coord_inverse(transformParams_${this.id}, v0);
+    }
+  `;}
+  override tsClosure([point]: [glType.GlVec3]): glType.GlVec3 {
+    return new glType.GlVec3(this.transform.inverse(point.value));
   }
 }

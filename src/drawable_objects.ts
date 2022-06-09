@@ -176,7 +176,7 @@ export class RotatingRoundedCube extends drawables.Transformed {
       0.1
     );
     let org = new drawables.MaterializedShape(
-      shape, //new shapes.Bloated( new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(0.4,0.4,0.4)) ), 0.3 ), //shape,
+      new shapes.Bloated( new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(0.4,0.4,0.4)) ), 0.3 ), //shape,
       new materials.TextureReflectanceModel(
         new TestTexture(new util.Vec3(0,1,0), 0.8, 20),
         new reflectances.Phong()
@@ -204,13 +204,14 @@ class SinX extends fields.ScalarField {
 }
 export class SwingBox extends drawables.BumpMap {
   constructor(t: TimeTicks) {
+    let transform = new Transform(
+      3,
+      util.Quaternion.identity(),
+      new util.Vec3(0,0,0)
+    );
     let shape = new shapes.Transformed(
       new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,0.01)) ),
-      new Transform(
-        3,
-        util.Quaternion.identity(),
-        new util.Vec3(0,0,0)
-      )
+      transform
     );
     let material = new materials.TextureReflectanceModel(
       new TestTexture2(),
@@ -231,7 +232,7 @@ export class SwingBox extends drawables.BumpMap {
     );
     super(d, bump);
     t.addEventListener(()=>{
-      shape.transform.translate = new util.Vec3(0,0, 2*Math.sin(Date.now()/1000/2));
+      transform.translate = new util.Vec3(0,0, 2*Math.sin(Date.now()/1000/2));
     });
   }
 }

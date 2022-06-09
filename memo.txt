@@ -53,21 +53,22 @@ soooooon:
     波のGPUシミュレーション
 
 
-後で必要になりそうなもの
-Texture
-  Reduce
-  Map
-  Displacement
+GLSLの最適化
+  pragmaとか最適化オプションを入れられんか
+  glsl-optimizerはオフライン
+    webpackから呼んだりできるならアリか
+      GLSLを吐く用のJSを用意
+      glsl-optimize-loader
+      動かす用のJSで読み込む
 
 リファクタリング
   Map, Displacement, Reduce をGlClosureを使って表現したい
     Transformed を Displace に
-      TsGlClosure_transform: TsGlClosure<GlVec3, GlVec3>
-      TsGlClosure_inverse: TsGlClosure<GlVec3, GlVec3>
-  Simplex3Coordを委譲にする
-  hash32を取るとき、saltを与える?
+      scalar_fields
+      shapes
   NormalMap, BumpMap は material では
   NormalMapはVec3Fieldを取る?
+  Simplex3Coordを委譲にする
   Coordination
     Polar
       radius, yaw, pitch
@@ -76,6 +77,7 @@ Texture
   util.glsl swapをマクロで宣言+定義
 
 リファクタリング(対処が分かり次第)
+  hash32を取るとき、saltを与える?
   Simplex.neighborsあたりなんかバグありそう
   GlClosureを型引数によってTsGlClosure化したい
   GlAdditiveの正しい型付け
