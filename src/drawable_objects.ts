@@ -80,7 +80,7 @@ export class CornellBox extends drawables.Group {
     let walls = [
       new drawables.Transformed(
         new drawables.MaterializedShape(
-          new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,1)) ),
+          new shapes.Box(new util.Vec3(1,1,1)),
           new materials.TextureReflectanceModel(
             new textures.Constant(new util.Vec3(1,1,1), 0.5, 5),
             new reflectances.Phong()
@@ -90,7 +90,7 @@ export class CornellBox extends drawables.Group {
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
-          new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,1)) ),
+          new shapes.Box(new util.Vec3(1,1,1)),
           new materials.TextureReflectanceModel(
             new textures.Constant(new util.Vec3(1,1,1), 0.5, 5),
             new reflectances.Phong()
@@ -100,7 +100,7 @@ export class CornellBox extends drawables.Group {
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
-          new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,1)) ),
+        new shapes.Box(new util.Vec3(1,1,1)),
           new materials.TextureReflectanceModel(
             new textures.Constant(new util.Vec3(1,1,1), 0.5, 5),
             new reflectances.Phong()
@@ -110,7 +110,7 @@ export class CornellBox extends drawables.Group {
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
-          new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,1)) ),
+          new shapes.Box(new util.Vec3(1,1,1)),
           new materials.TextureReflectanceModel(
             new textures.Constant(new util.Vec3(0,1,0), 0.5, 5),
             new reflectances.Phong()
@@ -120,7 +120,7 @@ export class CornellBox extends drawables.Group {
       ),
       new drawables.Transformed(
         new drawables.MaterializedShape(
-          new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,1)) ),
+          new shapes.Box(new util.Vec3(1,1,1)),
           new materials.TextureReflectanceModel(
             new textures.Constant(new util.Vec3(1,0,0), 0.5, 5),
             new reflectances.Phong()
@@ -135,7 +135,7 @@ export class CornellBox extends drawables.Group {
 
 export class OrbitingSphere extends drawables.Transformed {
   constructor(t: TimeTicks) {
-    let sphere = new shapes.FromSdfClosure( new shapes.Sphere() );
+    let sphere = new shapes.Sphere();
     let shape = new shapes.BoundingShape(
       new shapeFBM.SubtractBrownianMotion(
         sphere, new rand.Constant(0.5), 0.3, 0.1, 0.5
@@ -162,21 +162,21 @@ export class RotatingRoundedCube extends drawables.Transformed {
   constructor(t: TimeTicks) {
     let shape = new shapes.SmoothUnion(
       new shapes.SmoothSubtraction(
-        new shapes.Bloated( new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(0.4,0.4,0.4)) ), 0.3 ),
+        new shapes.Bloated( new shapes.Box(new util.Vec3(0.4,0.4,0.4)), 0.3 ),
         [new shapes.Repetition(
-          new shapes.Hollowed(new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(0.06,0.06,2)) ), 0.01),
+          new shapes.Hollowed(new shapes.Box(new util.Vec3(0.06,0.06,2)), 0.01),
           new util.Vec3(0.3,0.3,1), new util.Vec3(1,1,0)
         )],
         0.1
       ),
       [new shapes.Transformed(
-        new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,1)) ),
+        new shapes.Box(new util.Vec3(1,1,1)),
         new Transform( 0.2, util.Quaternion.fromAngleAxis(0, new util.Vec3(1,0,0)), new util.Vec3(0.4,0.7,0.3) )
       )],
       0.1
     );
     let org = new drawables.MaterializedShape(
-      new shapes.Bloated( new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(0.4,0.4,0.4)) ), 0.3 ), //shape,
+      new shapes.Bloated(new shapes.Box(new util.Vec3(0.4,0.4,0.4)), 0.3 ), //shape,
       new materials.TextureReflectanceModel(
         new TestTexture(new util.Vec3(0,1,0), 0.8, 20),
         new reflectances.Phong()
@@ -202,7 +202,7 @@ class SinX extends fields.ScalarField {
     return 0.01*sin(5.0*point.x);
   }`;}
 }
-export class SwingBox extends drawables.BumpMap {
+export class SwingBox extends drawables.MaterializedShape {
   constructor(t: TimeTicks) {
     let transform = new Transform(
       3,
@@ -210,14 +210,9 @@ export class SwingBox extends drawables.BumpMap {
       new util.Vec3(0,0,0)
     );
     let shape = new shapes.Transformed(
-      new shapes.FromSdfClosure( new shapes.Box(new util.Vec3(1,1,0.01)) ),
+      new shapes.Box(new util.Vec3(1,1,0.01)),
       transform
     );
-    let material = new materials.TextureReflectanceModel(
-      new TestTexture2(),
-      new reflectances.Phong()
-    );
-    let d = new drawables.MaterializedShape(shape, material);
     let bump = new fields.Mult(
       new fields.SmoothClamp(
         new fields.Add(
@@ -230,7 +225,13 @@ export class SwingBox extends drawables.BumpMap {
         -0.5, 0, 0.2
       ), [new fields.Constant(0.05)]
     );
-    super(d, bump);
+    let material = new materials.BumpMap(
+      new materials.TextureReflectanceModel(
+        new TestTexture2(),
+        new reflectances.Phong()
+      ), bump
+    );
+    super(shape, material);
     t.addEventListener(()=>{
       transform.translate = new util.Vec3(0,0, 2*Math.sin(Date.now()/1000/2));
     });

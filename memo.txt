@@ -62,12 +62,6 @@ GLSLの最適化
       動かす用のJSで読み込む
 
 リファクタリング
-  Map, Displacement, Reduce をGlClosureを使って表現したい
-    Transformed を Displace に
-      scalar_fields
-      shapes
-  NormalMap, BumpMap は material では
-  NormalMapはVec3Fieldを取る?
   Simplex3Coordを委譲にする
   Coordination
     Polar
