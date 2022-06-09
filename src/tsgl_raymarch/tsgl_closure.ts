@@ -9,6 +9,18 @@ export abstract class TsGlClosure<R extends HasGlType, A extends HasGlType[]> ex
   abstract tsClosure(args: A): R; //(args: TsTupleType<A>): TsType<R>;
 }
 
+export class Anonymous<R extends HasGlType, A extends HasGlType[]> extends TsGlClosure<R,A> {
+  constructor(glFuncName: string, returnTypedDummy: R, argTypedDummies: A, tsClosure: (args:A)=>R, glFuncBody: ()=>string) {
+    super(glFuncName, returnTypedDummy, argTypedDummies);
+    this.tsClosure = tsClosure;
+    this.GlFunc_get = ()=>{
+      return this.getGlFuncDeclaration() + glFuncBody()
+    };
+  }
+  tsClosure: (args: A)=>R;
+  GlFunc_get: ()=>string;
+}
+
 export class Add<A extends HasGlType & GlAdditive> extends TsGlClosure<A,[A,A]> {
   constructor(glFuncName: string, argTypedDummy: A) {
     super(glFuncName, argTypedDummy, [argTypedDummy, argTypedDummy]);

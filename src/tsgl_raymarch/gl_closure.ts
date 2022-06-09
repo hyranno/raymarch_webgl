@@ -26,6 +26,15 @@ export abstract class GlClosure<R extends HasGlType, A extends HasGlType[]> exte
   abstract GlFunc_get(): string;
 }
 
+export class Anonymous<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A> {
+  constructor(glFuncName: string, returnTypedDummy: R, argTypedDummies: A, glFuncBody: ()=>string) {
+    super(glFuncName, returnTypedDummy, argTypedDummies);
+    this.GlFunc_get = ()=>{
+      return this.getGlFuncDeclaration() + glFuncBody()
+    };
+  }
+  GlFunc_get: ()=>string;
+}
 
 export class Add<A extends HasGlType & GlAdditive> extends GlClosure<A,[A,A]> {
   constructor(glFuncName: string, argTypedDummy: A) {

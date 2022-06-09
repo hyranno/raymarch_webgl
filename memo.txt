@@ -56,25 +56,14 @@ soooooon:
 後で必要になりそうなもの
 Texture
   Reduce
-    GlClosure<A,[A,A]>
   Map
-    GlClosure<A, [A]>
   Displacement
-    GlClosure<GlVec3, [GlVec3]>
 
 リファクタリング
   Map, Displacement, Reduce をGlClosureを使って表現したい
-    shape
-      shape has signedDistanceFunction: TsGlClosure<GlFloat, [GlVec3]>
-      Map
-        Bloated, Hollowed
-      Displacement
-        Repetition, RepetitionInf
-      Reduce
-        BooleanOp, SmoothBooleanOp
     Transformed を Displace に
-      GlClosure_transform: GlClosure<GlVec3, GlVec3>
-      GlClosure_inverse: GlClosure<GlVec3, GlVec3>
+      TsGlClosure_transform: TsGlClosure<GlVec3, GlVec3>
+      TsGlClosure_inverse: TsGlClosure<GlVec3, GlVec3>
   Simplex3Coordを委譲にする
   hash32を取るとき、saltを与える?
   NormalMap, BumpMap は material では
@@ -90,6 +79,8 @@ Texture
   Simplex.neighborsあたりなんかバグありそう
   GlClosureを型引数によってTsGlClosure化したい
   GlAdditiveの正しい型付け
+  type parameter からその型のstaticメンバにアクセスしたい
+    GlClosureのtypedDummyあたり
 
 マクロ vs TypeScript
   配列の長さごとに宣言/定義してるやつをマクロにする?

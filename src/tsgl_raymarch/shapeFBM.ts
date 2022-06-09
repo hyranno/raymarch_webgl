@@ -1,6 +1,7 @@
 import * as util from './util';
 import {GlEntity} from './gl_entity';
-import {GlFloat, Transform} from './gl_types';
+import {GlFloat, GlVec3, Transform} from './gl_types';
+import {TsGlClosure} from './tsgl_closure';
 import * as shapes from './shapes';
 import * as rand from './random';
 
@@ -62,7 +63,7 @@ export class HullSpheres extends shapes.Shape3D {
   spheres: shapes.Transformed;
   smoothness: GlFloat;
   weight: GlFloat;
-  constructor(original: GlEntity & shapes.HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number){
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number){
     super();
     this.hull = new shapes.Hollowed(original, scale);
     this.spheres = new shapes.Transformed(
@@ -95,9 +96,9 @@ export class HullSpheres extends shapes.Shape3D {
 
 export class BlendBrownianMotion extends shapes.Shape3D {
   isUnion: boolean;
-  original: GlEntity & shapes.HasShape;
+  original: shapes.Shape3D;
   brownianMotion: HullSpheres;
-  constructor(original: GlEntity & shapes.HasShape, isUnion: boolean, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
+  constructor(original: shapes.Shape3D, isUnion: boolean, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
     super();
     this.isUnion = isUnion;
     this.original = original;
@@ -121,12 +122,12 @@ export class BlendBrownianMotion extends shapes.Shape3D {
 }
 
 export class UnionBrownianMotion extends BlendBrownianMotion {
-  constructor(original: GlEntity & shapes.HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
+  constructor(original: shapes.Shape3D, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
     super(original, true, randGen, scale, smoothness, weight);
   }
 }
 export class SubtractBrownianMotion extends BlendBrownianMotion {
-  constructor(original: GlEntity & shapes.HasShape, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
+  constructor(original: shapes.Shape3D, randGen: rand.GlRandom, scale: number, smoothness: number, weight: number) {
     super(original, false, randGen, scale, smoothness, weight);
   }
 }

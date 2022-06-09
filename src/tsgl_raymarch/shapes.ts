@@ -2,6 +2,7 @@ import {Vec3, smoothmax, smoothmin, clamp} from './util';
 import {GlEntity} from './gl_entity';
 import {GlFloat, GlVec3, Transform} from './gl_types';
 import {TsGlClosure} from './tsgl_closure';
+import * as tsgl_closure from './tsgl_closure';
 
 export interface HasShape {
   getDistance(point: Vec3): number;
@@ -9,10 +10,18 @@ export interface HasShape {
   getNormal(point: Vec3): Vec3;
   GlFunc_getNormal(): string;
 }
-export abstract class Shape3D extends GlEntity implements HasShape {
+export abstract class Shape3D extends GlEntity implements HasShape, TsGlClosure<GlFloat, [GlVec3]> {
+  abstract getDistance(point: Vec3): number;
+  abstract GlFunc_getDistance(): string;
   constructor() {
     super();
+    this.argTypedDummies = [GlVec3.default()];
+    this.returnTypedDummy = GlFloat.default();
+    this.glFuncName = `getDistance_${this.id}`;
   }
+  readonly argTypedDummies: [GlVec3];
+  readonly returnTypedDummy: GlFloat;
+  readonly glFuncName: string;
   override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     float getDistance_${this.id} (vec3 point);
@@ -23,8 +32,6 @@ export abstract class Shape3D extends GlEntity implements HasShape {
     ${this.GlFunc_getDistance()}
     ${this.GlFunc_getNormal()}
   `;}
-  abstract getDistance(point: Vec3): number;
-  abstract GlFunc_getDistance(): string; //float getDistance_${this.id} (vec3 point);
   getNormal(point: Vec3): Vec3 {
     const EPS = 0.0001;
     let v: Vec3 = new Vec3(
@@ -43,6 +50,48 @@ export abstract class Shape3D extends GlEntity implements HasShape {
       ));
     }`;
   }
+  getGlFuncDeclaration(): string { return `
+    float getDistance_${this.id} (vec3 point)
+  `;}
+  tsClosure([point]: [GlVec3]): GlFloat {
+    return new GlFloat(this.getDistance(point.value));
+  }
+  GlFunc_get(): string {
+    return this.GlFunc_getDistance();
+  }
+}
+
+export class Shape3DWrapper extends Shape3D {
+  original: GlEntity & HasShape;
+  constructor(original: GlEntity & HasShape) {
+    super();
+    this.original = original;
+    this.dependentGlEntities.push(original);
+  }
+  getDistance(point: Vec3): number {
+    return this.original.getDistance(point);
+  }
+  GlFunc_getDistance(): string {return `
+    float getDistance_${this.id}(vec3 point) {
+      return getDistance_${this.original.id}(point);
+    }
+  `;}
+}
+export class FromSdfClosure extends Shape3D {
+  signedDistanceFunction: TsGlClosure<GlFloat, [GlVec3]>;
+  constructor(signedDistanceFunction: TsGlClosure<GlFloat, [GlVec3]>) {
+    super();
+    this.signedDistanceFunction = signedDistanceFunction;
+    this.dependentGlEntities.push(signedDistanceFunction);
+  }
+  getDistance(point: Vec3): number {
+    return this.signedDistanceFunction.tsClosure( [new GlVec3(point)] ).value;
+  }
+  GlFunc_getDistance(): string{ return `
+    float getDistance_${this.id}(vec3 point) {
+      return ${this.signedDistanceFunction.glFuncName}(point);
+    }
+  `;}
 }
 
 export class Transformed extends Shape3D {
@@ -106,198 +155,172 @@ export class Sphere extends Shape3D {
   }
 }
 
-export class Bloated extends Shape3D {
-  original: GlEntity & HasShape;
+export class Map extends FromSdfClosure {
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, mapper: TsGlClosure<GlFloat, [GlFloat]>) {
+    let map = new tsgl_closure.Map(`getDistance`, original, mapper);
+    super(map);
+  }
+}
+
+export class Bloated extends Map {
   radius: GlFloat;
-  constructor(original: GlEntity & HasShape, radius: number) {
-    super();
-    this.original = original;
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, radius: number) {
+    let mapper: TsGlClosure<GlFloat, [GlFloat]> = new tsgl_closure.Anonymous(
+      `map`, GlFloat.default(), [GlFloat.default()],
+      ([distance]: [GlFloat]) => new GlFloat(distance.value - this.radius.value),
+      () => `{return v0 - radius_${this.id};}`
+    );
+    super(original, mapper);
     this.radius = new GlFloat(radius);
-    this.dependentGlEntities.push(original);
     this.glUniformVars.push({name:"radius", value:this.radius});
   }
-  override getDistance(point: Vec3): number {
-    return this.original.getDistance(point) - this.radius.value;
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return getDistance_${this.original.id}(point) - radius_${this.id};
-    }`;
-  }
 }
-
-export class Hollowed extends Shape3D {
-  original: GlEntity & HasShape;
+export class Hollowed extends Map {
   thickness: GlFloat;
-  constructor(original: GlEntity & HasShape, thickness: number) {
-    super();
-    this.original = original;
-    this.thickness = new GlFloat(thickness);
-    this.dependentGlEntities.push(original);
-    this.glUniformVars.push(
-      {name: "thickness", value: this.thickness},
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, thickness: number) {
+    let mapper: TsGlClosure<GlFloat, [GlFloat]> = new tsgl_closure.Anonymous(
+      `map`, GlFloat.default(), [GlFloat.default()],
+      ([distance]: [GlFloat]) => new GlFloat(Math.abs(distance.value) - this.thickness.value),
+      () => `{return abs(v0) - thickness_${this.id};}`
     );
-  }
-  override getDistance(point: Vec3): number {
-    return Math.abs(this.original.getDistance(point)) - this.thickness.value;
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return abs(getDistance_${this.original.id}(point)) - thickness_${this.id};
-    }`;
+    super(original, mapper);
+    this.thickness = new GlFloat(thickness);
+    this.glUniformVars.push({name:"thickness", value:this.thickness});
   }
 }
 
-export abstract class BooleanOp extends Shape3D {
-  shape1: GlEntity & HasShape;
-  shape2: GlEntity & HasShape;
-  constructor(shape1: GlEntity & HasShape, shape2: GlEntity & HasShape) {
-    super();
-    this.shape1 = shape1;
-    this.shape2 = shape2;
-    this.dependentGlEntities.push(shape1, shape2);
-  }
-}
-export class Union extends BooleanOp {
-  override getDistance(point: Vec3): number {
-    return Math.min( this.shape1.getDistance(point), this.shape2.getDistance(point) );
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return min( getDistance_${this.shape1.id}(point), getDistance_${this.shape2.id}(point) );
-    }`;
-  }
-}
-export class Subtraction extends BooleanOp {
-  override getDistance(point: Vec3): number {
-    return Math.max( this.shape1.getDistance(point), -this.shape2.getDistance(point) );
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return max( getDistance_${this.shape1.id}(point), -getDistance_${this.shape2.id}(point) );
-    }`;
-  }
-}
-export class Intersection extends BooleanOp {
-  override getDistance(point: Vec3): number {
-    return Math.max( this.shape1.getDistance(point), this.shape2.getDistance(point) );
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return max( getDistance_${this.shape1.id}(point), getDistance_${this.shape2.id}(point) );
-    }`;
-  }
-}
 
-export abstract class SmoothBooleanOp extends BooleanOp {
+export class Reduce extends FromSdfClosure {
+  constructor(reducer: TsGlClosure<GlFloat, [GlFloat, GlFloat]>, lhs: TsGlClosure<GlFloat, [GlVec3]>, rhs: TsGlClosure<GlFloat, [GlVec3]>[]) {
+    let reduce = new tsgl_closure.Reduce(`getDistance`, reducer, lhs, rhs);
+    super(reduce);
+  }
+}
+export class Union extends Reduce {
+  constructor(lhs: TsGlClosure<GlFloat, [GlVec3]>, rhs: TsGlClosure<GlFloat, [GlVec3]>[]) {
+    let reducer: TsGlClosure<GlFloat, [GlFloat, GlFloat]> = new tsgl_closure.Anonymous(
+      `reduce`, GlFloat.default(), [GlFloat.default(), GlFloat.default()],
+      (args: [GlFloat, GlFloat]) => new GlFloat( Math.min(args[0].value, args[1].value) ),
+      () => `{return min(v0, v1);}`
+    );
+    super(reducer, lhs, rhs);
+  }
+}
+export class Subtraction extends Reduce {
+  constructor(lhs: TsGlClosure<GlFloat, [GlVec3]>, rhs: TsGlClosure<GlFloat, [GlVec3]>[]) {
+    let reducer: TsGlClosure<GlFloat, [GlFloat, GlFloat]> = new tsgl_closure.Anonymous(
+      `reduce`, GlFloat.default(), [GlFloat.default(), GlFloat.default()],
+      (args: [GlFloat, GlFloat]) => new GlFloat( Math.max(args[0].value, -args[1].value) ),
+      () => `{return max(v0, -v1);}`
+    );
+    super(reducer, lhs, rhs);
+  }
+}
+export class Intersection extends Reduce {
+  constructor(lhs: TsGlClosure<GlFloat, [GlVec3]>, rhs: TsGlClosure<GlFloat, [GlVec3]>[]) {
+    let reducer: TsGlClosure<GlFloat, [GlFloat, GlFloat]> = new tsgl_closure.Anonymous(
+      `reduce`, GlFloat.default(), [GlFloat.default(), GlFloat.default()],
+      (args: [GlFloat, GlFloat]) => new GlFloat( Math.max(args[0].value, args[1].value) ),
+      () => `{return max(v0, v1);}`
+    );
+    super(reducer, lhs, rhs);
+  }
+}
+export class SmoothUnion extends Reduce {
   smoothness: GlFloat;
-  constructor(shape1: GlEntity & HasShape, shape2: GlEntity & HasShape, smoothness: number) {
-    super(shape1, shape2);
+  constructor(lhs: TsGlClosure<GlFloat, [GlVec3]>, rhs: TsGlClosure<GlFloat, [GlVec3]>[], smoothness: number) {
+    let reducer: TsGlClosure<GlFloat, [GlFloat, GlFloat]> = new tsgl_closure.Anonymous(
+      `reduce`, GlFloat.default(), [GlFloat.default(), GlFloat.default()],
+      (args: [GlFloat, GlFloat]) => new GlFloat( smoothmin(args[0].value, args[1].value, this.smoothness.value) ),
+      () => `{return smoothmin(v0, v1, smoothness_${this.id});}`
+    );
+    super(reducer, lhs, rhs);
     this.smoothness = new GlFloat(smoothness);
     this.glUniformVars.push({name:"smoothness", value:this.smoothness});
   }
 }
-export class SmoothUnion extends SmoothBooleanOp {
-  override getDistance(point: Vec3): number {
-    return smoothmin( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness.value );
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return smoothmin( getDistance_${this.shape1.id}(point), getDistance_${this.shape2.id}(point), smoothness_${this.id} );
-    }`;
-  }
-}
-export class SmoothSubtraction extends SmoothBooleanOp {
-  override getDistance(point: Vec3): number {
-    return smoothmax( this.shape1.getDistance(point), -this.shape2.getDistance(point), this.smoothness.value );
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return smoothmax( getDistance_${this.shape1.id}(point), -getDistance_${this.shape2.id}(point), smoothness_${this.id} );
-    }`;
+export class SmoothSubtraction extends Reduce {
+  smoothness: GlFloat;
+  constructor(lhs: TsGlClosure<GlFloat, [GlVec3]>, rhs: TsGlClosure<GlFloat, [GlVec3]>[], smoothness: number) {
+    let reducer: TsGlClosure<GlFloat, [GlFloat, GlFloat]> = new tsgl_closure.Anonymous(
+      `reduce`, GlFloat.default(), [GlFloat.default(), GlFloat.default()],
+      (args: [GlFloat, GlFloat]) => new GlFloat( smoothmax(args[0].value, -args[1].value, this.smoothness.value) ),
+      () => `{return smoothmax(v0, -v1, smoothness_${this.id});}`
+    );
+    super(reducer, lhs, rhs);
+    this.smoothness = new GlFloat(smoothness);
+    this.glUniformVars.push({name:"smoothness", value:this.smoothness});
   }
 }
-export class SmoothIntersection extends SmoothBooleanOp {
-  override getDistance(point: Vec3): number {
-    return smoothmax( this.shape1.getDistance(point), this.shape2.getDistance(point), this.smoothness.value );
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return smoothmax( getDistance_${this.shape1.id}(point), getDistance_${this.shape2.id}(point), smoothness_${this.id} );
-    }`;
+export class SmoothIntersection extends Reduce {
+  smoothness: GlFloat;
+  constructor(lhs: TsGlClosure<GlFloat, [GlVec3]>, rhs: TsGlClosure<GlFloat, [GlVec3]>[], smoothness: number) {
+    let reducer: TsGlClosure<GlFloat, [GlFloat, GlFloat]> = new tsgl_closure.Anonymous(
+      `reduce`, GlFloat.default(), [GlFloat.default(), GlFloat.default()],
+      (args: [GlFloat, GlFloat]) => new GlFloat( smoothmax(args[0].value, args[1].value, this.smoothness.value) ),
+      () => `{return smoothmax(v0, v1, smoothness_${this.id});}`
+    );
+    super(reducer, lhs, rhs);
+    this.smoothness = new GlFloat(smoothness);
+    this.glUniformVars.push({name:"smoothness", value:this.smoothness});
   }
 }
 
 
-export abstract class Displacement extends Shape3D {
-  original: GlEntity & HasShape;
-  constructor(original: GlEntity & HasShape) {
-    super();
-    this.original = original;
-    this.dependentGlEntities.push(original);
+export class Displacement extends FromSdfClosure {
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, displacer: TsGlClosure<GlVec3, [GlVec3]>) {
+    let displacement = new tsgl_closure.Displacement(`getDistance`, original, displacer);
+    super(displacement);
   }
-  abstract displace(point: Vec3) : Vec3;
-  abstract GLFunc_displace() : string;
-  override getDistance(point: Vec3): number {
-    return this.original.getDistance( this.displace(point) );
-  }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
-      return getDistance_${this.original.id}( displace_${this.id}(point) );
-    }`;
-  }
-  override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
-    ${super.getGlDeclarations()}
-    vec3 displace_${this.id}(vec3 point);
-  `;}
-  override getGlImplements(): string { return this.isGlImplemented()? `` : `
-    ${super.getGlImplements()}
-    ${this.GLFunc_displace()}
-  `;}
 }
 
 export class RepetitionInf extends Displacement {
   interval: GlVec3;
-  constructor(original: GlEntity & HasShape, interval: Vec3) {
-    super(original);
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, interval: Vec3) {
+    let displacer: TsGlClosure<GlVec3, [GlVec3]> = new tsgl_closure.Anonymous(
+      `displace`, GlVec3.default(), [GlVec3.default()],
+      ([point]: [GlVec3]) => {
+        let origin = Vec3.fromClosure((i) => this.interval.value[i] * Math.round(point.value[i]/this.interval.value[i]));
+        return new GlVec3( point.value.add(origin.negative()) );
+      },
+      () => `{
+        vec3 origin = interval_${this.id} * round(v0 / interval_${this.id});
+        return v0 - origin;
+      }`
+    );
+    super(original, displacer);
     this.interval = new GlVec3(interval);
     this.glUniformVars.push({name:"interval", value:this.interval});
   }
-  override displace(point: Vec3): Vec3 {
-    let origin = Vec3.fromClosure((i) => this.interval[i] * Math.round(point[i]/this.interval[i]));
-    return point.add(origin.negative());
-  }
-  override GLFunc_displace() : string {
-    return `vec3 displace_${this.id} (vec3 point) {
-      vec3 origin = interval_${this.id} * round(point / interval_${this.id});
-      return point - origin;
-    }`;
-  }
 }
-
 export class Repetition extends Displacement {
   interval: GlVec3;
   max_indices: GlVec3;
-  constructor(original: GlEntity & HasShape, interval: Vec3, max_indices: Vec3) {
-    super(original);
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, interval: Vec3, max_indices: Vec3) {
+    let displacer: TsGlClosure<GlVec3, [GlVec3]> = new tsgl_closure.Anonymous(
+      `displace`, GlVec3.default(), [GlVec3.default()],
+      ([point]: [GlVec3]) => {
+        let origin = Vec3.fromClosure((i) =>
+          this.interval.value[i] * clamp(
+            Math.round(point.value[i]/this.interval.value[i]), -this.max_indices.value[i], this.max_indices.value[i]
+          )
+        );
+        return new GlVec3( point.value.add(origin.negative()) );
+      },
+      () => `{
+        vec3 origin = interval_${this.id} * clamp(
+          round(v0 / interval_${this.id}), -max_indices_${this.id}, max_indices_${this.id}
+        );
+        return v0 - origin;
+      }`
+    );
+    super(original, displacer);
     this.interval = new GlVec3(interval);
     this.max_indices = new GlVec3(max_indices);
     this.glUniformVars.push(
       {name: "interval", value: this.interval},
       {name: "max_indices", value: this.max_indices},
     );
-  }
-  override displace(point: Vec3): Vec3 {
-    let origin = Vec3.fromClosure((i) =>
-      this.interval[i] * clamp(Math.round(point[i]/this.interval[i]), -this.max_indices[i], this.max_indices[i])
-    );
-    return point.add(origin.negative());
-  }
-  override GLFunc_displace() : string {
-    return `vec3 displace_${this.id} (vec3 point) {
-      vec3 origin = interval_${this.id} * clamp(round(point / interval_${this.id}), -max_indices_${this.id}, max_indices_${this.id});
-      return point - origin;
-    }`;
   }
 }
 
