@@ -11,7 +11,7 @@ import * as objs from './drawable_objects';
 function main(): void {
   console.log("initializing script");
 
-  let timetick = new TimeTicks(1000 * 1/20);
+  let timetick = new TimeTicks(1000 * 1/10);
   let cameras_: cameras.Camera[] = [
     new cameras.Perspective(new Vec3(0,0,14), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(800, 600)),
   ];

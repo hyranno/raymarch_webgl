@@ -16,17 +16,16 @@ npm run build
     繰り返しの装飾
       柵
         モルタル
+        タイル(Voronoi)
         穴や彫刻
     無限長
+      shapeはRepetitionInfだけどTextureは繰り返さない
   TSで球との衝突判定できるので利用したい
 
 
 TODO
 now:
 future:
-  VectorField.Voronoi
-    TsGlClosure<Vec3, [Vec3]>
-    座標変換(Displace)になる
   陸橋
   地面
     SDFPlane?

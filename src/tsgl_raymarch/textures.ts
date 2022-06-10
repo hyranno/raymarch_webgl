@@ -84,8 +84,8 @@ export class FieldDefined extends Texture {
   override GlFunc_getTexturePatch(): string {return `
     TexturePatch getTexturePatch_${this.id}(vec3 point, vec3 normal) {
       return TexturePatch(
-        get_${this.albedo.id}(point),
-        get_${this.roughness.id}(point), get_${this.specular.id}(point),
+        ${this.albedo.glFuncName}(point),
+        ${this.roughness.glFuncName}(point), ${this.specular.glFuncName}(point),
         point, normal
       );
     }

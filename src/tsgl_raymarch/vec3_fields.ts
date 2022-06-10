@@ -108,3 +108,47 @@ export class FractionalBrownianMotion extends Vec3Field {
     return res;
   }`;}
 }
+
+export class VoronoiSimplex extends Vec3Field {
+  centerDelta: GlClosure<GlVec3, [GlVec3]>;
+  constructor(centerDelta: GlClosure<GlVec3, [GlVec3]>) {
+    super();
+    this.centerDelta = centerDelta;
+    this.dependentGlEntities.push(centerDelta);
+  }
+  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+    vec3[13] cells = simplex3_neighbors( coord_OrthogonalToSimplex3(point) );
+    float[13] distances;
+    for (int i=0; i < cells.length(); i++) {
+      vec3 planeCell = coord_Simplex3ToOrthogonal(cells[i]);
+      cells[i] = planeCell + get_${this.centerDelta.id}(planeCell);
+      distances[i] = length(cells[i] -point);
+    }
+    int minIndex = 0;
+    for (int i=1; i < distances.length(); i++) {
+      minIndex = mix(minIndex, i, distances[i] < distances[minIndex]);
+    }
+    return cells[minIndex];
+  }`;}
+}
+export class VoronoiOrthogonal extends Vec3Field {
+  centerDelta: GlClosure<GlVec3, [GlVec3]>;
+  constructor(centerDelta: GlClosure<GlVec3, [GlVec3]>) {
+    super();
+    this.centerDelta = centerDelta;
+    this.dependentGlEntities.push(centerDelta);
+  }
+  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+    vec3[8] cells = coord_rounds(point);
+    float[8] distances;
+    for (int i=0; i < cells.length(); i++) {
+      cells[i] += get_${this.centerDelta.id}(cells[i]);
+      distances[i] = length(cells[i] -point);
+    }
+    int minIndex = 0;
+    for (int i=1; i < distances.length(); i++) {
+      minIndex = mix(minIndex, i, distances[i] < distances[minIndex]);
+    }
+    return cells[minIndex];
+  }`;}
+}

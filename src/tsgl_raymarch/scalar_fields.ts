@@ -148,8 +148,8 @@ export class VoronoiEdgeSimplex extends ScalarField {
     float[13] distances;
     for (int i=0; i < cells.length(); i++) {
       vec3 planeCell = coord_Simplex3ToOrthogonal(cells[i]);
-      vec3 cell = planeCell + get_${this.centerDelta.id}(planeCell);
-      distances[i] = length(cell -point);
+      cells[i] = planeCell + get_${this.centerDelta.id}(planeCell);
+      distances[i] = length(cells[i] -point);
     }
     int firstMinIndex = 0;
     int secondMinIndex = 1;
@@ -173,11 +173,9 @@ export class VoronoiEdgeOrthogonal extends ScalarField {
   override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
     vec3[8] cells = coord_rounds(point);
     float[8] distances;
-    int minIndex = 0;
     for (int i=0; i < cells.length(); i++) {
-      vec3 planeCell = cells[i];
-      vec3 cell = planeCell + get_${this.centerDelta.id}(planeCell);
-      distances[i] = length(cell -point);
+      cells[i] += get_${this.centerDelta.id}(cells[i]);
+      distances[i] = length(cells[i] -point);
     }
     int firstMinIndex = 0;
     int secondMinIndex = 1;

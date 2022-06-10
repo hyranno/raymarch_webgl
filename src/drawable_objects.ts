@@ -10,6 +10,7 @@ import * as textures from '@tsgl/textures';
 import * as reflectances from '@tsgl/reflectances';
 import * as drawables from '@tsgl/drawables';
 import {GlClosure} from '@tsgl/gl_closure';
+import * as glClosure from '@tsgl/gl_closure';
 import {TexturePatch, GlVec3, GlQuaternion, Transform} from '@tsgl/gl_types';
 import {TimeTicks} from './event_stream';
 
@@ -49,23 +50,34 @@ export class TestTexture2 extends textures.Texture {
         new fields.SimplexInterpolation(new fields.Random(new rand.Mult(rand_normal, [new rand.Constant(2)])), local_field)
       )
     );
-    let tex_cell = new textures.FieldDefined(
+    let voronoiCellDelta = new v3fields.FromPolar(
+      new fields.Random(new rand.Constant(0.1)),
+      new fields.Random(new rand.Mult(new rand.Uniform(), [new rand.Constant(2*Math.PI)])),
+      new fields.Random(new rand.Mult(new rand.Add(new rand.Uniform(), [new rand.Constant(-0.5)]), [new rand.Constant(2*Math.PI)])),
+    );
+    let tex_celledge = new textures.FieldDefined(
       new v3fields.FromHSV(
         new fields.Constant(0),
         new fields.Constant(0),
         new fields.SmoothClamp(
           new fields.Add(
-            new fields.VoronoiEdgeSimplex(new v3fields.FromPolar(
-              new fields.Random(new rand.Constant(0.1)),
-              new fields.Random(new rand.Mult(new rand.Uniform(), [new rand.Constant(2*Math.PI)])),
-              new fields.Random(new rand.Mult(new rand.Add(new rand.Uniform(), [new rand.Constant(-0.5)]), [new rand.Constant(2*Math.PI)])),
-            )), [new fields.Constant(-0.1)]
+            new fields.VoronoiEdgeSimplex(voronoiCellDelta), [new fields.Constant(-0.1)]
           ),
           -0.5, 0, 0
         )
       ), new fields.Constant(0), new fields.Constant(0)
     );
-    this.tex = new textures.Add(tex_constant, [tex_cell]); //new textures.Add(tex_constant, [tex_fbm]);
+    let tex_cell = new textures.FieldDefined(
+      new glClosure.Displacement("getVoronoiColor",
+        new v3fields.FromHSV(
+          new fields.Random(new rand.Mult(new rand.Uniform(), [new rand.Constant(2*Math.PI)])),
+          new fields.Constant(0.8),
+          new fields.Constant(0.4)
+        ),
+        new v3fields.VoronoiSimplex(voronoiCellDelta),
+      ), new fields.Constant(0), new fields.Constant(0)
+    );
+    this.tex = new textures.Add(tex_constant, [tex_celledge, tex_cell]); //new textures.Add(tex_constant, [tex_fbm]);
     this.dependentGlEntities.push(this.tex);
   }
   override GlFunc_getTexturePatch(): string {return `
