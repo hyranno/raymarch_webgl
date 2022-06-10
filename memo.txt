@@ -5,7 +5,7 @@ npm run build
   要素のProceduralな生成
     shape
     material
-    movement
+    motion
   レンダリング
     ComputeShaderが使えないので無理そう
 最終的に何を出力するか
@@ -18,21 +18,27 @@ npm run build
         モルタル
         穴や彫刻
     無限長
+  TSで球との衝突判定できるので利用したい
 
 
 TODO
-now: リファクタリング
+now:
 future:
-  Drawable同士のUnion,SmoothUnion
-  Displace
-  Voronoi
+  VectorField.Voronoi
+    TsGlClosure<Vec3, [Vec3]>
     座標変換(Displace)になる
-  橋
-  いろいろ動かす
-    時間依存shape, material
-      時間依存のパラメータを計算後にuniformとして渡す方がいいか
+  陸橋
+  地面
+    SDFPlane?
+    水面にしたい気持ちはあるが質感を表現できるか?
+  Procedural Motion
     Inverse Kinematics
 soooooon:
+  GLSLの最適化
+  Drawable同士のUnion,SmoothUnion
+    shapeは普通にSmoothUnion
+    色の重み?
+      distance[nearest] / distance[current]
   jest-webgl-canvas-mock
   曲率近似AmbientSelfOcclusion
   曲率依存の汚れマテリアル
@@ -62,10 +68,11 @@ GLSLの最適化
       動かす用のJSで読み込む
 
 リファクタリング
-  util.glsl swapをマクロで宣言+定義
 
 リファクタリング(そのうち)
   shapeFBM
+  Material.Transformed
+    point+normalの変換 [Ray]->Ray
   hash32を取るとき、saltを与える?
 
 リファクタリング(対処が分かり次第)
@@ -74,6 +81,7 @@ GLSLの最適化
   GlAdditiveの正しい型付け
   type parameter からその型のstaticメンバにアクセスしたい
     GlClosureのtypedDummyあたり
+  SmoothBooleanは逐次合成で大丈夫なのか?
 
 マクロ vs TypeScript
   配列の長さごとに宣言/定義してるやつをマクロにする?
