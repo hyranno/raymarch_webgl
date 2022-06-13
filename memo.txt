@@ -24,9 +24,26 @@ npm run build
 
 
 TODO
-now:
+now: 陸橋
+  vec3_fields.Affine
+  material
+    Texture
+      レンガ
+        Voronoi + fBM
+      隙間セメント
+        Constant + fBM
+      Mix
+        VoronoiEdge + rand.Exponential(fBM?)
+    BumpMap
+      VoronoiEdge
+      Mix(レンガfBM, セメントfBM, VoronoiEdge + rand.Exponential)
+    直方体への引き伸ばし(Displacement)
+  shape
+    //RepetitionInf
+    Subtract
+      Box
+      Cylinder(Extrude?)
 future:
-  陸橋
   地面
     SDFPlane?
     水面にしたい気持ちはあるが質感を表現できるか?
@@ -70,16 +87,21 @@ GLSLの最適化
 
 リファクタリング(そのうち)
   shapeFBM
+  Displacementでnormalの回転
+    微小化したnormalの始点と終点をそれぞれDisplaceして正規化?
+  BidirectionalMap
+    Transformなどが該当
   Material.Transformed
     point+normalの変換 [Ray]->Ray
   hash32を取るとき、saltを与える?
 
 リファクタリング(対処が分かり次第)
+  type parameter からその型のstaticメンバにアクセスしたい
+    GlClosureのtypedDummy
+    Vec2,3,4, Mat2,3,4 のgenerics
   Simplex.neighborsあたりなんかバグありそう
   GlClosureを型引数によってTsGlClosure化したい
   GlAdditiveの正しい型付け
-  type parameter からその型のstaticメンバにアクセスしたい
-    GlClosureのtypedDummyあたり
   SmoothBooleanは逐次合成で大丈夫なのか?
 
 マクロ vs TypeScript

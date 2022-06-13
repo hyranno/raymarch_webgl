@@ -110,6 +110,49 @@ export class Vec3 {
   }
 }
 
+export class Vec4 {
+  constructor(x: number, y: number, z: number, w: number) {
+    this[0] = x;
+    this[1] = y;
+    this[2] = z;
+    this[3] = w;
+  }
+  static zero(): Vec4 {
+    return new Vec4(0,0,0,0);
+  }
+  static fromClosure(f :(i:number)=>number): Vec4 {
+    let res = Vec4.zero();
+    for (let i=0; i<4; i++) {
+      res[i] = f(i);
+    }
+    return res;
+  }
+  clone(): Vec4 {
+    return this.map((v) => v);
+  }
+  add(v: Vec4): Vec4 {
+    return Vec4.fromClosure((i) => this[i]+v[i]);
+  }
+  mul(scale: number): Vec4 {
+    return this.map((v) => v*scale);
+  }
+  negative(): Vec4 {
+    return this.map((v) => -v);
+  }
+  dot(v: Vec4): number {
+    return v[0]*this[0] + v[1]*this[1] + v[2]*this[2] + v[3]*this[3];
+  }
+  len(): number {
+    return Math.sqrt(this.dot(this));
+  }
+  normalize(): Vec4 {
+    return this.mul(1/this.len());
+  }
+  map(f: (v:number)=>number): Vec4 {
+    return new Vec4(f(this[0]), f(this[1]), f(this[2]), f(this[3]));
+  }
+}
+
 export class Quaternion {
   xyz: Vec3;
   w: number;
@@ -189,6 +232,15 @@ export class Quaternion {
       this.w*q.w - this.xyz.dot(q.xyz)
     );
   }
+  toDCM(): Mat3 {
+    let x=this.xyz[0], y=this.xyz[1], z=this.xyz[2], w=this.w;
+    let x2=x*x, y2=y*y, z2=z*z, w2=w*w;
+    return Mat3.fromNumbers([
+      [+x2-y2-z2+w2, 2*(x*y-z*w), 2*(x*z+y*w)],
+      [2*(x*y+z*w), -x2+y2-z2+w2, 2*(y*z-x*w)],
+      [2*(x*z-y*w), 2*(y*z+x*w), -x2-y2+z2+w2]
+    ]);
+  }
 }
 
 // type Mat2Index = 0 | 1 ;
@@ -197,10 +249,10 @@ export class Mat2 {
     return Mat2.fromClosure((i,j) => rows[i][j]);
   }
   static zero(): Mat2 {
-    return Mat2.fromNumbers([[0,0],[0,0]]);
+    return Mat2.fromClosure(()=>0);
   }
   static identity(): Mat2 {
-    return Mat2.fromNumbers([[1,0],[0,1]]);
+    return Mat2.fromClosure((i,j) => (i==j)?1:0);
   }
   static fromClosure(f :(i:number, j:number)=>number): Mat2 {
     let res = new Mat2();
@@ -216,7 +268,7 @@ export class Mat2 {
     return Mat2.fromClosure((i,j) => cols[j][i]);
   }
   clone(): Mat2 {
-    return Mat2.fromNumbers([this[0],this[1]]);
+    return Mat2.fromClosure((i,j) => this[i][j]);
   }
   determinant(): number {
     return (
@@ -234,7 +286,7 @@ export class Mat2 {
     return Mat2.fromClosure((i,j) => this[j][i]);
   }
   map(f :(v:number)=>number): Mat2 {
-    return Mat2.fromNumbers([this[0].map(f), this[1].map(f)]);
+    return Mat2.fromClosure((i,j) => f(this[i][j]));
   }
   getRow(i: number): Vec2{
     return new Vec2(this[i][0], this[i][1]);
@@ -265,10 +317,10 @@ export class Mat3 {
     return Mat3.fromClosure((i,j) => rows[i][j]);
   }
   static zero(): Mat3 {
-    return Mat3.fromNumbers([[0,0,0],[0,0,0],[0,0,0]]);
+    return Mat3.fromClosure(()=>0);
   }
   static identity(): Mat3 {
-    return Mat3.fromNumbers([[1,0,0],[0,1,0],[0,0,1]]);
+    return Mat3.fromClosure((i,j) => (i==j)?1:0);
   }
   static fromClosure(f :(i:number, j:number)=>number): Mat3 {
     let res = new Mat3();
@@ -284,7 +336,7 @@ export class Mat3 {
     return Mat3.fromClosure((i,j) => cols[j][i]);
   }
   clone(): Mat3 {
-    return Mat3.fromNumbers([this[0],this[1],this[3]]);
+    return Mat3.fromClosure((i,j) => this[i][j]);
   }
   determinant(): number {
     return (
@@ -309,7 +361,7 @@ export class Mat3 {
     return Mat3.fromClosure((i,j) => this[j][i]);
   }
   map(f :(v:number)=>number): Mat3 {
-    return Mat3.fromNumbers([this[0].map(f), this[1].map(f), this[2].map(f)]);
+    return Mat3.fromClosure((i,j) => f(this[i][j]));
   }
   getRow(i: number): Vec3{
     return new Vec3(this[i][0], this[i][1], this[i][2]);
@@ -331,6 +383,86 @@ export class Mat3 {
   }
   mul3x1(v: Vec3): Vec3 {
     return new Vec3( this.getRow(0).dot(v), this.getRow(1).dot(v), this.getRow(2).dot(v) );
+  }
+}
+
+// type Mat4Index = 0 | 1 | 2 | 3;
+export class Mat4 {
+  static fromNumbers(rows:[
+    [number, number, number, number],
+    [number, number, number, number],
+    [number, number, number, number],
+    [number, number, number, number],
+  ]): Mat4 {
+    return Mat4.fromClosure((i,j) => rows[i][j]);
+  }
+  static zero(): Mat4 {
+    return Mat4.fromClosure(()=>0);
+  }
+  static identity(): Mat4 {
+    return Mat4.fromClosure((i,j) => (i==j)?1:0);
+  }
+  static fromClosure(f :(i:number, j:number)=>number): Mat4 {
+    let res = new Mat4();
+    for (let i=0; i<4; i++) {
+      res[i] = [];
+      for (let j=0; j<4; j++) {
+        res[i][j] = f(i,j);
+      }
+    }
+    return res;
+  }
+  static fromCols(cols: [Vec3, Vec3, Vec3]): Mat4 {
+    return Mat4.fromClosure((i,j) => cols[j][i]);
+  }
+  clone(): Mat4 {
+    return Mat4.fromClosure((i,j) => this[i][j]);
+  }
+  determinant(): number {
+    return (
+      +this[0][0]*this[1][1]*this[2][2]
+      +this[0][1]*this[1][2]*this[2][0]
+      +this[0][2]*this[1][0]*this[2][1]
+      -this[0][2]*this[1][1]*this[2][0]
+      -this[0][1]*this[1][0]*this[2][2]
+      -this[0][0]*this[1][2]*this[2][1]
+    );
+  }
+  skip(i: number, j: number): Mat3 {
+    return Mat3.fromClosure((i_,j_) => this[i_+(i_<i? 0:1)][j_+(j_<j? 0:1)]);
+  }
+  cofactor(): Mat4 {
+    return Mat4.fromClosure( (i,j) => (i%2 == j%2? 1:-1) * this.skip(j,i).determinant() );
+  }
+  inverse(): Mat4 {
+    return this.cofactor().mulScalar(1/this.determinant());
+  }
+  transpose(): Mat4 {
+    return Mat4.fromClosure((i,j) => this[j][i]);
+  }
+  map(f :(v:number)=>number): Mat4 {
+    return Mat4.fromClosure((i,j) => f(this[i][j]));
+  }
+  getRow(i: number): Vec4 {
+    return new Vec4(this[i][0], this[i][1], this[i][2], this[i][3]);
+  }
+  getCol(j: number): Vec4 {
+    return new Vec4(this[0][j], this[1][j], this[2][j], this[3][j]);
+  }
+  addScalar(n: number): Mat4 {
+    return this.map((v)=>v+n);
+  }
+  mulScalar(n: number): Mat4 {
+    return this.map((v)=>v*n);
+  }
+  add(m: Mat4): Mat4 {
+    return Mat4.fromClosure((i,j) => this[i][j]+m[i][j]);
+  }
+  mul(m: Mat4): Mat4 {
+    return Mat4.fromClosure((i,j) => this.getRow(i).dot(m.getCol(j)));
+  }
+  mul4x1(v: Vec4): Vec4 {
+    return new Vec4( this.getRow(0).dot(v), this.getRow(1).dot(v), this.getRow(2).dot(v), this.getRow(3).dot(v) );
   }
 }
 

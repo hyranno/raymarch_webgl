@@ -142,3 +142,25 @@ export class Displacement<R extends HasGlType, A extends HasGlType> extends GlCl
     }
   `;}
 }
+
+export class Mix<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A> {
+  src0: GlClosure<R,A>;
+  src1: GlClosure<R,A>;
+  weight: GlClosure<GlFloat,A>;
+  constructor(glFuncName: string, src0: GlClosure<R,A>, src1: GlClosure<R,A>, weight: GlClosure<GlFloat,A>, returnTypedDummy: R, argTypedDummies: A) {
+    super(glFuncName, returnTypedDummy, argTypedDummies);
+    this.src0 = src0;
+    this.src1 = src1;
+    this.weight = weight;
+    this.dependentGlEntities.push(src0, src1, weight);
+  };
+  override GlFunc_get(): string { return `
+    ${this.getGlFuncDeclaration()} {
+      return mix(
+        ${this.src0.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}),
+        ${this.src1.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}),
+        ${this.weight.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}),
+      );
+    }
+  `;}
+}

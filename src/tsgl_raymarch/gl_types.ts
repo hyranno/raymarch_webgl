@@ -12,6 +12,12 @@ export function setGlUniformFloat(gl: WebGL2RenderingContext, program: WebGLProg
   f[values.length-1].call(gl, location, values);
 }
 
+export function setGlUniformMatrix(gl: WebGL2RenderingContext, program: WebGLProgram, name: string, ...values: number[]): void {
+  let location: WebGLUniformLocation = gl.getUniformLocation(program, name);
+  let f = [null, gl.uniformMatrix2fv, gl.uniformMatrix3fv, gl.uniformMatrix4fv, ];
+  f[Math.sqrt(values.length)-1].call(gl, location, false, values);
+}
+
 export type TsTupleType<T> =
   T extends [infer U, ...infer V] ? [TsType<U>, ...TsTupleType<V>] : [];
 
@@ -151,6 +157,29 @@ export class GlQuaternion implements HasGlType {
   }
   setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
     setGlUniformFloat(gl, program, name, this.value.xyz[0], this.value.xyz[1], this.value.xyz[2], this.value.w);
+  }
+}
+
+@staticImplements<HasGlTypeStatic<GlMat4>>()
+export class GlMat4 implements HasGlType {
+  static glTypeString: string = "mat4";
+  value: util.Mat4;
+  constructor(value: util.Mat4){
+    this.value = value;
+  }
+  static default(): GlMat4 {
+    return new GlMat4(util.Mat4.identity());
+  }
+  getGlTypeString(): string {
+    return GlMat4.glTypeString;
+  }
+  setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
+    setGlUniformMatrix(gl, program, name,
+      this.value[0][0], this.value[1][0], this.value[2][0], this.value[3][0],
+      this.value[0][1], this.value[1][1], this.value[2][1], this.value[3][1],
+      this.value[0][2], this.value[1][2], this.value[2][2], this.value[3][2],
+      this.value[0][3], this.value[1][3], this.value[2][3], this.value[3][3],
+    );
   }
 }
 

@@ -87,64 +87,6 @@ export class TestTexture2 extends textures.Texture {
   `;}
 }
 
-export class CornellBox extends drawables.Group {
-  constructor() {
-    let walls = [
-      new drawables.Transformed(
-        new drawables.MaterializedShape(
-          new shapes.Box(new util.Vec3(1,1,1)),
-          new materials.TextureReflectanceModel(
-            new textures.Constant(new util.Vec3(1,1,1), 0.5, 5),
-            new reflectances.Phong()
-          )
-        ),
-        new Transform(1, util.Quaternion.identity(), new util.Vec3(0,2,0))
-      ),
-      new drawables.Transformed(
-        new drawables.MaterializedShape(
-          new shapes.Box(new util.Vec3(1,1,1)),
-          new materials.TextureReflectanceModel(
-            new textures.Constant(new util.Vec3(1,1,1), 0.5, 5),
-            new reflectances.Phong()
-          )
-        ),
-        new Transform(1, util.Quaternion.identity(), new util.Vec3(0,-2,0))
-      ),
-      new drawables.Transformed(
-        new drawables.MaterializedShape(
-        new shapes.Box(new util.Vec3(1,1,1)),
-          new materials.TextureReflectanceModel(
-            new textures.Constant(new util.Vec3(1,1,1), 0.5, 5),
-            new reflectances.Phong()
-          )
-        ),
-        new Transform(1, util.Quaternion.identity(), new util.Vec3(0,0,-2))
-      ),
-      new drawables.Transformed(
-        new drawables.MaterializedShape(
-          new shapes.Box(new util.Vec3(1,1,1)),
-          new materials.TextureReflectanceModel(
-            new textures.Constant(new util.Vec3(0,1,0), 0.5, 5),
-            new reflectances.Phong()
-          )
-        ),
-        new Transform(1, util.Quaternion.identity(), new util.Vec3(2,0,0))
-      ),
-      new drawables.Transformed(
-        new drawables.MaterializedShape(
-          new shapes.Box(new util.Vec3(1,1,1)),
-          new materials.TextureReflectanceModel(
-            new textures.Constant(new util.Vec3(1,0,0), 0.5, 5),
-            new reflectances.Phong()
-          )
-        ),
-        new Transform(1, util.Quaternion.identity(), new util.Vec3(-2,0,0))
-      ),
-    ];
-    super(walls);
-  }
-}
-
 export class OrbitingSphere extends drawables.Transformed {
   constructor(t: TimeTicks) {
     let sphere = new shapes.Sphere();

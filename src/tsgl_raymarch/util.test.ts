@@ -122,6 +122,13 @@ describe('Quaternion', () => {
     Vec3CloseTo(vy.rotate(q).normalize(), new util.Vec3(0,1,0));
     Vec3CloseTo(vz.rotate(q).normalize(), new util.Vec3(0,0,1));
   });
+  test('toDCM', () => {
+    let v1 = new util.Vec3(2,0,0);
+    let v2 = new util.Vec3(0,2,0);
+    let q = util.Quaternion.fromSrcDest(v1,v2);
+    let vr = q.toDCM().mul3x1(v1);
+    Vec3CloseTo(vr, v2);
+  });
 });
 
 describe('Mat2', () => {

@@ -7,6 +7,7 @@ import * as cameras from '@tsgl/cameras';
 
 import {TimeTicks} from './event_stream'
 import * as objs from './drawable_objects';
+import {CornellBox} from './asset_objects/cornel_box';
 
 function main(): void {
   console.log("initializing script");
@@ -17,7 +18,7 @@ function main(): void {
   ];
   let drawables_: drawables.Drawable[] = [
     new drawables.Transformed(
-      new objs.CornellBox(),
+      new CornellBox(),
       new Transform( 5, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2.5) )
     ),
     new objs.OrbitingSphere(timetick),
