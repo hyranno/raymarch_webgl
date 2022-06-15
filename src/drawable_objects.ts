@@ -14,20 +14,21 @@ import * as glClosure from '@tsgl/gl_closure';
 import {TexturePatch, GlVec3, GlQuaternion, Transform} from '@tsgl/gl_types';
 import {TimeTicks} from './event_stream';
 
+import {BrickStructure} from './asset_objects/brick';
 
 export class TestTexture extends textures.Constant {
   override GlFunc_get(): string {return `
-    TexturePatch getTexturePatch_${this.id}(vec3 point, vec3 normal) {
+    TexturePatch ${this.glFuncName}(vec3 point) {
       return TexturePatch(
         value_${this.id}.albedo + mix(0.0,1.0, 0.5<point.x) * vec3(1, 0, 0),
         value_${this.id}.roughness, value_${this.id}.specular,
-        point, normal
+        point, vec3(0)
       );
     }
   `;}
 }
 export class TestTexture2 extends textures.Texture {
-  tex: GlClosure<TexturePatch, [GlVec3, GlVec3]>;
+  tex: GlClosure<TexturePatch, [GlVec3]>;
   constructor() {
     super();
     let tex_constant = new textures.Constant(new util.Vec3(0.5,0.5,0.5), 0.7, 10);
@@ -81,8 +82,8 @@ export class TestTexture2 extends textures.Texture {
     this.dependentGlEntities.push(this.tex);
   }
   override GlFunc_getTexturePatch(): string {return `
-    TexturePatch getTexturePatch_${this.id}(vec3 point, vec3 normal) {
-      return ${this.tex.glFuncName}(point, normal);
+    TexturePatch getTexturePatch_${this.id}(vec3 point) {
+      return ${this.tex.glFuncName}(point);
     }
   `;}
 }
@@ -103,7 +104,7 @@ export class OrbitingSphere extends drawables.Transformed {
     );
     let drawable = new drawables.MaterializedShape(
       sphere, //shape,
-      material
+      new BrickStructure(),//material
     );
     let transform = new Transform(1, util.Quaternion.identity(), new util.Vec3(3,0,0));
     super(drawable, transform);

@@ -19,8 +19,8 @@ export class FromXYZ extends Vec3Field {
     this.z = z;
     this.dependentGlEntities.push(x,y,z);
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
-    return vec3(get_${this.x.id}(point), get_${this.y.id}(point), get_${this.z.id}(point));
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
+    return vec3(${this.x.glFuncName}(point), ${this.y.glFuncName}(point), ${this.z.glFuncName}(point));
   }`;}
 }
 
@@ -35,8 +35,8 @@ export class FromPolar extends Vec3Field {
     this.pitch = pitch;
     this.dependentGlEntities.push(radius, yaw, pitch);
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
-    return coord_PolarToOrthogonal(vec3(get_${this.radius.id}(point), get_${this.yaw.id}(point), get_${this.pitch.id}(point)));
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
+    return coord_PolarToOrthogonal(vec3(${this.radius.glFuncName}(point), ${this.yaw.glFuncName}(point), ${this.pitch.glFuncName}(point)));
   }`;}
 }
 
@@ -51,8 +51,8 @@ export class FromHSV extends Vec3Field {
     this.v = v;
     this.dependentGlEntities.push(h,s,v);
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
-    vec3 hsv = vec3(get_${this.h.id}(point), get_${this.s.id}(point), get_${this.v.id}(point));
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
+    vec3 hsv = vec3(${this.h.glFuncName}(point), ${this.s.glFuncName}(point), ${this.v.glFuncName}(point));
     return hsv2rgb(hsv);
   }`;}
 }
@@ -66,13 +66,13 @@ export class SimplexInterpolation extends Vec3Field {
     this.localField = localField;
     this.dependentGlEntities.push(discrete, localField);
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
     vec3 res = vec3(0);
     vec3[13] origins = simplex3_neighbors( coord_OrthogonalToSimplex3(point) );
     for (int i=0; i<origins.length(); i++) {
       vec3 p = coord_Simplex3ToOrthogonal( origins[i] );
-      vec3 val = get_${this.discrete.id}(p);
-      res += val * get_${this.localField.id}( point - p );
+      vec3 val = ${this.discrete.glFuncName}(p);
+      res += val * ${this.localField.glFuncName}( point - p );
     }
     return res;
   }`;}
@@ -96,12 +96,12 @@ export class FractionalBrownianMotion extends Vec3Field {
       {name: "offset", value: this.offset},
     );
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
     vec3 res = vec3(0);
     float a = 1.0;
     vec3 p = point;
     for (int i=0; i < depth_${this.id}; i++) {
-      res += a * get_${this.layer.id}(p);
+      res += a * ${this.layer.glFuncName}(p);
       a *= gain_${this.id};
       p = 2.0*p + offset_${this.id};
     }
@@ -116,12 +116,12 @@ export class VoronoiSimplex extends Vec3Field {
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
     vec3[13] cells = simplex3_neighbors( coord_OrthogonalToSimplex3(point) );
     float[13] distances;
     for (int i=0; i < cells.length(); i++) {
       vec3 planeCell = coord_Simplex3ToOrthogonal(cells[i]);
-      cells[i] = planeCell + get_${this.centerDelta.id}(planeCell);
+      cells[i] = planeCell + ${this.centerDelta.glFuncName}(planeCell);
       distances[i] = length(cells[i] -point);
     }
     int minIndex = 0;
@@ -138,11 +138,11 @@ export class VoronoiOrthogonal extends Vec3Field {
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
     vec3[8] cells = coord_rounds(point);
     float[8] distances;
     for (int i=0; i < cells.length(); i++) {
-      cells[i] += get_${this.centerDelta.id}(cells[i]);
+      cells[i] += ${this.centerDelta.glFuncName}(cells[i]);
       distances[i] = length(cells[i] -point);
     }
     int minIndex = 0;
@@ -164,7 +164,7 @@ export class Affine extends Vec3Field {
   static identity(): Affine {
     return new Affine(new GlMat4( util.Mat4.identity() ));
   }
-  override GlFunc_get(): string { return `vec3 get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `vec3 ${this.glFuncName} (vec3 point) {
     vec4 p = vec4(point, 1);
     vec4 res = mat_${this.id} * p;
     return res.xyz;

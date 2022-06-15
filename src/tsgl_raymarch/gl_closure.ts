@@ -147,8 +147,8 @@ export class Mix<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R
   src0: GlClosure<R,A>;
   src1: GlClosure<R,A>;
   weight: GlClosure<GlFloat,A>;
-  constructor(glFuncName: string, src0: GlClosure<R,A>, src1: GlClosure<R,A>, weight: GlClosure<GlFloat,A>, returnTypedDummy: R, argTypedDummies: A) {
-    super(glFuncName, returnTypedDummy, argTypedDummies);
+  constructor(glFuncName: string, src0: GlClosure<R,A>, src1: GlClosure<R,A>, weight: GlClosure<GlFloat,A>) {
+    super(glFuncName, src0.returnTypedDummy, src0.argTypedDummies);
     this.src0 = src0;
     this.src1 = src1;
     this.weight = weight;
@@ -159,7 +159,7 @@ export class Mix<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R
       return mix(
         ${this.src0.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}),
         ${this.src1.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}),
-        ${this.weight.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")}),
+        ${this.weight.glFuncName}(${this.argTypedDummies.map((_,i)=>`v${i}`).join(",")})
       );
     }
   `;}

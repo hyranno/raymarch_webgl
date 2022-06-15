@@ -32,20 +32,31 @@ export class Transformed extends glClosure.Displacement<GlFloat, GlVec3> {
 }
 
 export class CircularyZeroSum extends ScalarField {
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     float r = clamp(length(point), 0.0, 1.0);
     float[5] c = float[](1.0, 0.0, -12.0, 20.0, -9.0);
     return +c[4]*r*r*r*r +c[3]*r*r*r +c[2]*r*r +c[1]*r +c[0];
   }`;}
 }
 export class SphericalyZeroSum extends ScalarField {
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     float r = clamp(length(point), 0.0, 1.0);
     float[5] c = float[](1.0, 0.0, -10.0, 16.0, -7.0);
     return +c[4]*r*r*r*r +c[3]*r*r*r +c[2]*r*r +c[1]*r +c[0];
   }`;}
 }
 
+export class Length extends ScalarField {
+  original: GlClosure<GlVec3, [GlVec3]>;
+  constructor(original: GlClosure<GlVec3, [GlVec3]>) {
+    super();
+    this.original = original;
+    this.dependentGlEntities.push(original);
+  }
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
+    return length(${this.original.glFuncName}(point));
+  }`;}
+}
 
 export class Random extends ScalarField {
   rand: GlRandom;
@@ -54,7 +65,7 @@ export class Random extends ScalarField {
     this.rand = rand;
     this.dependentGlEntities.push(rand);
   }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     uint state;
     PCG16_init(hash32(point), state);
     return rand_${this.rand.id}(state);
@@ -70,13 +81,13 @@ export class SimplexInterpolation extends ScalarField {
     this.localField = localField;
     this.dependentGlEntities.push(discrete, localField);
   }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     float res = 0.0;
     vec3[13] origins = simplex3_neighbors( coord_OrthogonalToSimplex3(point) );
     for (int i=0; i<origins.length(); i++) {
       vec3 p = coord_Simplex3ToOrthogonal(origins[i]);
-      float val = get_${this.discrete.id}(p);
-      res += val * get_${this.localField.id}( point - p );
+      float val = ${this.discrete.glFuncName}(p);
+      res += val * ${this.localField.glFuncName}( point - p );
     }
     return res;
   }`;}
@@ -90,13 +101,13 @@ export class SimplexRotationalInterpolation extends ScalarField {
     this.localField = localField;
     this.dependentGlEntities.push(discrete, localField);
   }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     float res_cos=0.0, res_sin=0.0;
     vec3[13] origins = simplex3_neighbors( coord_OrthogonalToSimplex3(point) );
     for (int i=0; i<origins.length(); i++) {
       vec3 p = coord_Simplex3ToOrthogonal(origins[i]);
-      float rad = get_${this.discrete.id}(p) * radians(360.0);
-      float weight = get_${this.localField.id}( point - p );
+      float rad = ${this.discrete.glFuncName}(p) * radians(360.0);
+      float weight = ${this.localField.glFuncName}( point - p );
       res_cos += cos(rad) * weight;
       res_sin += sin(rad) * weight;
     }
@@ -122,12 +133,12 @@ export class FractionalBrownianMotion extends ScalarField {
       {name: "offset", value: this.offset},
     );
   }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     float res = 0.0;
     float a = 1.0;
     vec3 p = point;
     for (int i=0; i < depth_${this.id}; i++) {
-      res += a * get_${this.layer.id}(p);
+      res += a * ${this.layer.glFuncName}(p);
       a *= gain_${this.id};
       p = 2.0*p + offset_${this.id};
     }
@@ -143,12 +154,12 @@ export class VoronoiEdgeSimplex extends ScalarField {
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
   }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     vec3[13] cells = simplex3_neighbors( coord_OrthogonalToSimplex3(point) );
     float[13] distances;
     for (int i=0; i < cells.length(); i++) {
       vec3 planeCell = coord_Simplex3ToOrthogonal(cells[i]);
-      cells[i] = planeCell + get_${this.centerDelta.id}(planeCell);
+      cells[i] = planeCell + ${this.centerDelta.glFuncName}(planeCell);
       distances[i] = length(cells[i] -point);
     }
     int firstMinIndex = 0;
@@ -170,11 +181,11 @@ export class VoronoiEdgeOrthogonal extends ScalarField {
     this.centerDelta = centerDelta;
     this.dependentGlEntities.push(centerDelta);
   }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     vec3[8] cells = coord_rounds(point);
     float[8] distances;
     for (int i=0; i < cells.length(); i++) {
-      cells[i] += get_${this.centerDelta.id}(cells[i]);
+      cells[i] += ${this.centerDelta.glFuncName}(cells[i]);
       distances[i] = length(cells[i] -point);
     }
     int firstMinIndex = 0;
@@ -207,7 +218,7 @@ export class SmoothClamp extends ScalarField {
       {name: "smoothness", value: this.smoothness},
     );
   }
-  override GlFunc_get(): string { return `float get_${this.id} (vec3 point) {
+  override GlFunc_get(): string { return `float ${this.glFuncName} (vec3 point) {
     return smoothclamp(${this.original.glFuncName}(point), bottom_${this.id}, top_${this.id}, smoothness_${this.id});
   }`;}
 }

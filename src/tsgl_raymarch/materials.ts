@@ -32,9 +32,9 @@ export abstract class Material extends GlEntity implements HasMaterial {
 
 
 export class TextureReflectanceModel extends Material {
-  texture: GlClosure<TexturePatch, [GlVec3, GlVec3]>;
+  texture: GlClosure<TexturePatch, [GlVec3]>;
   reflectance: ReflectanceDistribution;
-  constructor(texture: GlClosure<TexturePatch, [GlVec3, GlVec3]>, reflectance: ReflectanceDistribution) {
+  constructor(texture: GlClosure<TexturePatch, [GlVec3]>, reflectance: ReflectanceDistribution) {
     super();
     this.texture = texture;
     this.reflectance = reflectance;
@@ -42,19 +42,22 @@ export class TextureReflectanceModel extends Material {
   }
   override GlFunc_calcAmbient(): string { return `
     vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
-      TexturePatch t = ${this.texture.glFuncName}(point, normal);
+      TexturePatch t = ${this.texture.glFuncName}(point);
+      t.normal = normal;
       return calcAmbient_${this.reflectance.id}(t, intensity, view);
     }
   `;}
   override GlFunc_calcDiffuse(): string { return `
     vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      TexturePatch t = ${this.texture.glFuncName}(point, normal);
+      TexturePatch t = ${this.texture.glFuncName}(point);
+      t.normal = normal;
       return calcDiffuse_${this.reflectance.id}(t, photon, view);
     }
   `;}
   override GlFunc_calcSpecular(): string { return `
     vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      TexturePatch t = ${this.texture.glFuncName}(point, normal);
+      TexturePatch t = ${this.texture.glFuncName}(point);
+      t.normal = normal;
       return calcSpecular_${this.reflectance.id}(t, photon, view);
     }
   `;}
@@ -122,11 +125,11 @@ export class NormalMap extends Material {
   `;}
   GlFunc_mapNormal(): string {return `
     vec3 mapNormal_${this.id} (vec3 point, vec3 normal) {
-      float angle = get_${this.quantity.id}(point);
+      float angle = ${this.quantity.glFuncName}(point);
       vec3 axis = quaternion_rot3(
         quaternion_fromSrcDest(vec3(0,1,0), normal),
         quaternion_rot3(
-          quaternion_fromAngleAxis(get_${this.axis.id}(point), vec3(0,1,0)),
+          quaternion_fromAngleAxis(${this.axis.glFuncName}(point), vec3(0,1,0)),
           vec3(1,0,0)
         )
       );
@@ -175,8 +178,8 @@ export class BumpMap extends Material {
       vec4 q = quaternion_fromSrcDest(vec3(0,0,1), normal);
       vec3 dx = quaternion_rot3(q, vec3(EPS,0,0));
       vec3 dy = quaternion_rot3(q, vec3(0,EPS,0));
-      float dw_x = get_${this.bump.id}(point+dx) - get_${this.bump.id}(point-dx);
-      float dw_y = get_${this.bump.id}(point+dy) - get_${this.bump.id}(point-dy);
+      float dw_x = ${this.bump.glFuncName}(point+dx) - ${this.bump.glFuncName}(point-dx);
+      float dw_y = ${this.bump.glFuncName}(point+dy) - ${this.bump.glFuncName}(point-dy);
       vec3 n = cross( vec3(EPS,0,dw_x), vec3(0,EPS,dw_y) );
       return quaternion_rot3(q, normalize(n));
     }
