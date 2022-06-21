@@ -3,7 +3,8 @@ import {Camera} from './cameras';
 import {Drawable} from './drawables';
 import {Light} from './lights';
 
-import {fragShaderTemplate} from './gl_source';
+//import fragShaderTemplate from '/src/mid-build/frag_raw.glsl';
+import fragShaderTemplate from '/src/mid-build/frag.glsl';
 
 export class GlRenderer {
   cameras: Camera[];

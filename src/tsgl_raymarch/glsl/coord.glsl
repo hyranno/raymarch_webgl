@@ -25,7 +25,7 @@ vec3 coord_PolarToOrthogonal(vec3 p){
   return p.x * vec3(cos(p.z)*cos(p.y), sin(p.z), cos(p.z)*sin(p.y));
 }
 
-vec3 coord_OrthogonalToSimplex3(vec3 p){ return InvSimplex3Basis*p; }
+vec3 coord_OrthogonalToSimplex3(vec3 p){ return inverse(Simplex3Basis)*p; }
 vec3 coord_Simplex3ToOrthogonal(vec3 p){ return Simplex3Basis*p; }
 
 
@@ -48,7 +48,7 @@ vec3 simplex3_round(vec3 point) {
   vec3[8] r = coord_rounds(point);
   vec3 nearest = r[0];
   for (int i=1; i<r.length(); i++) {
-    nearest = mix( nearest, r[i], mix(0.0,1.0,simplex3_length(r[i]-point) < simplex3_length(nearest-point)) );
+    nearest = select( nearest, r[i], simplex3_length(r[i]-point) < simplex3_length(nearest-point) );
   }
   return nearest;
 }

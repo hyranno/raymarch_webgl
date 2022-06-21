@@ -24,22 +24,26 @@ npm run build
 
 
 TODO
-now: 陸橋
+now:
+陸橋
   material
+    Bumpまわりでハングしてる?
   shape
     //RepetitionInf
     Subtract
       Box
       Cylinder(Extrude?)
 future:
-  Repetition内部でのRandのための座標?
   地面
     SDFPlane?
     水面にしたい気持ちはあるが質感を表現できるか?
+  Repetition内部でのRandのための座標?
   Procedural Motion
     Inverse Kinematics
 soooooon:
-  GLSLの最適化
+  ビルドの高速化
+    swcの導入
+    swc-loader
   Drawable同士のUnion,SmoothUnion
     shapeは普通にSmoothUnion
     色の重み?
@@ -64,15 +68,9 @@ soooooon:
     波のGPUシミュレーション
 
 
-GLSLの最適化
-  pragmaとか最適化オプションを入れられんか
-  glsl-optimizerはオフライン
-    webpackから呼んだりできるならアリか
-      GLSLを吐く用のJSを用意
-      glsl-optimize-loader
-      動かす用のJSで読み込む
 
 リファクタリング
+  mixをselect(T,T,bool)とinterpolate(T,T,float)に分ける
 
 リファクタリング(そのうち)
   shapeFBM
@@ -115,7 +113,7 @@ GLSLの最適化
     /* circular : [c4=−9, c3=20, c2=−12, c1=0, c0=1] */
     /* spherical : [c4=−7, c3=16, c2=−10, c1=0, c0=1] */
 
-クロージャが渡せない場合のソート
+クロージャ(comparator)が渡せない場合のソート
   evaluate(targets[index]) = value とする
   ソート関数に渡す
     value配列、targets配列を渡す
@@ -165,6 +163,12 @@ GPUの性能が厳しい
   WebGL conformance test
     https://www.khronos.org/registry/webgl/sdk/tests/webgl-conformance-tests.html?version=2.0.1
 
+GLSLの最適化
+  Glslangで Glsl(310es) -> AST -> SPIRV
+  SPIRV-Toolで spirv-opt
+  SPIRV-Crossで SPIRV -> Glsl(300es)
+    バイナリで配布されてないのでVulkanSDKから持ってくる
+  webpackのローダとして存在すれば良かったが
 
 
 右手系の座標を扱う: cross(x,y) = z
@@ -196,11 +200,13 @@ refraction: 屈折率
 npm init
 npm install webpack webpack-cli -D
 npm install typescript ts-loader -D
+npm install ts-node @types/node tsconfig-paths -D
 npm install raw-loader -D
 /*
 npm install glslify glslify-import -D
 npm install glslify-loader glslify-import-loader -D
 npm install template-literals-loader -D
+npm install glsl-optimize-loader -D
 */
 
 

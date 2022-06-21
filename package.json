@@ -1,5 +1,10 @@
 {
   "scripts": {
+    "genRawGlsl": "ts-node --esm ./src/gl_source_builder.ts",
+    "glsl2spirv": "/Tools/glslang/bin/glslangValidator -G --auto-map-locations -S frag -o ./src/mid-build/unoptimized.spv ./src/mid-build/frag_raw.glsl",
+    "optSpirv": "/Tools/spirv-tools/bin/spirv-opt -O ./src/mid-build/unoptimized.spv -o ./src/mid-build/opt.spv",
+    "spirv2glsl": "/Tools/spirv-cross --stage frag --version 300 --es --output ./src/mid-build/frag.glsl ./src/mid-build/opt.spv",
+    "prebuild": "npm run genRawGlsl && npm run glsl2spirv && npm run optSpirv && npm run spirv2glsl",
     "build": "npx webpack",
     "watch": "npx webpack -w",
     "test": "jest"
@@ -7,10 +12,13 @@
   "private": true,
   "devDependencies": {
     "@types/jest": "^27.4.1",
+    "@types/node": "^17.0.45",
     "jest": "^27.5.1",
     "raw-loader": "^4.0.2",
     "ts-jest": "^27.1.4",
     "ts-loader": "^9.2.8",
+    "ts-node": "^10.8.1",
+    "tsconfig-paths": "^4.0.0",
     "typescript": "^4.6.2",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2"

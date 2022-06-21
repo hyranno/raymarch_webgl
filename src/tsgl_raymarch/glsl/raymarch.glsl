@@ -9,8 +9,8 @@ int findNearestDrawable(in Ray ray, out float obj_distance) {
     float current_distance = getDistance_${d.id}(ray.start);
     float direction_match = current_distance * dot(getNormal_${d.id}(ray.start), ray.direction);
     bool cond = /*direction_match<0.0 && */ abs(current_distance) < abs(prev_distance);
-    prev_id = mix(prev_id, ${d.id}, cond);
-    prev_distance = mix(prev_distance, current_distance, cond);
+    prev_id = select(prev_id, ${d.id}, cond);
+    prev_distance = select(prev_distance, current_distance, cond);
   }`).join("")}
   obj_distance = prev_distance;
   return int(prev_id);

@@ -10,7 +10,7 @@ vec4 quaternion_fromDCM(mat3 dcm) {
   );
   int imax = 0;
   for (int i=1; i<4; i++) {
-    imax = mix(imax, i, a4v[imax] < a4v[i]);
+    imax = select(imax, i, a4v[imax] < a4v[i]);
   }
   mat4 vs = transpose(mat4(
     0.0, dcm[0][1]+dcm[1][0], dcm[2][0]+dcm[0][2], dcm[1][2]-dcm[2][1],
@@ -19,7 +19,7 @@ vec4 quaternion_fromDCM(mat3 dcm) {
     dcm[1][2]-dcm[2][1], dcm[2][0]-dcm[0][2], dcm[0][1]-dcm[1][0], 0.0
   ));
   for (int i=0; i<4; i++) {
-    res[i] = mix(vs[imax][i]/a4v[imax], a4v[imax]/4.0, i==imax);
+    res[i] = select(vs[imax][i]/a4v[imax], a4v[imax]/4.0, i==imax);
   }
   return res;
 }
@@ -70,7 +70,7 @@ mat3 dcm_fromXZ(vec3 x, vec3 z) {
 
 
 float blend(float v1, float v2, bool isMin, float smoothness, float weight) {
-  float s = mix(1.0, -1.0, isMin);
+  float s = select(1.0, -1.0, isMin);
   float h = 0.5 - s*0.5*clamp((v2-v1) / smoothness, -1.0, 1.0);
   h = pow(h, 1.0/weight);
   float d = smoothness*h*(1.0-h); // > mix(v2,v1,h)-min(v2,v1)
@@ -93,7 +93,7 @@ vec3 rgb2hsv(vec3 rgb) {
   float minval = min(rgb[0], min(rgb[1], rgb[2]));
   int maxIndex = 0;
   for (int i=0; i<3; i++) {
-    maxIndex = mix(maxIndex, i, rgb[maxIndex] < rgb[i]);
+    maxIndex = select(maxIndex, i, rgb[maxIndex] < rgb[i]);
   }
   float Hs = (maxval-minval == 0.0) ? 0.0 : 1.0/6.0 *((rgb[(maxIndex+1)%3] - rgb[(maxIndex+2)%3])/(maxval-minval) +2.0*float(maxIndex));
   float H = mod(mod(Hs, 1.0) + 1.0, 1.0);
@@ -126,8 +126,8 @@ vec3 hsv2rgb(vec3 hsv) {
     v2 = t;\
   }\
   void swap(inout TYPE v1, inout TYPE v2, bool cond) {\
-    TYPE t1 = mix(v1, v2, cond);\
-    TYPE t2 = mix(v2, v1, cond);\
+    TYPE t1 = select(v1, v2, cond);\
+    TYPE t2 = select(v2, v1, cond);\
     v1 = t1;\
     v2 = t2;\
   }

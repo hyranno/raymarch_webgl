@@ -42,11 +42,12 @@ vec2 mul(vec2 scale, vec2 v);
 vec3 mul(vec3 scale, vec3 v);
 int mul(float scale, int v);
 TexturePatch mul(float scale, TexturePatch v);
-vec2 mix(vec2 a, vec2 b, bool cond);
-vec3 mix(vec3 a, vec3 b, bool cond);
-int mix(int a, int b, bool cond);
-TexturePatch mix(TexturePatch a, TexturePatch b, float weight);
-TexturePatch mix(TexturePatch a, TexturePatch b, bool weight);
+float select(float a, float b, bool cond);
+vec2 select(vec2 a, vec2 b, bool cond);
+vec3 select(vec3 a, vec3 b, bool cond);
+int select(int a, int b, bool cond);
+TexturePatch mixTexture(TexturePatch a, TexturePatch b, float weight);
+TexturePatch select(TexturePatch a, TexturePatch b, bool weight);
 
 /*util.glsl*/
 vec4 quaternion_fromDCM(mat3 dcm);
@@ -89,7 +90,7 @@ const mat3 Simplex3Basis = mat3(
   vec3(cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0),
   vec3(sqrt(1.0/3.0), 0, sqrt(2.0/3.0))
 );
-const mat3 InvSimplex3Basis = inverse(Simplex3Basis);
+//const mat3 InvSimplex3Basis = inverse(Simplex3Basis);
 const vec3 Simplex3Center = (
   +vec3(cos(radians(180.0)/6.0), +sin(radians(180.0)/6.0), 0)
   +vec3(cos(radians(180.0)/6.0), -sin(radians(180.0)/6.0), 0)

@@ -12,4 +12,10 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
   },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "compilerOptions": {
+      "module": "commonjs",
+    },
+  },
 }

@@ -123,10 +123,12 @@ export class BrickStructure extends materials.BumpMap {
     let edgeBump = edge;
 
     let mixWeight = new fields.SmoothClamp(edge, 0, 1, 0.1);
-    let mixedTexture = new glClosure.Mix("texture", cement, brick, mixWeight);
-    let mixedBump = new glClosure.Mix("mixedBump", cementBump, brickBump, mixWeight);
+    let mixedTexture = new glClosure.Mix("texture", "mixTexture", cement, brick, mixWeight);
+    let mixedBump = new glClosure.Mix("mixedBump", "mix", cementBump, brickBump, mixWeight);
 
     let bump = new fields.Add(mixedBump, [edgeBump]);
+
+    let testTexture = new textures.Constant(new Vec3(0.8,0.8,0.8), 0.9, 0.1);
     let bump0 = new fields.Constant(0);
 
     let baseMaterial = new materials.TextureReflectanceModel(mixedTexture, new reflectances.Phong());

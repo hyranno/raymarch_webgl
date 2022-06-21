@@ -126,7 +126,7 @@ export class VoronoiSimplex extends Vec3Field {
     }
     int minIndex = 0;
     for (int i=1; i < distances.length(); i++) {
-      minIndex = mix(minIndex, i, distances[i] < distances[minIndex]);
+      minIndex = select(minIndex, i, distances[i] < distances[minIndex]);
     }
     return cells[minIndex];
   }`;}
@@ -147,7 +147,7 @@ export class VoronoiOrthogonal extends Vec3Field {
     }
     int minIndex = 0;
     for (int i=1; i < distances.length(); i++) {
-      minIndex = mix(minIndex, i, distances[i] < distances[minIndex]);
+      minIndex = select(minIndex, i, distances[i] < distances[minIndex]);
     }
     return cells[minIndex];
   }`;}

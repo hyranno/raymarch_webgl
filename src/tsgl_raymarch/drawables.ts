@@ -109,8 +109,8 @@ export class Group extends Drawable {
       ${this.contents.map((d)=>`{
         float current_distance = getDistance_${d.id}(point);
         bool cond = abs(current_distance) < abs(prev_distance);
-        prev_id = mix(prev_id, ${d.id}, cond);
-        prev_distance = mix(prev_distance, current_distance, cond);
+        prev_id = select(prev_id, ${d.id}, cond);
+        prev_distance = select(prev_distance, current_distance, cond);
       }`).join("")}
       obj_distance = prev_distance;
       return prev_id;

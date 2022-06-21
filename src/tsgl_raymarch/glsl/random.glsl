@@ -65,8 +65,8 @@ float rand_uniform (inout uint state) {
 float rand_normal (inout uint state) { // Box-Muller's Method
   float x = rand_uniform(state);
   float y = rand_uniform(state);
-  float xv = mix(x, 0.5, x==0.0);
-  float yv = mix(y, 0.5, y==0.0);
+  float xv = select(x, 0.5, x==0.0);
+  float yv = select(y, 0.5, y==0.0);
   float r = sqrt(-2.0*log(xv));
   return r*cos(radians(360.0)*y); //and r*sin(radians(360.0)*y)
 }

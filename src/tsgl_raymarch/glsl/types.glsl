@@ -5,6 +5,9 @@ float add(float v1, float v2) {
 float mul(float scale, float v) {
   return scale * v;
 }
+float select(float a, float b, bool cond) {
+  return mix(a,b, cond);
+}
 /* vec2 */
 vec2 add(vec2 v1, vec2 v2) {
   return v1 + v2;
@@ -12,7 +15,7 @@ vec2 add(vec2 v1, vec2 v2) {
 vec2 mul(float scale, vec2 v) {
   return scale * v;
 }
-vec2 mix(vec2 a, vec2 b, bool cond) {
+vec2 select(vec2 a, vec2 b, bool cond) {
   return mix(a, b, bvec2(cond));
 }
 /* vec3 */
@@ -22,7 +25,7 @@ vec3 add(vec3 v1, vec3 v2) {
 vec3 mul(float scale, vec3 v) {
   return scale * v;
 }
-vec3 mix(vec3 a, vec3 b, bool cond) {
+vec3 select(vec3 a, vec3 b, bool cond) {
   return mix(a, b, bvec3(cond));
 }
 
@@ -33,7 +36,7 @@ int add(int v1, int v2) {
 int mul(float scale, int v) {
   return int(scale * float(v));
 }
-int mix(int a, int b, bool cond) {
+int select(int a, int b, bool cond) {
   return int(mix(float(a), float(b), cond));
 }
 
@@ -56,7 +59,7 @@ TexturePatch mul(float scale, TexturePatch v) {
   res.normal = v.normal;
   return res;
 }
-TexturePatch mix(TexturePatch v1, TexturePatch v2, float weight) {
+TexturePatch mixTexture(TexturePatch v1, TexturePatch v2, float weight) {
   TexturePatch res;
   res.albedo = mix(v1.albedo, v2.albedo, weight);
   res.roughness = mix(v1.roughness, v2.roughness, weight);
@@ -65,11 +68,11 @@ TexturePatch mix(TexturePatch v1, TexturePatch v2, float weight) {
   res.normal = v1.normal;
   return res;
 }
-TexturePatch mix(TexturePatch v1, TexturePatch v2, bool weight) {
+TexturePatch select(TexturePatch v1, TexturePatch v2, bool weight) {
   TexturePatch res;
-  res.albedo = mix(v1.albedo, v2.albedo, weight);
-  res.roughness = mix(v1.roughness, v2.roughness, weight);
-  res.specular = mix(v1.specular, v2.specular, weight);
+  res.albedo = select(v1.albedo, v2.albedo, weight);
+  res.roughness = select(v1.roughness, v2.roughness, weight);
+  res.specular = select(v1.specular, v2.specular, weight);
   res.point = v1.point;
   res.normal = v1.normal;
   return res;

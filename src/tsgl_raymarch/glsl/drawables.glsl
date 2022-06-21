@@ -5,7 +5,6 @@ ${drawables.map((d) => d.getGlImplements()).join("")}
 float getDistance(int id, vec3 point) {
   float res = MAX_DISTANCE;
   ${drawables.map((d)=>`
-    // res += getDistance_${d.id}(point) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
       res = getDistance_${d.id}(point);
     }
@@ -15,7 +14,6 @@ float getDistance(int id, vec3 point) {
 vec3 getNormal(int id, vec3 point) {
   vec3 res = vec3(1,0,0);
   ${drawables.map((d)=>`
-    // res += getDistance_${d.id}(point) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
       res = getNormal_${d.id}(point);
     }
@@ -25,7 +23,6 @@ vec3 getNormal(int id, vec3 point) {
 vec3 calcAmbient(int id, vec3 point, in vec3 intensity, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
-    // res += calcAmbient_${d.id}(point, view) * mix(0.0, 1.0, ${d.id}==id);
     if (id==${d.id}) {
       res = calcAmbient_${d.id}(point, getNormal_${d.id}(point), intensity, view);
     }

@@ -20,7 +20,7 @@ export class TestTexture extends textures.Constant {
   override GlFunc_get(): string {return `
     TexturePatch ${this.glFuncName}(vec3 point) {
       return TexturePatch(
-        value_${this.id}.albedo + mix(0.0,1.0, 0.5<point.x) * vec3(1, 0, 0),
+        value_${this.id}.albedo + select(0.0,1.0, 0.5<point.x) * vec3(1, 0, 0),
         value_${this.id}.roughness, value_${this.id}.specular,
         point, vec3(0)
       );
