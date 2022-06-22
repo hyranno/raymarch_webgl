@@ -18,15 +18,17 @@ export class RenderTargets {
 }
 export function getRenderTargets(timetick: TimeTicks) {
   let cameras_: cameras.Camera[] = [
-    new cameras.Perspective(new Vec3(0,0,14), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(800, 600)),
+    new cameras.Perspective(new Vec3(0,0,14), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(400,300)),
   ];
 
   let drawables_: drawables.Drawable[] = [
+    /*
     new drawables.Transformed(
       new CornellBox(),
       new Transform( 5, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2.5) )
     ),
     new objs.OrbitingSphere(timetick),
+    */
     new objs.RotatingRoundedCube(timetick),
     /*
     new objs.SwingBox(timetick),
@@ -34,9 +36,8 @@ export function getRenderTargets(timetick: TimeTicks) {
   ];
 
   let lights_: lights.Light[] = [
-    //new lights.DirectionalLight((new Vec3(2,-3,-10)).normalize(), new Vec3(1,1,1)),
-    new lights.PointLight(new Vec3(0,3,1), new Vec3(1,1,1)),
-    //new lights.PointLight(new Vec3(0,-3,0), (new Vec3(1,1,1)).mul(0.05)),
+    new lights.DirectionalLight((new Vec3(2,-3,-10)).normalize(), new Vec3(1,1,1)),
+    //new lights.PointLight(new Vec3(0,3,1), new Vec3(1,1,1)),
   ];
   return new RenderTargets(cameras_, drawables_, lights_);
 }

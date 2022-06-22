@@ -1,6 +1,6 @@
-import {Vec3, smoothmax, smoothmin, clamp} from './util';
+import {Vec3, Vec2, smoothmax, smoothmin, clamp} from './util';
 import {GlEntity} from './gl_entity';
-import {GlFloat, GlVec3, Transform} from './gl_types';
+import {GlFloat, GlVec3, GlVec2, Transform} from './gl_types';
 import {TsGlClosure} from './tsgl_closure';
 import * as tsgl_closure from './tsgl_closure';
 
@@ -275,6 +275,25 @@ export class RepetitionInf extends Displacement {
     this.glUniformVars.push({name:"interval", value:this.interval});
   }
 }
+export class RepetitionInfX extends Displacement {
+  interval: GlFloat;
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, interval: number) {
+    let displacer: TsGlClosure<GlVec3, [GlVec3]> = new tsgl_closure.Anonymous(
+      `displace`, GlVec3.default(), [GlVec3.default()],
+      ([point]: [GlVec3]) => {
+        let origin = new Vec3(this.interval.value * Math.round(point.value[0]/this.interval.value), 0,0);
+        return new GlVec3( point.value.add(origin.negative()) );
+      },
+      () => `{
+        vec3 origin = vec3(interval_${this.id} * round(v0.x / interval_${this.id}), 0, 0);
+        return v0 - origin;
+      }`
+    );
+    super(original, displacer);
+    this.interval = new GlFloat(interval);
+    this.glUniformVars.push({name:"interval", value:this.interval});
+  }
+}
 export class Repetition extends Displacement {
   interval: GlVec3;
   max_indices: GlVec3;
@@ -335,4 +354,51 @@ export class BoundingShape extends Shape3D {
       return res;
     }`;
   }
+}
+
+
+export class Extrude extends Shape3D {
+  shape2d: TsGlClosure<GlFloat, [GlVec2]>;
+  thickness: GlFloat;
+  constructor(shape2d: TsGlClosure<GlFloat, [GlVec2]>, thickness: GlFloat) {
+    super();
+    this.shape2d = shape2d;
+    this.thickness = thickness;
+    this.dependentGlEntities.push(shape2d);
+    this.glUniformVars.push({name: "thickness", value: this.thickness});
+  }
+  override getDistance(point: Vec3): number {
+    let distance2d = this.shape2d.tsClosure([new GlVec2(new Vec2(point[0], point[1]))]).value;
+    let distanceZ = Math.abs(point[2]) - this.thickness.value;
+    let negative = Math.min(Math.max(distance2d, distanceZ), 0);
+    let positive = (new Vec2(Math.max(distance2d,0), Math.max(distanceZ,0))).len();
+    return negative + positive;
+  }
+  override GlFunc_getDistance(): string {return `
+    float getDistance_${this.id} (vec3 point) {
+      float distance2d = ${this.shape2d.glFuncName}(point.xy);
+      float distanceZ = abs(point.z) - thickness_${this.id};
+      float negative = min(max(distance2d, distanceZ), 0.0);
+      float positive = length(vec2(max(distance2d,0.0), max(distanceZ,0.0)));
+      return negative + positive;
+    }
+  `;}
+}
+export class Revolution extends Shape3D {
+  shape2d: TsGlClosure<GlFloat, [GlVec2]>;
+  constructor(shape2d: TsGlClosure<GlFloat, [GlVec2]>) {
+    super();
+    this.shape2d = shape2d;
+    this.dependentGlEntities.push(shape2d);
+  }
+  override getDistance(point: Vec3): number {
+    let p = new Vec2( (new Vec2(point[0], point[2])).len(), point[1] );
+    return this.shape2d.tsClosure([new GlVec2(p)]).value;
+  }
+  override GlFunc_getDistance(): string {return `
+    float getDistance_${this.id} (vec3 point) {
+      vec2 p = vec2(length(point.xz), point.y);
+      return ${this.shape2d.glFuncName}(p);
+    }
+  `;}
 }

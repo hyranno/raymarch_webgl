@@ -1,17 +1,19 @@
-import {Vec3, Quaternion} from '@tsgl/util';
+import {Vec3} from '@tsgl/util';
 import * as util from '@tsgl/util';
-import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as textures from '@tsgl/textures';
 import * as reflectances from '@tsgl/reflectances';
-import * as drawables from '@tsgl/drawables';
-import {GlFloat, GlVec3, Transform, TexturePatch} from '@tsgl/gl_types';
+import {GlFloat, GlVec3} from '@tsgl/gl_types';
 
 import * as rand from '@tsgl/random';
 import * as fields from '@tsgl/scalar_fields';
 import * as v3fields from '@tsgl/vec3_fields';
 import {GlClosure} from '@tsgl/gl_closure';
 import * as glClosure from '@tsgl/gl_closure';
+
+let testTexture = new textures.Constant(new Vec3(0.8,0.8,0.8), 0.9, 0.1);
+let bump0 = new fields.Constant(0);
+let testMaterial = new materials.TextureReflectanceModel(testTexture, new reflectances.Phong());
 
 
 export class BrickStructure extends materials.BumpMap {
@@ -20,7 +22,7 @@ export class BrickStructure extends materials.BumpMap {
     let rand_normal = new rand.Normal();
     let rand_exponential = new rand.Exponential();
     let local_field = new fields.CircularyZeroSum();
-    let brickSize = v3fields.Affine.identity().scale(1/2.1, 1/1, 1/0.6).scale(3,3,3);
+    let brickSize = v3fields.Affine.identity().scale(1/2.1, 1/0.6, 1/1).scale(3,3,3);
 
     let cementBaseTexture: textures.Constant = new textures.Constant(
       new Vec3(0.75,0.75,0.75), 0.8, 0.1
@@ -127,9 +129,6 @@ export class BrickStructure extends materials.BumpMap {
     let mixedBump = new glClosure.Mix("mixedBump", "mix", cementBump, brickBump, mixWeight);
 
     let bump = new fields.Add(mixedBump, [edgeBump]);
-
-    let testTexture = new textures.Constant(new Vec3(0.8,0.8,0.8), 0.9, 0.1);
-    let bump0 = new fields.Constant(0);
 
     let baseMaterial = new materials.TextureReflectanceModel(mixedTexture, new reflectances.Phong());
     super(baseMaterial, bump0);

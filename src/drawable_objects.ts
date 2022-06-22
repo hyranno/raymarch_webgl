@@ -15,6 +15,7 @@ import {TexturePatch, GlVec3, GlQuaternion, Transform} from '@tsgl/gl_types';
 import {TimeTicks} from './event_stream';
 
 import {BrickStructure} from './asset_objects/brick';
+import {BridgeBase} from './asset_objects/bridge';
 
 export class TestTexture extends textures.Constant {
   override GlFunc_get(): string {return `
@@ -142,7 +143,8 @@ export class RotatingRoundedCube extends drawables.Transformed {
       util.Quaternion.fromSrcDest((new util.Vec3(1,1,1)).normalize(), new util.Vec3(0,1,0)),
       new util.Vec3(0,0,0)
     );
-    super(org, transform);
+    //super(org, transform);
+    super(new BridgeBase(), transform);
     let angular_velocity = util.Quaternion.fromAngleAxis(-Math.PI/20, new util.Vec3(0,1,0));
     t.addEventListener(()=>{
       transform.rotation = angular_velocity.mul(transform.rotation);

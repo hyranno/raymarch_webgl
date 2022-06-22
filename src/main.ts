@@ -9,6 +9,8 @@ function main(): void {
   let targets = getRenderTargets(timetick);
 
   let canvas = document.getElementById("demoscene") as HTMLCanvasElement;
+  canvas.width = targets.cameras[0].resolution.value[0];
+  canvas.height = targets.cameras[0].resolution.value[1];
   let gl = canvas.getContext("webgl2");
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);

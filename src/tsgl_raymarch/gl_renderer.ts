@@ -1,10 +1,9 @@
-import {asTemplate} from './util';
 import {Camera} from './cameras';
 import {Drawable} from './drawables';
 import {Light} from './lights';
 
-//import fragShaderTemplate from '/src/mid-build/frag_raw.glsl';
-import fragShaderTemplate from '/src/mid-build/frag.glsl';
+//import fragShaderSource from '/src/mid-build/frag_raw.glsl';
+import fragShaderSource from '/src/mid-build/frag.glsl';
 
 export class GlRenderer {
   cameras: Camera[];
@@ -21,7 +20,7 @@ export class GlRenderer {
     this.program = this.context.createProgram();
     this.glBuffer = this.context.createBuffer();
     this.prepareShader(gl.VERTEX_SHADER, this.getVertexShaderSource());
-    console.log(this.getFragmentShaderSource());
+    //console.log(this.getFragmentShaderSource());
     this.prepareShader(gl.FRAGMENT_SHADER, this.getFragmentShaderSource());
     this.context.linkProgram(this.program);
     if (!this.context.getProgramParameter(this.program, gl.LINK_STATUS)) {
@@ -56,14 +55,7 @@ export class GlRenderer {
     }
   `;}
   getFragmentShaderSource(): string {
-    this.drawables.forEach((entity) => entity.clearGlSourceStates());
-    this.lights.forEach((entity) => entity.clearGlSourceStates());
-    this.cameras.forEach((entity) => entity.clearGlSourceStates());
-    return asTemplate(fragShaderTemplate, {
-      drawables: this.drawables,
-      lights: this.lights,
-      cameras: this.cameras,
-    });
+    return fragShaderSource;
   }
   private prepareShader(type: number, source: string) {
     let shader = this.context.createShader(type);
