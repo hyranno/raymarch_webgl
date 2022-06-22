@@ -25,15 +25,13 @@ npm run build
 
 TODO
 now:
-canvasのサイズ小さくした方がいいかも
-  render_targets.ts の カメラに渡すresolutionの値
 陸橋
+  Ambient, Diffuse, Specular を別々のコールで求めるのは重そう
+    PhotonMappingとかだと別々に求めたい
+    texturePatchは使い回せそう
   material
     Bumpまわりでハングしてる?
       サンプリング回数が多いので単純に重いのはありそう
-    Ambient, Diffuse, Specular を別々のコールで求めるのは重そう
-  shape
-    RepetitionInfX
 future:
   地面
     SDFPlane?

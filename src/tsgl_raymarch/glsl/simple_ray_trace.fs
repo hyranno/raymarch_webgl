@@ -18,9 +18,10 @@ void main() {
     float light_distance;
     rayCast(photon.ray, MAX_DISTANCE, light_distance);
     float light_isHit = select(0.0,1.0, length(point - photon.ray.start) - 0.4 < light_distance);
-    ambient += calcAmbient(obj, point, ambient_light, ray);
-    diffuse += calcDiffuse(obj, point, photon, ray) * light_isHit;
-    specular += calcSpecular(obj, point, photon, ray) * light_isHit;
+    TexturePatch texture = getTexturePatch(obj, point);
+    ambient += calcAmbient(obj, texture, ambient_light, ray);
+    diffuse += calcDiffuse(obj, texture, photon, ray) * light_isHit;
+    specular += calcSpecular(obj, texture, photon, ray) * light_isHit;
   }`).join("")}
   vec3 skyColor = vec3(0.6, 0.6, 0.9);
   ambient += select(0.0,1.0, obj<0)* skyColor;

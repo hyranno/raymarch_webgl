@@ -20,29 +20,38 @@ vec3 getNormal(int id, vec3 point) {
   `).join("")}
   return res;
 }
-vec3 calcAmbient(int id, vec3 point, in vec3 intensity, in Ray view) {
-  vec3 res = vec3(0);
+TexturePatch getTexturePatch(int id, vec3 point) {
+  TexturePatch res;
   ${drawables.map((d)=>`
     if (id==${d.id}) {
-      res = calcAmbient_${d.id}(point, getNormal_${d.id}(point), intensity, view);
+      res = getTexturePatch_${d.id}(point);
     }
   `).join("")}
   return res;
 }
-vec3 calcDiffuse(int id, vec3 point, in Photon photon, in Ray view) {
+vec3 calcAmbient(int id, in TexturePatch texture, in vec3 intensity, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
     if (id==${d.id}) {
-      res = calcDiffuse_${d.id}(point, getNormal_${d.id}(point), photon, view);
+      res = calcAmbient_${d.id}(texture, intensity, view);
     }
   `).join("")}
   return res;
 }
-vec3 calcSpecular(int id, vec3 point, in Photon photon, in Ray view) {
+vec3 calcDiffuse(int id, in TexturePatch texture, in Photon photon, in Ray view) {
   vec3 res = vec3(0);
   ${drawables.map((d)=>`
     if (id==${d.id}) {
-      res = calcSpecular_${d.id}(point, getNormal_${d.id}(point), photon, view);
+      res = calcDiffuse_${d.id}(texture, photon, view);
+    }
+  `).join("")}
+  return res;
+}
+vec3 calcSpecular(int id, in TexturePatch texture, in Photon photon, in Ray view) {
+  vec3 res = vec3(0);
+  ${drawables.map((d)=>`
+    if (id==${d.id}) {
+      res = calcSpecular_${d.id}(texture, photon, view);
     }
   `).join("")}
   return res;

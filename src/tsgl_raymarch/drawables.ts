@@ -5,6 +5,7 @@ import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
 
 export abstract class Drawable extends glEntities.GlEntity implements shapes.HasShape, materials.HasMaterial {
+  abstract GlFunc_getTexturePatch(): string;
   abstract GlFunc_calcAmbient(): string;
   abstract GlFunc_calcDiffuse(): string;
   abstract GlFunc_calcSpecular(): string;
@@ -16,14 +17,16 @@ export abstract class Drawable extends glEntities.GlEntity implements shapes.Has
     ${super.getGlDeclarations()}
     float getDistance_${this.id} (vec3 point);
     vec3 getNormal_${this.id} (vec3 point);
-    vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view);
-    vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
-    vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view);
+    TexturePatch getTexturePatch_${this.id} (vec3 point);
+    vec3 calcAmbient_${this.id} (in TexturePatch texture, in vec3 intensity, in Ray view);
+    vec3 calcDiffuse_${this.id} (in TexturePatch texture, in Photon photon, in Ray view);
+    vec3 calcSpecular_${this.id} (in TexturePatch texture, in Photon photon, in Ray view);
   `;}
   override getGlImplements(): string { return this.isGlImplemented()? `` : `
     ${super.getGlImplements()}
     ${this.GlFunc_getDistance()}
     ${this.GlFunc_getNormal()}
+    ${this.GlFunc_getTexturePatch()}
     ${this.GlFunc_calcAmbient()}
     ${this.GlFunc_calcDiffuse()}
     ${this.GlFunc_calcSpecular()}
@@ -56,19 +59,27 @@ export class MaterializedShape extends Drawable {
       return getNormal_${this.shape.id}(point);
     }`;
   }
+  override GlFunc_getTexturePatch(): string {return `
+    TexturePatch getTexturePatch_${this.id} (vec3 point) {
+      TexturePatch res = getTexturePatch_${this.material.id}(point);
+      res.point = point;
+      res.normal = getNormal_${this.id}(point);
+      return res;
+    }
+  `;}
   override GlFunc_calcAmbient(): string {
-    return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
-      return calcAmbient_${this.material.id}(point, normal, intensity, view);
+    return `vec3 calcAmbient_${this.id} (in TexturePatch texture, in vec3 intensity, in Ray view) {
+      return calcAmbient_${this.material.id}(texture, intensity, view);
     }`;
   }
   override GlFunc_calcDiffuse(): string {
-    return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      return calcDiffuse_${this.material.id}(point, normal, photon, view);
+    return `vec3 calcDiffuse_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
+      return calcDiffuse_${this.material.id}(texture, photon, view);
     }`;
   }
   override GlFunc_calcSpecular(): string {
-    return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
-      return calcSpecular_${this.material.id}(point, normal, photon, view);
+    return `vec3 calcSpecular_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
+      return calcSpecular_${this.material.id}(texture, photon, view);
     }`;
   }
 }
@@ -142,40 +153,53 @@ export class Group extends Drawable {
       return res;
     }`;
   }
+  override GlFunc_getTexturePatch(): string {
+    return `TexturePatch getTexturePatch_${this.id} (vec3 point) {
+      TexturePatch res;
+      float obj_distance;
+      int nearest = findNearest_${this.id}(point, obj_distance);
+      ${this.contents.map((d) => `
+        if (nearest==${d.id}) {
+          res = getTexturePatch_${d.id}(point);
+        }
+      `).join("")}
+      return res;
+    }`;
+  }
   override GlFunc_calcAmbient(): string {
-    return `vec3 calcAmbient_${this.id} (vec3 point, vec3 normal, in vec3 intensity, in Ray view) {
+    return `vec3 calcAmbient_${this.id} (in TexturePatch texture, in vec3 intensity, in Ray view) {
       vec3 res = vec3(0);
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
-          res = calcAmbient_${d.id}(point, normal, intensity, view);
+          res = calcAmbient_${d.id}(texture, intensity, view);
         }
       `).join("")}
       return res;
     }`;
   }
   override GlFunc_calcDiffuse(): string {
-    return `vec3 calcDiffuse_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+    return `vec3 calcDiffuse_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
-          res = calcDiffuse_${d.id}(point, normal, photon, view);
+          res = calcDiffuse_${d.id}(texture, photon, view);
         }
       `).join("")}
       return res;
     }`;
   }
   override GlFunc_calcSpecular(): string {
-    return `vec3 calcSpecular_${this.id} (vec3 point, vec3 normal, in Photon photon, in Ray view) {
+    return `vec3 calcSpecular_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
       float obj_distance;
       int nearest = findNearest_${this.id}(point, obj_distance);
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
-          res = calcSpecular_${d.id}(point, normal, photon, view);
+          res = calcSpecular_${d.id}(texture, photon, view);
         }
       `).join("")}
       return res;
