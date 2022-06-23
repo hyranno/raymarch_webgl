@@ -102,7 +102,6 @@ export class BrickStructure extends materials.BumpMap {
     );
     let brickBump = new fields.Mult(new fields.Length(brickFBMColor), [new fields.Constant(0.01)]);
 
-
     let edgeBase = new glClosure.Displacement(
       "brickEdge",
       new fields.VoronoiEdgeOrthogonal(
@@ -122,7 +121,7 @@ export class BrickStructure extends materials.BumpMap {
         ), 0.3, 1.3, 0.2
       ), [new fields.Constant(-0.3)]
     );
-    let edgeBump = edge;
+    let edgeBump = new fields.Mult(new fields.Constant(0.01), [edge]);
 
     let mixWeight = new fields.SmoothClamp(edge, 0, 1, 0.1);
     let mixedTexture = new glClosure.Mix("texture", "mixTexture", cement, brick, mixWeight);
@@ -131,6 +130,6 @@ export class BrickStructure extends materials.BumpMap {
     let bump = new fields.Add(mixedBump, [edgeBump]);
 
     let baseMaterial = new materials.TextureReflectanceModel(mixedTexture, new reflectances.Phong());
-    super(baseMaterial, bump0);
+    super(baseMaterial, edgeBump);
   }
 }

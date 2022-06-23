@@ -1,11 +1,13 @@
-import {Vec3} from './util';
-import {Transform} from './gl_types';
+import {Vec3} from '@tsgl/util';
 import * as shapes from '@tsgl/shapes';
 import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
+import {GlFloat, GlVec3, Transform} from '@tsgl/gl_types';
+import {GlClosure} from '@tsgl/gl_closure';
 
 export abstract class Drawable extends glEntities.GlEntity implements shapes.HasShape, materials.HasMaterial {
   abstract GlFunc_getTexturePatch(): string;
+  abstract GlFunc_mapNormal(): string;
   abstract GlFunc_calcAmbient(): string;
   abstract GlFunc_calcDiffuse(): string;
   abstract GlFunc_calcSpecular(): string;
@@ -18,6 +20,7 @@ export abstract class Drawable extends glEntities.GlEntity implements shapes.Has
     float getDistance_${this.id} (vec3 point);
     vec3 getNormal_${this.id} (vec3 point);
     TexturePatch getTexturePatch_${this.id} (vec3 point);
+    vec3 mapNormal_${this.id} (vec3 point, vec3 normal);
     vec3 calcAmbient_${this.id} (in TexturePatch texture, in vec3 intensity, in Ray view);
     vec3 calcDiffuse_${this.id} (in TexturePatch texture, in Photon photon, in Ray view);
     vec3 calcSpecular_${this.id} (in TexturePatch texture, in Photon photon, in Ray view);
@@ -27,6 +30,7 @@ export abstract class Drawable extends glEntities.GlEntity implements shapes.Has
     ${this.GlFunc_getDistance()}
     ${this.GlFunc_getNormal()}
     ${this.GlFunc_getTexturePatch()}
+    ${this.GlFunc_mapNormal()}
     ${this.GlFunc_calcAmbient()}
     ${this.GlFunc_calcDiffuse()}
     ${this.GlFunc_calcSpecular()}
@@ -63,10 +67,15 @@ export class MaterializedShape extends Drawable {
     TexturePatch getTexturePatch_${this.id} (vec3 point) {
       TexturePatch res = getTexturePatch_${this.material.id}(point);
       res.point = point;
-      res.normal = getNormal_${this.id}(point);
+      res.normal = mapNormal_${this.material.id}(point, getNormal_${this.id}(point));
       return res;
     }
   `;}
+  override GlFunc_mapNormal(): string {
+    return `vec3 mapNormal_${this.id} (vec3 point, vec3 normal) {
+      return mapNormal_${this.material.id}(point, normal);
+    }`;
+  }
   override GlFunc_calcAmbient(): string {
     return `vec3 calcAmbient_${this.id} (in TexturePatch texture, in vec3 intensity, in Ray view) {
       return calcAmbient_${this.material.id}(texture, intensity, view);
@@ -90,6 +99,56 @@ export class Transformed extends MaterializedShape {
       new shapes.Transformed(new shapes.Shape3DWrapper(original), transform),
       new materials.Transformed(original, transform)
     );
+  }
+}
+
+export abstract class Delegation extends Drawable {
+  original: Drawable;
+  constructor(original: Drawable) {
+    super();
+    this.original = original;
+    this.dependentGlEntities.push(original);
+  }
+  override getDistance(point: Vec3): number {
+    return this.original.getDistance(point);
+  }
+  override getNormal(point: Vec3): Vec3 {
+    return this.original.getNormal(point);
+  }
+  override GlFunc_getDistance(): string {
+    return `float getDistance_${this.id} (vec3 point) {
+      return getDistance_${this.original.id}(point);
+    }`;
+  }
+  override GlFunc_getNormal(): string {
+    return `vec3 getNormal_${this.id} (vec3 point) {
+      return getNormal_${this.original.id}(point);
+    }`;
+  }
+  override GlFunc_getTexturePatch(): string {return `
+    TexturePatch getTexturePatch_${this.id} (vec3 point) {
+      return getTexturePatch_${this.original.id}(point);
+    }
+  `;}
+  override GlFunc_mapNormal(): string {
+    return `vec3 mapNormal_${this.id} (vec3 point, vec3 normal) {
+      return mapNormal_${this.original.id}(point, normal);
+    }`;
+  }
+  override GlFunc_calcAmbient(): string {
+    return `vec3 calcAmbient_${this.id} (in TexturePatch texture, in vec3 intensity, in Ray view) {
+      return calcAmbient_${this.original.id}(texture, intensity, view);
+    }`;
+  }
+  override GlFunc_calcDiffuse(): string {
+    return `vec3 calcDiffuse_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
+      return calcDiffuse_${this.original.id}(texture, photon, view);
+    }`;
+  }
+  override GlFunc_calcSpecular(): string {
+    return `vec3 calcSpecular_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
+      return calcSpecular_${this.original.id}(texture, photon, view);
+    }`;
   }
 }
 
@@ -161,6 +220,19 @@ export class Group extends Drawable {
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
           res = getTexturePatch_${d.id}(point);
+        }
+      `).join("")}
+      return res;
+    }`;
+  }
+  override GlFunc_mapNormal(): string {
+    return `vec3 mapNormal_${this.id} (vec3 point, vec3 normal) {
+      vec3 res = vec3(0);
+      float obj_distance;
+      int nearest = findNearest_${this.id}(point, obj_distance);
+      ${this.contents.map((d) => `
+        if (nearest==${d.id}) {
+          res = mapNormal_${d.id}(point, normal);
         }
       `).join("")}
       return res;
