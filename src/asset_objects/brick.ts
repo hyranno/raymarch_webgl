@@ -22,7 +22,7 @@ export class BrickStructure extends materials.BumpMap {
     let rand_normal = new rand.Normal();
     let rand_exponential = new rand.Exponential();
     let local_field = new fields.CircularyZeroSum();
-    let brickSize = v3fields.Affine.identity().scale(1/2.1, 1/0.6, 1/1).scale(3,3,3);
+    let brickSize = v3fields.Affine.identity().scale(1/2.1, 1/0.6, 1/1).scale(5,5,5);
 
     let cementBaseTexture: textures.Constant = new textures.Constant(
       new Vec3(0.75,0.75,0.75), 0.8, 0.1
@@ -121,7 +121,7 @@ export class BrickStructure extends materials.BumpMap {
         ), 0.3, 1.3, 0.2
       ), [new fields.Constant(-0.3)]
     );
-    let edgeBump = new fields.Mult(new fields.Constant(0.01), [edge]);
+    let edgeBump = new fields.Mult(new fields.Constant(0.008), [edge]);
 
     let mixWeight = new fields.SmoothClamp(edge, 0, 1, 0.1);
     let mixedTexture = new glClosure.Mix("texture", "mixTexture", cement, brick, mixWeight);

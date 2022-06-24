@@ -7,7 +7,7 @@ import * as cameras from '@tsgl/cameras';
 import {TimeTicks} from './event_stream'
 import * as objs from './drawable_objects';
 import {CornellBox} from './asset_objects/cornel_box';
-
+import {BridgeBase, TiledCylinder} from './asset_objects/bridge';
 
 export class RenderTargets {
   constructor(
@@ -18,7 +18,7 @@ export class RenderTargets {
 }
 export function getRenderTargets(timetick: TimeTicks) {
   let cameras_: cameras.Camera[] = [
-    new cameras.Perspective(new Vec3(0,0,14), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(400,300)),
+    new cameras.Perspective(new Vec3(0,0,30), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(400,300)),
   ];
 
   let drawables_: drawables.Drawable[] = [
@@ -28,11 +28,12 @@ export function getRenderTargets(timetick: TimeTicks) {
       new Transform( 5, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2.5) )
     ),
     new objs.OrbitingSphere(timetick),
-    */
     new objs.RotatingRoundedCube(timetick),
-    /*
     new objs.SwingBox(timetick),
     */
+    new objs.RotatingRoundedCube(timetick),
+    //new BridgeBase(),
+    //new TiledCylinder(),
   ];
 
   let lights_: lights.Light[] = [

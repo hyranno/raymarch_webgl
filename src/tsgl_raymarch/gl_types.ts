@@ -236,9 +236,9 @@ export class Transform implements HasGlType {
     return Transform.glTypeString;
   }
   setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
-    setGlUniformFloat(gl, program, `${name}.scale`, this.scale);
-    setGlUniformFloat(gl, program, `${name}.rotation`, this.rotation.xyz[0], this.rotation.xyz[1], this.rotation.xyz[2], this.rotation.w);
     setGlUniformFloat(gl, program, `${name}.translate`, this.translate[0], this.translate[1], this.translate[2]);
+    setGlUniformFloat(gl, program, `${name}.rotation`, this.rotation.xyz[0], this.rotation.xyz[1], this.rotation.xyz[2], this.rotation.w);
+    setGlUniformFloat(gl, program, `${name}.scale`, this.scale);
   }
   transform(p: util.Vec3): util.Vec3 {
     let res: util.Vec3 = p.clone();

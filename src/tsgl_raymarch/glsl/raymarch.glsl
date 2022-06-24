@@ -20,9 +20,10 @@ int findNearestDrawable(in Ray ray, out float obj_distance) {
 * @return index of Drawable. Negative if None.
 */
 int rayCast(in Ray ray, float max_distance, out float obj_distance) {
+  const int MAX_ITERATION = 256;
   Ray r = ray;
   float l = 0.0;
-  while (l < max_distance) {
+  for (int i=0; i < MAX_ITERATION && l < max_distance; i++) {
     float sd; //signed
     int nearest = findNearestDrawable(r, sd);
     if (abs(sd) < EPS) {

@@ -24,19 +24,13 @@ npm run build
 
 
 TODO
-now:
-陸橋
-  material
-    BumpMapまわりでハングしてる?
-      サンプリング回数が多いので単純に重いのはありそう
-        mapNormalで勾配を出すために4回呼んでる
-        Ambient, Diffuse, Specular で別々にmapNormalを呼んでる
-      Drawable::getTexturePatchでpoint,normalを代入している
-        BumpMapはDrawableにすべきか?
-          意味的に微妙では
-        mapNormalをHasMaterialに含んでDrawableから呼ぶべきか?
-        BumpMapを解析的にNormalMapにできないか?
-      shapeFBMの方が軽い可能性?
+now: 陸橋
+  Transformed で scale < 1 のとき謎の挙動をする
+  側面にタイルの小窓
+    円筒 + VoronoiSimplexマテリアル
+  モルタルの手すり
+    形状が複雑なのでBoundingShape
+    装飾の穴
 future:
   地面
     SDFPlane?
@@ -74,7 +68,15 @@ soooooon:
 
 
 リファクタリング
+  AffineのTsGlClosure
   mixをselect(T,T,bool)とinterpolate(T,T,float)に分ける
+  GlClosure,Randomなどの Constant
+    uniformで変更可能なUniformVar
+    初期値のみで決定されるConstant
+  GroupでfindNearestを何度も呼びたくない
+    ShapeはgetDistance, DrawableはgetNearestSurface
+    getNearestSurface -> DrawableSurface
+      DrawableId, 参照MaterialId, 距離
 
 リファクタリング(そのうち)
   shapeFBM

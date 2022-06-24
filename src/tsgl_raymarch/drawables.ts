@@ -242,7 +242,7 @@ export class Group extends Drawable {
     return `vec3 calcAmbient_${this.id} (in TexturePatch texture, in vec3 intensity, in Ray view) {
       vec3 res = vec3(0);
       float obj_distance;
-      int nearest = findNearest_${this.id}(point, obj_distance);
+      int nearest = findNearest_${this.id}(texture.point, obj_distance);
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
           res = calcAmbient_${d.id}(texture, intensity, view);
@@ -255,7 +255,7 @@ export class Group extends Drawable {
     return `vec3 calcDiffuse_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
       float obj_distance;
-      int nearest = findNearest_${this.id}(point, obj_distance);
+      int nearest = findNearest_${this.id}(texture.point, obj_distance);
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
           res = calcDiffuse_${d.id}(texture, photon, view);
@@ -268,7 +268,7 @@ export class Group extends Drawable {
     return `vec3 calcSpecular_${this.id} (in TexturePatch texture, in Photon photon, in Ray view) {
       vec3 res = vec3(0);
       float obj_distance;
-      int nearest = findNearest_${this.id}(point, obj_distance);
+      int nearest = findNearest_${this.id}(texture.point, obj_distance);
       ${this.contents.map((d) => `
         if (nearest==${d.id}) {
           res = calcSpecular_${d.id}(texture, photon, view);

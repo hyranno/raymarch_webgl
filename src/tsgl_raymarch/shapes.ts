@@ -378,8 +378,9 @@ export class Extrude extends Shape3D {
     float getDistance_${this.id} (vec3 point) {
       float distance2d = ${this.shape2d.glFuncName}(point.xy);
       float distanceZ = abs(point.z) - thickness_${this.id};
-      float negative = min(max(distance2d, distanceZ), 0.0);
-      float positive = length(vec2(max(distance2d,0.0), max(distanceZ,0.0)));
+      vec2 d = vec2(distance2d, distanceZ);
+      float negative = min(max(d.x, d.y), 0.0);
+      float positive = length(max(d, 0.0));
       return negative + positive;
     }
   `;}
