@@ -1,6 +1,7 @@
 import {GlClosure} from './gl_closure';
 import {HasGlType, GlAdditive} from './gl_types';
 import * as glType from './gl_types';
+import * as util from './util';
 
 
 export abstract class TsGlClosure<R extends HasGlType, A extends HasGlType[]> extends GlClosure<R,A>{
@@ -171,5 +172,48 @@ export class InverseTransform extends TsGlClosure<glType.GlVec3, [glType.GlVec3]
   `;}
   override tsClosure([point]: [glType.GlVec3]): glType.GlVec3 {
     return new glType.GlVec3(this.transform.inverse(point.value));
+  }
+}
+
+
+export class Affine2D extends TsGlClosure<glType.GlVec2, [glType.GlVec2]> {
+  mat: glType.GlMat3;
+  constructor(mat: glType.GlMat3) {
+    super("affine2d", glType.GlVec2.default(), [glType.GlVec2.default()]);
+    this.mat = mat;
+    this.glUniformVars.push({name:"mat", value:this.mat});
+  }
+  static identity(): Affine2D {
+    return new Affine2D(new glType.GlMat3( util.Mat3.identity() ));
+  }
+  override GlFunc_get(): string { return `vec2 ${this.glFuncName} (vec2 point) {
+    vec3 p = vec3(point, 1);
+    vec3 res = mat_${this.id} * p;
+    return res.xy;
+  }`;}
+  override tsClosure([point]: [glType.GlVec2]): glType.GlVec2 {
+    let p = new util.Vec3(point.value[0], point.value[1], 1);
+    let res = this.mat.value.mul3x1(p);
+    return new glType.GlVec2(new util.Vec2(res[0], res[1]));
+  }
+  map(v: Affine2D): Affine2D {
+    return new Affine2D(new glType.GlMat3(this.mat.value.mul(v.mat.value)));
+  }
+  scale(x: number, y: number): Affine2D {
+    let mat = util.Mat3.identity();
+    [x,y].forEach((v,i) => {mat[i][i] = v;});
+    return (new Affine2D(new glType.GlMat3(mat))).map(this);
+  }
+  translate(x: number, y: number): Affine2D {
+    let mat = util.Mat3.identity();
+    [x,y].forEach((v,i) => {mat[i][2] = v;});
+    return (new Affine2D(new glType.GlMat3(mat))).map(this);
+  }
+  rotate(angle: number): Affine2D {
+    let mat = util.Mat3.zero();
+    mat[0][0] = Math.cos(angle); mat[0][1] = -Math.sin(angle);
+    mat[1][0] = Math.sin(angle); mat[1][1] = Math.cos(angle);
+    mat[2][2] = 1;
+    return (new Affine2D(new glType.GlMat3(mat))).map(this);
   }
 }

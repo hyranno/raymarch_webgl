@@ -160,6 +160,27 @@ export class GlQuaternion implements HasGlType {
   }
 }
 
+@staticImplements<HasGlTypeStatic<GlMat3>>()
+export class GlMat3 implements HasGlType {
+  static glTypeString: string = "mat3";
+  value: util.Mat3;
+  constructor(value: util.Mat3){
+    this.value = value;
+  }
+  static default(): GlMat3 {
+    return new GlMat3(util.Mat3.identity());
+  }
+  getGlTypeString(): string {
+    return GlMat3.glTypeString;
+  }
+  setGlUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): void {
+    setGlUniformMatrix(gl, program, name,
+      this.value[0][0], this.value[1][0], this.value[2][0],
+      this.value[0][1], this.value[1][1], this.value[2][1],
+      this.value[0][2], this.value[1][2], this.value[2][2],
+    );
+  }
+}
 @staticImplements<HasGlTypeStatic<GlMat4>>()
 export class GlMat4 implements HasGlType {
   static glTypeString: string = "mat4";

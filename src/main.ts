@@ -19,12 +19,12 @@ function main(): void {
     renderer.draw(0);
   });
 
-  console.log("script ready");
+  console.log("script ready. wait 1s");
   window.setTimeout(
     ()=>timetick.start(),
-    3000
+    1000
   );
 }
 
 console.log("script loaded");
-document.body.onload = () => window.setTimeout(main, 3000);
+document.body.onload = () => window.setTimeout(main, 100);

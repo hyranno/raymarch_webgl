@@ -17,6 +17,7 @@ import * as materials from '@tsgl/materials';
 import * as drawables from '@tsgl/drawables';
 
 import {BrickStructure} from './brick';
+import {FenceShape} from './fence';
 
 let random_uniform = new rand.Uniform();
 let rand_normal = new rand.Normal();
@@ -47,7 +48,7 @@ export class BridgeBase extends drawables.MaterializedShape {
 export class TiledCylinder extends drawables.MaterializedShape {
   constructor(){
     let shape = new shapes.RepetitionInfX(
-      new shapes.Extrude(new shapes2d.Circle(), new GlFloat(3.02)),
+      new shapes.Extrude(new shapes2d.Circle(), new GlFloat(3.1)),
       repetitionInterval
     );
     let tileColor = new glClosure.Displacement(
@@ -67,7 +68,7 @@ export class TiledCylinder extends drawables.MaterializedShape {
         ),
         new v3fields.VoronoiSimplex(
           new v3fields.FromPolar(
-            new fields.SmoothClamp(new fields.Random(new rand.Mult(rand_exponential, [new rand.Constant(0.1)])), -0.2, 0.2, 0.1),
+            new fields.SmoothClamp(new fields.Random(new rand.Mult(rand_exponential, [new rand.Constant(0.2)])), -0.3, 0.3, 0.1),
             new fields.Random(new rand.Mult(random_uniform, [new rand.Constant(2*Math.PI)])),
             new fields.Random(new rand.Mult(new rand.Add(random_uniform, [new rand.Constant(-0.5)]), [new rand.Constant(Math.PI)])),
           )
@@ -77,7 +78,6 @@ export class TiledCylinder extends drawables.MaterializedShape {
     );
     let texture = new textures.FieldDefined(
       tileColor,
-      //new v3fields.FromXYZ(new fields.Constant(1),new fields.Constant(1),new fields.Constant(1)),
       new fields.Constant(0.4),
       new fields.Constant(0.5),
     );
@@ -86,11 +86,34 @@ export class TiledCylinder extends drawables.MaterializedShape {
   }
 }
 
+export class Fence extends drawables.MaterializedShape {
+  constructor() {
+    let shape = new shapes.RepetitionInfX(
+      new shapes.Displacement(
+        new shapes.Transformed(
+          new FenceShape(),
+          new Transform(repetitionInterval/2,Quaternion.identity(),new Vec3(0,0,2.6))),
+          new tsgl_closure.Anonymous("displace", GlVec3.default(), [GlVec3.default()],
+            ([point]: [GlVec3]) => new GlVec3(new Vec3(point.value[0], point.value[1], Math.abs(point.value[2]))),
+            () => `{return vec3(v0.x, v0.y, abs(v0.z));}`
+          )
+      ),
+      repetitionInterval
+    );
+    let material = new materials.TextureReflectanceModel(
+      new textures.Constant(new Vec3(0.9, 0.9, 0.9), 0.8, 0.1),
+      new reflectances.Phong(),
+    );
+    //BumpMap
+    super(shape, material);
+  }
+}
 
 export class Bridge extends drawables.Group {
   constructor() {
     let base = new drawables.Transformed(new BridgeBase(), new Transform(baseScale, Quaternion.identity(), new Vec3(0,0,0)));
     let tile = new drawables.Transformed(new TiledCylinder(), new Transform(1, Quaternion.identity(), new Vec3(0,4.6,0)));
-    super([base, tile]);
+    let fence = new drawables.Transformed(new Fence(), new Transform(1, Quaternion.identity(), new Vec3(0,6,0)));
+    super([base, tile, fence]);
   }
 }

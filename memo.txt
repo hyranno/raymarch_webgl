@@ -20,17 +20,13 @@ npm run build
         穴や彫刻
     無限長
       shapeはRepetitionInfだけどTextureは繰り返さない
+  三つ編み
+  移動する光源(テクスチャにベイクされてないので)
   TSで球との衝突判定できるので利用したい
 
 
 TODO
-now: 陸橋
-  Transformed で scale < 1 のとき謎の挙動をする
-  側面にタイルの小窓
-    円筒 + VoronoiSimplexマテリアル
-  モルタルの手すり
-    形状が複雑なのでBoundingShape
-    装飾の穴
+now: カメラと光源をうろうろさせる
 future:
   地面
     SDFPlane?
@@ -68,8 +64,13 @@ soooooon:
 
 
 リファクタリング
+  Extrude - Extrusion
   AffineのTsGlClosure
+  Affine2D, Affine3D .inverse()
   mixをselect(T,T,bool)とinterpolate(T,T,float)に分ける
+  Shape
+    距離関数 TsGlClosure<GlFloat, [GlVec3]> そのものでいいのでは
+    getNormalはDrawableに移動する
   GlClosure,Randomなどの Constant
     uniformで変更可能なUniformVar
     初期値のみで決定されるConstant
@@ -92,6 +93,7 @@ soooooon:
   type parameter からその型のstaticメンバにアクセスしたい
     GlClosureのtypedDummy
     Vec2,3,4, Mat2,3,4 のgenerics
+  Transformed で scale < 1 のとき謎の挙動をする?
   Simplex.neighborsあたりなんかバグありそう
   GlClosureを型引数によってTsGlClosure化したい
   GlAdditiveの正しい型付け
