@@ -101,15 +101,21 @@ export class FenceShape extends shapes3d.Transformed {
         ),
         new shapes3d.Transformed(
           new shapes3d.Extrude(
-            new CenterDeco(),
-            new GlFloat(0.2)
-          ), new Transform(0.1, Quaternion.identity(), new Vec3(0,0,0.04))
+            new tsgl_closure.Displacement<GlFloat, GlVec2>(
+              "affine", new CenterDeco(),
+              tsgl_closure.Affine2D.identity().scale(10,10)
+            ),
+            new GlFloat(0.02)
+          ), new Transform(1, Quaternion.identity(), new Vec3(0,0,0.04))
         ),
         new shapes3d.Transformed(
           new shapes3d.Extrude(
-            new LargeDeco(),
-            new GlFloat(0.2)
-          ), new Transform(0.1, Quaternion.identity(), new Vec3(0.76, -0.02, 0.04))
+            new tsgl_closure.Displacement<GlFloat, GlVec2>(
+              "affine", new LargeDeco(),
+              tsgl_closure.Affine2D.identity().translate(-0.76, 0.02).scale(10,10)
+            ),
+            new GlFloat(0.02)
+          ), new Transform(1, Quaternion.identity(), new Vec3(0,0,0.04))
         )
       ]),
       new tsgl_closure.Anonymous("displace", GlVec3.default(), [GlVec3.default()],

@@ -10,7 +10,7 @@ npm run build
     ComputeShaderが使えないので無理そう
 最終的に何を出力するか
   Proceduralな生成の強みは
-  Blenderのモディファイアを使った表現を参考に
+  Blenderのモディファイアやノードを使った表現を参考に
   レンガ橋
     Voronoi, VoronoiEdge, noise
     繰り返しの装飾
@@ -20,7 +20,6 @@ npm run build
         穴や彫刻
     無限長
       shapeはRepetitionInfだけどTextureは繰り返さない
-  三つ編み
   移動する光源(テクスチャにベイクされてないので)
   TSで球との衝突判定できるので利用したい
 

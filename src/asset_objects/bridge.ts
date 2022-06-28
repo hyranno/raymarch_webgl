@@ -104,7 +104,13 @@ export class Fence extends drawables.MaterializedShape {
       new textures.Constant(new Vec3(0.9, 0.9, 0.9), 0.8, 0.1),
       new reflectances.Phong(),
     );
-    //BumpMap
+    let bump = new fields.FractionalBrownianMotion(
+      0.4, 2, util.Simplex3Coord.Simplex3Center.mul(1/2),
+      new fields.SimplexInterpolation(
+        new fields.Random(new rand.Mult(rand_normal, [new rand.Constant(0.2)])),
+        new fields.CircularyZeroSum()
+      )
+    );//new materials.BumpMap(material, bump)
     super(shape, material);
   }
 }

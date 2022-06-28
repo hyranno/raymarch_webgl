@@ -46,7 +46,7 @@ export class BrickStructure extends materials.BumpMap {
     let cementFBMTexture = new textures.FieldDefined(
       cementFBMColor, cementAbsFBM, new fields.Constant(0)
     );
-    let cement = new textures.Add(cementBaseTexture, [cementFBMTexture]);
+    let cement = cementBaseTexture; //new textures.Add(cementBaseTexture, [cementFBMTexture]);
     let cementBump = new fields.Mult(cementAbsFBM, [new fields.Constant(0.02)]);
 
     let brickBaseColor = new glClosure.Displacement(
