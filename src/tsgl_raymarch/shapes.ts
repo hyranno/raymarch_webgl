@@ -251,11 +251,6 @@ export class Displacement extends FromSdfClosure {
   }
 }
 
-export class Transformed extends Displacement {
-  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, transform: Transform) {
-    super(original, new tsgl_closure.InverseTransform(transform));
-  }
-}
 export class RepetitionInf extends Displacement {
   interval: GlVec3;
   constructor(original: TsGlClosure<GlFloat, [GlVec3]>, interval: Vec3) {
@@ -325,6 +320,18 @@ export class Repetition extends Displacement {
   }
 }
 
+export class Transformed extends Map {
+  constructor(original: TsGlClosure<GlFloat, [GlVec3]>, transform: Transform) {
+    let displacer = new tsgl_closure.InverseTransform(transform);
+    let displaced = new tsgl_closure.Displacement(`displace`, original, displacer);
+    let mapper = new tsgl_closure.Anonymous<GlFloat, [GlFloat]>(
+      "scale", GlFloat.default(), [GlFloat.default()],
+      ([v]: [GlFloat]) => new GlFloat(v.value * transform.scale),
+      () => `{return v0 * transformParams_${displacer.id}.scale;}`
+    );
+    super(displaced, mapper);
+  }
+}
 
 export class BoundingShape extends Shape3D {
   original: GlEntity & HasShape;

@@ -11,21 +11,12 @@ npm run build
 最終的に何を出力するか
   Proceduralな生成の強みは
   Blenderのモディファイアやノードを使った表現を参考に
-  レンガ橋
-    Voronoi, VoronoiEdge, noise
-    繰り返しの装飾
-      柵
-        モルタル
-        タイル(Voronoi)
-        穴や彫刻
-    無限長
-      shapeはRepetitionInfだけどTextureは繰り返さない
   移動する光源(テクスチャにベイクされてないので)
   TSで球との衝突判定できるので利用したい
 
 
 TODO
-now: カメラと光源をうろうろさせる
+now: リファクタリング
 future:
   地面
     SDFPlane?
@@ -70,15 +61,17 @@ soooooon:
   Shape
     距離関数 TsGlClosure<GlFloat, [GlVec3]> そのものでいいのでは
     getNormalはDrawableに移動する
+  shapeの拡大縮小を含むDisplace
+    返ってきた距離関数をscale倍しないとダメ
   GlClosure,Randomなどの Constant
     uniformで変更可能なUniformVar
     初期値のみで決定されるConstant
+
+リファクタリング(そのうち)
   GroupでfindNearestを何度も呼びたくない
     ShapeはgetDistance, DrawableはgetNearestSurface
     getNearestSurface -> DrawableSurface
       DrawableId, 参照MaterialId, 距離
-
-リファクタリング(そのうち)
   shapeFBM
   Displacementでnormalの回転
     微小化したnormalの始点と終点をそれぞれDisplaceして正規化?
@@ -92,7 +85,6 @@ soooooon:
   type parameter からその型のstaticメンバにアクセスしたい
     GlClosureのtypedDummy
     Vec2,3,4, Mat2,3,4 のgenerics
-  Transformed で scale < 1 のとき謎の挙動をする?
   Simplex.neighborsあたりなんかバグありそう
   GlClosureを型引数によってTsGlClosure化したい
   GlAdditiveの正しい型付け

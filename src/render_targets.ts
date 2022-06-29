@@ -5,9 +5,9 @@ import * as lights from '@tsgl/lights';
 import * as cameras from '@tsgl/cameras';
 
 import {TimeTicks} from './event_stream'
-import * as objs from './drawable_objects';
-import {CornellBox} from './asset_objects/cornel_box';
+//import {CornellBox} from './asset_objects/cornel_box';
 import {Bridge} from './asset_objects/bridge';
+import {PoppingThing} from './asset_objects/popping_thing';
 
 export class RenderTargets {
   constructor(
@@ -22,7 +22,7 @@ export function getRenderTargets(timetick: TimeTicks) {
     t = (t+1) % (1024*1024);
   });
 
-  let camera = new cameras.Perspective(new Vec3(0,4,20), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(400,300));
+  let camera = new cameras.Perspective(new Vec3(0,4,20), new Vec3(0,0.6,0), new Vec3(0.8,0,0), 1, new Vec2(800,600));
   timetick.addEventListener(()=> {
     let a = t * Math.PI * 2 / timetick.interval;
     camera.position.value = (new Vec3(0,12,0)).add(new Vec3(20*Math.sin(a/2), -6*Math.cos(a), 20*Math.cos(a/2)));
@@ -39,14 +39,12 @@ export function getRenderTargets(timetick: TimeTicks) {
     /*
     new drawables.Transformed(
       new CornellBox(),
-      new Transform( 5, Quaternion.fromAngleAxis(0, new Vec3(1,0,0)), new Vec3(0,0,-2.5) )
+      new Transform( 5, Quaternion.identity(), new Vec3(0,0,-2.5) )
     ),
-    new objs.OrbitingSphere(timetick),
-    new objs.RotatingRoundedCube(timetick),
-    new objs.SwingBox(timetick),
     */
     //new objs.RotatingRoundedCube(timetick),
     new Bridge(),
+    new drawables.Transformed(new PoppingThing(timetick), new Transform(0.5, Quaternion.identity(), new Vec3(0,8,0)))
   ];
 
   let light = new lights.PointLight(new Vec3(0,3,1), new Vec3(1,1,1));
