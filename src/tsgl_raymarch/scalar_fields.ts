@@ -2,7 +2,8 @@ import * as util from './util';
 import {GlRandom} from './random';
 import {GlClosure} from './gl_closure';
 import * as glClosure from './gl_closure';
-import * as tsglClosure from './tsgl_closure';
+import * as tsgl_Closure from './tsgl_closure';
+import * as tsgl_displacer from './tsgl_displacer';
 import {GlInt, GlFloat, GlVec3, Transform} from './gl_types';
 
 export abstract class ScalarField extends GlClosure<GlFloat, [GlVec3]> {
@@ -27,7 +28,7 @@ export class Mult extends glClosure.Reduce<GlFloat, [GlVec3]> {
 }
 export class Transformed extends glClosure.Displacement<GlFloat, GlVec3> {
   constructor(original: GlClosure<GlFloat, [GlVec3]>, transform: Transform) {
-    super("get", original, new tsglClosure.InverseTransform(transform));
+    super("get", original, new tsgl_displacer.InverseTransform(transform));
   }
 }
 

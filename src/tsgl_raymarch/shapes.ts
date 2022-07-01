@@ -3,6 +3,7 @@ import {GlEntity} from './gl_entity';
 import {GlFloat, GlVec3, GlVec2, Transform} from './gl_types';
 import {TsGlClosure} from './tsgl_closure';
 import * as tsgl_closure from './tsgl_closure';
+import * as tsgl_displacer from './tsgl_displacer';
 
 export interface HasShape {
   getDistance(point: Vec3): number;
@@ -322,7 +323,7 @@ export class Repetition extends Displacement {
 
 export class Transformed extends Map {
   constructor(original: TsGlClosure<GlFloat, [GlVec3]>, transform: Transform) {
-    let displacer = new tsgl_closure.InverseTransform(transform);
+    let displacer = new tsgl_displacer.InverseTransform(transform);
     let displaced = new tsgl_closure.Displacement(`displace`, original, displacer);
     let mapper = new tsgl_closure.Anonymous<GlFloat, [GlFloat]>(
       "scale", GlFloat.default(), [GlFloat.default()],
@@ -364,7 +365,7 @@ export class BoundingShape extends Shape3D {
 }
 
 
-export class Extrude extends Shape3D {
+export class Extrusion extends Shape3D {
   shape2d: TsGlClosure<GlFloat, [GlVec2]>;
   thickness: GlFloat;
   constructor(shape2d: TsGlClosure<GlFloat, [GlVec2]>, thickness: GlFloat) {

@@ -10,6 +10,7 @@ import * as fields from '@tsgl/scalar_fields';
 import * as v3fields from '@tsgl/vec3_fields';
 import {GlClosure} from '@tsgl/gl_closure';
 import * as glClosure from '@tsgl/gl_closure';
+import * as tsgl_displacer from '@tsgl/tsgl_displacer';
 
 let testTexture = new textures.Constant(new Vec3(0.8,0.8,0.8), 0.9, 0.1);
 let bump0 = new fields.Constant(0);
@@ -22,7 +23,7 @@ export class BrickStructure extends materials.BumpMap {
     let rand_normal = new rand.Normal();
     let rand_exponential = new rand.Exponential();
     let local_field = new fields.CircularyZeroSum();
-    let brickSize = v3fields.Affine.identity().scale(1/2.1, 1/0.6, 1/1).scale(5,5,5);
+    let brickSize = tsgl_displacer.Affine3D.identity().scale(2.1, 0.6, 1).scale(0.2,0.2,0.2).inverse();
 
     let cementBaseTexture: textures.Constant = new textures.Constant(
       new Vec3(0.75,0.75,0.75), 0.8, 0.1
@@ -39,7 +40,7 @@ export class BrickStructure extends materials.BumpMap {
             ), local_field
           )
         ),
-        v3fields.Affine.identity().scale(8, 8, 8)
+        tsgl_displacer.Affine3D.identity().scale(0.12, 0.12, 0.12).inverse()
       )
     ;
     let cementAbsFBM: GlClosure<GlFloat, [GlVec3]> = new fields.Length(cementFBMColor);
@@ -90,7 +91,7 @@ export class BrickStructure extends materials.BumpMap {
             ), local_field
           )
         ),
-        v3fields.Affine.identity().scale(16,16,16)
+        tsgl_displacer.Affine3D.identity().scale(0.06, 0.06, 0.06).inverse()
       )
     ;
     let brickFBMTexture = new textures.FieldDefined(

@@ -3,6 +3,7 @@ import * as util from '@tsgl/util';
 import {GlFloat, GlVec3, Transform} from '@tsgl/gl_types';
 import {TsGlClosure} from '@tsgl/tsgl_closure';
 import * as tsgl_closure from '@tsgl/tsgl_closure';
+import * as tsgl_displacer from '@tsgl/tsgl_displacer';
 import * as rand from '@tsgl/random';
 import * as fields from '@tsgl/scalar_fields';
 import * as v3fields from '@tsgl/vec3_fields';
@@ -36,7 +37,7 @@ export class BridgeBase extends drawables.MaterializedShape {
           new Transform(1, Quaternion.identity(), new Vec3(0,1,0))
         ),
         [
-          new shapes.Extrude(new shapes2d.Circle(), new GlFloat(2)),
+          new shapes.Extrusion(new shapes2d.Circle(), new GlFloat(2)),
         ]
       ),
       unitLength * 2
@@ -48,7 +49,7 @@ export class BridgeBase extends drawables.MaterializedShape {
 export class TiledCylinder extends drawables.MaterializedShape {
   constructor(){
     let shape = new shapes.RepetitionInfX(
-      new shapes.Extrude(new shapes2d.Circle(), new GlFloat(3.1)),
+      new shapes.Extrusion(new shapes2d.Circle(), new GlFloat(3.1)),
       repetitionInterval
     );
     let tileColor = new glClosure.Displacement(
@@ -74,7 +75,7 @@ export class TiledCylinder extends drawables.MaterializedShape {
           )
         )
       ),
-      v3fields.Affine.identity().scale(3,3,3)
+      new tsgl_displacer.InverseTransform(new Transform(1/3, Quaternion.identity(), new Vec3(0,0,0)))
     );
     let texture = new textures.FieldDefined(
       tileColor,

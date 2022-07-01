@@ -17,6 +17,14 @@ npm run build
 
 TODO
 now: リファクタリング
+  Shape
+    距離関数 TsGlClosure<GlFloat, [GlVec3]> そのものでいいのでは
+    getNormalはDrawableに移動する
+  GlClosure,Randomなどの Constant
+    uniformで変更可能なUniformVar
+    初期値のみで決定されるConstant
+  drawables_objectsの整理
+  git master へのマージ
 future:
   地面
     SDFPlane?
@@ -54,20 +62,11 @@ soooooon:
 
 
 リファクタリング
-  Extrude - Extrusion
-  AffineのTsGlClosure
-  Affine2D, Affine3D .inverse()
-  mixをselect(T,T,bool)とinterpolate(T,T,float)に分ける
-  Shape
-    距離関数 TsGlClosure<GlFloat, [GlVec3]> そのものでいいのでは
-    getNormalはDrawableに移動する
-  shapeの拡大縮小を含むDisplace
-    返ってきた距離関数をscale倍しないとダメ
-  GlClosure,Randomなどの Constant
-    uniformで変更可能なUniformVar
-    初期値のみで決定されるConstant
 
 リファクタリング(そのうち)
+  mixをselect(T,T,bool)とinterpolate(T,T,float)に分ける
+  shapeの拡大縮小を含むDisplace
+    返ってきた距離関数をscale倍しないとダメ
   GroupでfindNearestを何度も呼びたくない
     ShapeはgetDistance, DrawableはgetNearestSurface
     getNearestSurface -> DrawableSurface
