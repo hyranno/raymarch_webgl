@@ -4,8 +4,10 @@ import * as materials from '@tsgl/materials';
 import * as glEntities from '@tsgl/gl_entity';
 import {GlFloat, GlVec3, Transform} from '@tsgl/gl_types';
 import {GlClosure} from '@tsgl/gl_closure';
+import {TsGlClosure} from './tsgl_closure';
 
-export abstract class Drawable extends glEntities.GlEntity implements shapes.HasShape, materials.HasMaterial {
+
+export abstract class Drawable extends glEntities.GlEntity implements materials.HasMaterial {
   abstract GlFunc_getTexturePatch(): string;
   abstract GlFunc_mapNormal(): string;
   abstract GlFunc_calcAmbient(): string;
@@ -13,8 +15,24 @@ export abstract class Drawable extends glEntities.GlEntity implements shapes.Has
   abstract GlFunc_calcSpecular(): string;
   abstract getDistance(point: Vec3): number;
   abstract GlFunc_getDistance(): string;
-  abstract getNormal(point: Vec3): Vec3;
-  abstract GlFunc_getNormal(): string;
+  getNormal(point: Vec3): Vec3 {
+    const EPS = 0.0001;
+    let v: Vec3 = new Vec3(
+      this.getDistance(point.add(new Vec3(+EPS,0,0))) - this.getDistance(point.add(new Vec3(-EPS,0,0))),
+      this.getDistance(point.add(new Vec3(0,+EPS,0))) - this.getDistance(point.add(new Vec3(0,-EPS,0))),
+      this.getDistance(point.add(new Vec3(0,0,+EPS))) - this.getDistance(point.add(new Vec3(0,0,-EPS))),
+    );
+    return v.normalize();
+  }
+  GlFunc_getNormal(): string {
+    return `vec3 getNormal_${this.id} (vec3 point) {
+      return normalize(vec3(
+        getDistance_${this.id}(point+vec3(+EPS,0,0)) - getDistance_${this.id}(point+vec3(-EPS,0,0)),
+        getDistance_${this.id}(point+vec3(0,+EPS,0)) - getDistance_${this.id}(point+vec3(0,-EPS,0)),
+        getDistance_${this.id}(point+vec3(0,0,+EPS)) - getDistance_${this.id}(point+vec3(0,0,-EPS))
+      ));
+    }`;
+  }
   override getGlDeclarations(): string { return this.isGlDeclared()? `` : `
     ${super.getGlDeclarations()}
     float getDistance_${this.id} (vec3 point);
@@ -39,28 +57,20 @@ export abstract class Drawable extends glEntities.GlEntity implements shapes.Has
 
 
 export class MaterializedShape extends Drawable {
-  shape: glEntities.GlEntity & shapes.HasShape;
+  shape: TsGlClosure<GlFloat, [GlVec3]>;
   material: glEntities.GlEntity & materials.HasMaterial;
-  constructor(shape: glEntities.GlEntity & shapes.HasShape, material: glEntities.GlEntity & materials.HasMaterial) {
+  constructor(shape: TsGlClosure<GlFloat, [GlVec3]>, material: glEntities.GlEntity & materials.HasMaterial) {
     super();
     this.shape = shape;
     this.material = material;
     this.dependentGlEntities.push(shape, material);
   }
   override getDistance(point: Vec3): number {
-    return this.shape.getDistance(point);
-  }
-  override getNormal(point: Vec3): Vec3 {
-    return this.shape.getNormal(point);
+    return this.shape.tsClosure([new GlVec3(point)]).value;
   }
   override GlFunc_getDistance(): string {
     return `float getDistance_${this.id} (vec3 point) {
-      return getDistance_${this.shape.id}(point);
-    }`;
-  }
-  override GlFunc_getNormal(): string {
-    return `vec3 getNormal_${this.id} (vec3 point) {
-      return getNormal_${this.shape.id}(point);
+      return ${this.shape.glFuncName}(point);
     }`;
   }
   override GlFunc_getTexturePatch(): string {return `

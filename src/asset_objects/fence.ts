@@ -92,7 +92,8 @@ class LargeDeco extends shapes2d.Union {
 export class FenceShape extends shapes3d.Transformed {
   constructor() {
     let box = new shapes3d.Box(new Vec3(1.0, 0.2, 0.04));
-    let shape = new shapes3d.Displacement(
+    let shape = new tsgl_closure.Displacement(
+      "displace",
       new shapes3d.Subtraction(box, [
         new shapes3d.Extrusion(
           new tsgl_closure.Displacement<GlFloat, GlVec2>(

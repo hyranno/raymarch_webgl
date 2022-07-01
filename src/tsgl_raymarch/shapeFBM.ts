@@ -30,14 +30,15 @@ export class SpheresRand extends shapes.Shape3D {
       return length(point-origin) - r;
     }
   `;}
-  override getDistance(point: util.Vec3): number {
+  override tsClosure([_point]: [GlVec3]): GlFloat {
+    let point = _point.value;
     let tetraCoord = util.Simplex3Coord.fromOrthogonal(point);
     let tetraIndices = tetraCoord.neighbors();
     let distances = tetraIndices.map((i) => this.getSphereDistance(point, i));
-    return distances.reduce((prev,current) => Math.min(prev, current));
+    return new GlFloat(distances.reduce((prev,current) => Math.min(prev, current)));
   }
-  GlFunc_getDistance(): string {return `
-    float getDistance_${this.id}(vec3 point) {
+  override GlFunc_get(): string {return `
+    float ${this.glFuncName}(vec3 point) {
       vec3 tetraCoord = coord_OrthogonalToSimplex3(point);
       vec3[13] tetraIndices = simplex3_neighbors(tetraCoord);
       float res = getSphereDistance_${this.id}(point,tetraIndices[0]);
@@ -78,16 +79,17 @@ export class HullSpheres extends shapes.Shape3D {
       {name: "weight", value: this.weight},
     );
   }
-
-  override getDistance(point: util.Vec3): number { //blendIntersection
-    return util.blend(
-      this.hull.getDistance(point), this.spheres.getDistance(point), false, this.smoothness.value, this.weight.value
-    );
+  override tsClosure(args: [GlVec3]): GlFloat { //blendIntersection
+    return new GlFloat(util.blend(
+      this.hull.tsClosure(args).value,
+      this.spheres.tsClosure(args).value,
+      false, this.smoothness.value, this.weight.value
+    ));
   }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
+  override GlFunc_get(): string {
+    return `float ${this.glFuncName} (vec3 point) {
       return blend(
-        getDistance_${this.hull.id}(point), getDistance_${this.spheres.id}(point), false,
+        ${this.hull.glFuncName}(point), ${this.spheres.glFuncName}(point), false,
         smoothness_${this.id}, weight_${this.id}
       );
     }`;
@@ -105,16 +107,18 @@ export class BlendBrownianMotion extends shapes.Shape3D {
     this.brownianMotion = new HullSpheres(original, randGen, scale, smoothness, weight);
     this.dependentGlEntities.push(original, this.brownianMotion);
   }
-  override getDistance(point: util.Vec3): number { //blendUnion
-    return util.blend(
-      this.original.getDistance(point), (this.isUnion?1:-1)*this.brownianMotion.getDistance(point),
+  override tsClosure(args: [GlVec3]): GlFloat { //blendUnion
+    return new GlFloat(util.blend(
+      this.original.tsClosure(args).value,
+      (this.isUnion?1:-1)*this.brownianMotion.tsClosure(args).value,
       this.isUnion, this.brownianMotion.smoothness.value, this.brownianMotion.weight.value
-    );
+    ));
   }
-  override GlFunc_getDistance(): string {
-    return `float getDistance_${this.id} (vec3 point) {
+  override GlFunc_get(): string {
+    return `float ${this.glFuncName} (vec3 point) {
       return blend(
-        getDistance_${this.original.id}(point), float(${(this.isUnion?1:-1)})*getDistance_${this.brownianMotion.id}(point),
+        ${this.original.glFuncName}(point),
+        float(${(this.isUnion?1:-1)}) * ${this.brownianMotion.glFuncName}(point),
         ${this.isUnion}, smoothness_${this.brownianMotion.id}, weight_${this.brownianMotion.id}
       );
     }`;

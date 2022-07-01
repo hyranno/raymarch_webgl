@@ -90,7 +90,8 @@ export class TiledCylinder extends drawables.MaterializedShape {
 export class Fence extends drawables.MaterializedShape {
   constructor() {
     let shape = new shapes.RepetitionInfX(
-      new shapes.Displacement(
+      new tsgl_closure.Displacement(
+        "displace",
         new shapes.Transformed(
           new FenceShape(),
           new Transform(repetitionInterval/2,Quaternion.identity(),new Vec3(0,0,2.6))),
