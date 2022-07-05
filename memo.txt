@@ -17,9 +17,6 @@ npm run build
 
 TODO
 now: リファクタリング
-  Shape
-    距離関数 TsGlClosure<GlFloat, [GlVec3]> そのものでいいのでは
-    getNormalはDrawableに移動する
   GlClosure,Randomなどの Constant
     uniformで変更可能なUniformVar
     初期値のみで決定されるConstant

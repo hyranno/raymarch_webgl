@@ -42,7 +42,6 @@ export function getRenderTargets(timetick: TimeTicks) {
       new Transform( 5, Quaternion.identity(), new Vec3(0,0,-2.5) )
     ),
     */
-    //new objs.RotatingRoundedCube(timetick),
     new Bridge(),
     new drawables.Transformed(new PoppingThing(timetick), new Transform(0.5, Quaternion.identity(), new Vec3(0,8,0)))
   ];
