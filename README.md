@@ -1,6 +1,7 @@
 # これは何?
 TypeScriptとWebGL習熟のために作ったレイトレーサです。TypeScriptで距離関数を組み立ててWebGLに渡して描画できないかと試みた跡地です。
 build/index.htmlを開いて実行します。主にsrcフォルダ内が書いたコードで、Webpackによりbuild/index.jsにまとめられています。
+[ここ](http://uncotechhack.net/preview/raymarch_webgl/)にデプロイしています。
 
 # 特徴は?
 TypeScriptから距離関数やプロシージャルなマテリアルを組み立てることができます。
